@@ -1,0 +1,23 @@
+# Builds on GitHub's servers and updates the existing Worker, so nothing is built by hand.
+# Needs repository secrets: CLOUDFLARE_API_TOKEN (Workers edit permission) and CLOUDFLARE_ACCOUNT_ID.
+name: Deploy Santomi
+on:
+  push: { branches: [main] }
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm install --no-audit --no-fund
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+        env: { VITE_DEMO_MODE: "true" }
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: deploy
