@@ -17,7 +17,7 @@ Owner: CEO / Product Owner. Claude acts as the full technical team.
 - Illustrations: `Art` renders 3D WebP from `src/assets/3d` (source PNGs → `npm run assets <folder>`); vector fallback only for keys without a render.
 - DS v2 primitives: `src/components/ds` (PageHeader, PrimaryCTA, SecondaryCTA, CreamSheet, Segmented, StatusPill, states). Motion tokens: `src/motion/tokens.ts`.
 - One primary action per screen. No generic dashboards, no stock imagery, no emoji as major illustrations.
-- Motion: **Motion for React only** (OriginKit not connected in this environment). Respect reduced motion (`MotionConfig reducedMotion="user"`).
+- Animation stack (one tool per job): **Motion for React** = all UI motion (`src/motion`: tokens, springs, page/modal/list presets, Pressable/StaggerList/Ambient); **Rive** (`@rive-app/react-canvas`) = interactive assets; **dotLottie** (`@lottiefiles/dotlottie-react`) = short pre-rendered feedback; CSS = trivial loops & button press. Rive/dotLottie only via `RiveAnimation`/`LottieAnimation` from `src/animation` (lazy, self-hosted WASM, static fallback, reduced-motion aware). Real assets go to `src/assets/rive|lottie` — never fabricate files. OriginKit MCP is not connected in this environment. Respect reduced motion (`MotionConfig reducedMotion="user"`).
 
 ## Architecture
 - `src/domain/*` — pure logic (draw algorithm, gift ideas). Must stay framework-free so it can run in Supabase Edge Functions (Deno).

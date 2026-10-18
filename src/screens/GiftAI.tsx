@@ -13,6 +13,7 @@ import { Screen } from '@/components/ui/Screen'
 import { Chip, DemoBadge, Sheet } from '@/components/ui/Kit'
 import { Icon } from '@/components/ui/Icon'
 import { Art } from '@/components/art/Art'
+import { RiveAnimation } from '@/animation'
 import { ErrorState, PageHeader, SantomiButton } from '@/components/ds'
 import { FREE_AI_GENERATIONS, useDemo } from '@/data/demoStore'
 import { DEMO_WISHLISTS } from '@/data/demoSeed'
@@ -139,7 +140,7 @@ export function GiftAI() {
           animate={loading ? { scale: [1, 1.04, 1] } : { scale: 1 }}
           transition={loading ? { duration: 1.8, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
         >
-          <Art name="robot" size={176} eager />
+          {/* Rive robot when src/assets/rive/gift-ai-robot.riv exists; static 3D render until then */}`n          <RiveAnimation asset="gift-ai-robot" stateMachine="Robot" boolInput={{ name: 'thinking', value: loading }} label="Робот Gift AI" className="h-[176px] w-[176px]" fallback={<Art name="robot" size={176} eager />} />
         </motion.div>
         <motion.div
           key={forName ?? 'any'}

@@ -285,6 +285,21 @@ test('gift AI uses the revealed recipient', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Рекомендации для Вика' })).toBeVisible()
 })
 
+test('animation runtimes stay lazy: no Rive/dotLottie download without real assets', async ({ page }) => {
+  const heavy: string[] = []
+  page.on('request', (r) => {
+    if (/RivePlayer|LottiePlayer|\.wasm|unpkg\.com|jsdelivr\.net/.test(r.url())) heavy.push(r.url())
+  })
+  await enterApp(page)
+  await page.goto('/ai')
+  await expect(page.getByText('Найду идеальный подарок')).toBeVisible()
+  await page.goto('/rooms/r-friends/draw')
+  await page.getByRole('button', { name: 'Запустить жеребьёвку' }).click()
+  await page.getByRole('button', { name: 'Запустить', exact: true }).click()
+  await expect(page.getByText('Жеребьёвка проведена')).toBeVisible()
+  expect(heavy, heavy.join('\n')).toEqual([])
+})
+
 test('AI Plus never simulates a payment', async ({ page }, info) => {
   await enterApp(page)
   await page.goto('/premium')

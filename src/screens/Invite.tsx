@@ -7,7 +7,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { AnimatePresence, motion } from 'motion/react'
-import QRCode from 'qrcode'
 import { Screen } from '@/components/ui/Screen'
 import { Avatar, DemoBadge, Sheet } from '@/components/ui/Kit'
 import { Icon, type IconName } from '@/components/ui/Icon'
@@ -36,7 +35,9 @@ export function Invite() {
   const link = room ? inviteLink(room.inviteCode) : ''
   useEffect(() => {
     if (!qrOpen || !link) return
-    QRCode.toString(link, { type: 'svg', margin: 1, color: { dark: '#281D19', light: '#FFF9F2' }, errorCorrectionLevel: 'M' })
+    // qrcode is loaded only when the QR sheet opens (keeps it out of the main bundle)
+    import('qrcode')
+      .then(({ default: QRCode }) => QRCode.toString(link, { type: 'svg', margin: 1, color: { dark: '#281D19', light: '#FFF9F2' }, errorCorrectionLevel: 'M' }))
       .then(setQrSvg)
       .catch(() => setQrSvg(null))
   }, [qrOpen, link])

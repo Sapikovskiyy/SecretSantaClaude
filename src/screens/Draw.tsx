@@ -12,6 +12,7 @@ import { Screen } from '@/components/ui/Screen'
 import { Avatar, Sheet } from '@/components/ui/Kit'
 import { Icon } from '@/components/ui/Icon'
 import { Art } from '@/components/art/Art'
+import { LottieAnimation } from '@/animation'
 import { ErrorState, PageHeader, PrimaryCTA, SantomiButton } from '@/components/ds'
 import { NavRow } from '@/components/ds/blocks'
 import { ME, isMember, useDemo } from '@/data/demoStore'
@@ -97,9 +98,16 @@ export function Draw() {
         <AnimatePresence mode="wait">
           {phase === 'done' ? (
             <motion.div key="done" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center pt-2 text-center">
-              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-pine text-snow">
-                <Icon name="check" size={28} strokeWidth={2.6} />
-              </span>
+              {/* dotLottie success when src/assets/lottie/success-check.lottie exists; static check until then */}
+              <LottieAnimation
+                asset="success-check"
+                className="h-20 w-20"
+                fallback={
+                  <span className="flex h-14 w-14 items-center justify-center rounded-full bg-pine text-snow">
+                    <Icon name="check" size={28} strokeWidth={2.6} />
+                  </span>
+                }
+              />
               <h1 className="mt-4 text-section">Жеребьёвка проведена</h1>
               <p className="mt-2 max-w-[30ch] text-callout text-ink/70">
                 Каждый участник получил своего получателя. Кто кому дарит, знает только сервер — даже организатор этого не видит.
