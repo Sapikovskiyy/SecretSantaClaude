@@ -1,32 +1,43 @@
-﻿/**
- * Gift AI — controlled workflow, not a free chat (brief §16).
- * Demo: ideas come from a local curated catalog (domain/giftIdeas.ts).
- * Phase 4: same UI, backed by a Supabase Edge Function → Yandex AI Studio.
+/**
+ * 12 · Gift AI — sheet 03/screen 12.
+ * Robot scene with a speech bubble, cream panel: recipient, budget, interests, «Что ищем?»,
+ * up to 5 recommendations with save, follow-ups, free limit → AI Plus.
+ * Controlled workflow (not a free chat); every free-text query passes the topic guard.
+ * DEMO: ideas come from the local catalog instantly — no fake «thinking» delay, and
+ * prices are category ranges, never live shop prices. Phase 4: Edge Function → Yandex AI.
  */
 import { useMemo, useState } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import { AnimatePresence, motion } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
-import { Button } from '@/components/ui/Buttons'
-import { Chip, DemoBadge, Sheet, Steps, inputDark } from '@/components/ui/Kit'
+import { Chip, DemoBadge, Sheet } from '@/components/ui/Kit'
 import { Icon } from '@/components/ui/Icon'
 import { Art } from '@/components/art/Art'
+import { ErrorState, PageHeader, SantomiButton } from '@/components/ds'
 import { FREE_AI_GENERATIONS, useDemo } from '@/data/demoStore'
 import { DEMO_WISHLISTS } from '@/data/demoSeed'
 import { personName } from '@/data/people'
 import { INTERESTS, interestById } from '@/domain/interests'
-import { suggestIdeas, type FollowUp } from '@/domain/giftIdeas'
+import { ideaArt, suggestIdeas, type FollowUp } from '@/domain/giftIdeas'
+import { checkGiftTopic, interestsFromText, MAX_QUERY_LENGTH } from '@/domain/topic'
 import type { GiftIdea, InterestId } from '@/domain/types'
-import { formatRange, formatRub } from '@/lib/format'
+import { formatRange } from '@/lib/format'
 import { haptic } from '@/lib/telegram'
 import { toast } from '@/data/uiStore'
+import { DUR, EASE, PRESS, cardIn } from '@/motion/tokens'
 
-const WHO = ['Друг', 'Коллега', 'Родственник', 'Партнёр']
-const BUDGETS = [500, 1000, 2000, 3000, 5000]
+const BUDGETS = [
+  { id: 'low', label: 'До 1 000 ₽', value: 1000 },
+  { id: 'mid', label: '1–3 тыс. ₽', value: 3000 },
+  { id: 'high', label: 'От 3 000 ₽', value: 8000 },
+] as const
+type BudgetId = (typeof BUDGETS)[number]['id']
+const budgetFor = (rub: number): BudgetId => (rub <= 1000 ? 'low' : rub <= 3000 ? 'mid' : 'high')
+
 const FOLLOW_UPS: { id: FollowUp; label: string }[] = [
   { id: 'cheaper', label: 'Предложи дешевле' },
   { id: 'unusual', label: 'Что-то необычное' },
-  { id: 'practical', label: 'Более практичный подарок' },
+  { id: 'practical', label: 'Более практичный' },
   { id: 'again', label: 'Попробуй ещё' },
 ]
 
@@ -35,262 +46,304 @@ export function GiftAI() {
   const navigate = useNavigate()
   const { rooms, me, aiUsed, consumeAi, savedIdeas, saveIdea, removeIdea } = useDemo()
 
-  // Recipients from revealed draws are offered first.
-  const recipientOptions = useMemo(
+  const recipients = useMemo(
     () =>
       rooms
         .filter((r) => r.stage === 'drawn' && r.revealSeen && r.myRecipientId)
-        .map((r) => ({ roomId: r.id, personId: r.myRecipientId!, budget: r.budget, label: personName(r.myRecipientId!, me) })),
+        .map((r) => ({ roomId: r.id, personId: r.myRecipientId!, budget: r.budget, name: personName(r.myRecipientId!, me) })),
     [rooms, me],
   )
-  const preset = recipientOptions.find((o) => o.roomId === params.get('room'))
+  const preset = recipients.find((o) => o.roomId === params.get('room')) ?? recipients[0]
 
-  const [step, setStep] = useState(preset ? 1 : 0)
-  const [who, setWho] = useState<string>(preset ? preset.personId : '')
-  const [budget, setBudget] = useState(preset?.budget ?? 2000)
+  const [who, setWho] = useState<string>(preset?.personId ?? 'friend')
+  const [budget, setBudget] = useState<BudgetId>(budgetFor(preset?.budget ?? 3000))
   const [interests, setInterests] = useState<InterestId[]>(preset ? (DEMO_WISHLISTS[preset.personId]?.interests ?? []) : [])
-  const [useWishlist, setUseWishlist] = useState(true)
-  const [limits, setLimits] = useState(preset ? (DEMO_WISHLISTS[preset.personId]?.avoid.join(', ') ?? '') : '')
+  const [query, setQuery] = useState('')
   const [results, setResults] = useState<GiftIdea[] | null>(null)
   const [shown, setShown] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
-  const [tab, setTab] = useState<'new' | 'saved'>('new')
+  const [error, setError] = useState<string | null>(null)
+  const [pickInterests, setPickInterests] = useState(false)
+  const [savedOpen, setSavedOpen] = useState(false)
   const [paywall, setPaywall] = useState(false)
 
+  const recipient = recipients.find((r) => r.personId === who)
   const left = Math.max(0, FREE_AI_GENERATIONS - aiUsed)
-  const whoRecipient = recipientOptions.find((o) => o.personId === who)
-  const hasWishlist = Boolean(whoRecipient && DEMO_WISHLISTS[whoRecipient.personId]?.items.length)
+  const forName = recipient?.name
 
   const generate = (followUp?: FollowUp) => {
+    setError(null)
+    const verdict = checkGiftTopic(query)
+    if (!verdict.ok) {
+      haptic.error()
+      setError(verdict.reason === 'too_long' ? `Слишком длинный запрос — до ${MAX_QUERY_LENGTH} символов` : 'Gift AI помогает только с подарками. Опишите, кому и что вы ищете.')
+      return
+    }
     if (!consumeAi()) {
       haptic.error()
       setPaywall(true)
       return
     }
     setLoading(true)
-    setResults(null)
-    const wishInterests = hasWishlist && useWishlist ? (DEMO_WISHLISTS[whoRecipient!.personId]?.interests ?? []) : []
-    setTimeout(() => {
-      const ideas = suggestIdeas({
-        budget,
-        interests: [...new Set([...interests, ...wishInterests])],
+    // Demo: synchronous local catalog. In production this awaits the server — the loader
+    // runs exactly as long as the real request, never longer.
+    const wishInterests = recipient ? (DEMO_WISHLISTS[recipient.personId]?.interests ?? []) : []
+    const ideas = suggestIdeas(
+      {
+        budget: BUDGETS.find((b) => b.id === budget)!.value,
+        interests: [...new Set([...interests, ...wishInterests, ...interestsFromText(query)])],
         followUp,
         exclude: followUp ? shown : [],
         seed: Date.now() % 100000,
-      })
-      setShown((s) => [...s, ...ideas.map((i) => i.id)])
-      setResults(ideas)
-      setLoading(false)
-      haptic.success()
-    }, 1400)
+      },
+      5,
+    )
+    setShown((s) => [...s, ...ideas.map((i) => i.id)])
+    setResults(ideas)
+    setLoading(false)
+    haptic.success()
   }
 
-  const questions = ['Кому подарок?', 'Какой бюджет?', 'Чем увлекается?', 'Что ещё учесть?']
+  const toggleSave = (idea: GiftIdea) => {
+    if (savedIdeas.some((s) => s.id === idea.id)) removeIdea(idea.id)
+    else {
+      saveIdea(idea)
+      toast('Идея сохранена в вишлист → Идеи')
+    }
+  }
 
   return (
-    <Screen surface="pine" withDock>
-      <div className="flex items-center justify-between px-5">
-        <div className="flex rounded-full bg-black/20 p-1">
-          {(['new', 'saved'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={`h-10 rounded-full px-4 text-secondary transition-colors ${tab === t ? 'bg-snow text-ink' : 'text-snow/75'}`}
-            >
-              {t === 'new' ? 'Подбор' : `Сохранённые${savedIdeas.length ? ` (${savedIdeas.length})` : ''}`}
-            </button>
-          ))}
-        </div>
-        <DemoBadge />
+    <Screen withDock headless>
+      <PageHeader
+        leading={<Icon name="sparkle" size={20} className="text-gold" />}
+        title="Gift AI"
+        subtitle="Поможет найти идеальный подарок"
+        right={
+          <motion.button
+            whileTap={PRESS}
+            aria-label={`Сохранённые идеи (${savedIdeas.length})`}
+            onClick={() => setSavedOpen(true)}
+            className="relative flex h-12 w-12 items-center justify-center rounded-full bg-white/10"
+          >
+            <Icon name="clock" size={20} />
+            {savedIdeas.length > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-ember px-1 text-caption font-semibold">{savedIdeas.length}</span>}
+          </motion.button>
+        }
+      />
+
+      {/* Robot scene */}
+      <div className="relative flex h-[190px] items-end overflow-hidden px-5">
+        <div aria-hidden className="absolute -left-10 top-0 h-full w-[70%] bg-[radial-gradient(closest-side,rgba(213,54,28,.55),rgba(40,29,25,0))]" />
+        <motion.div
+          className="relative -mb-2 shrink-0"
+          animate={loading ? { scale: [1, 1.04, 1] } : { scale: 1 }}
+          transition={loading ? { duration: 1.8, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
+        >
+          <Art name="robot" size={176} eager />
+        </motion.div>
+        <motion.div
+          key={forName ?? 'any'}
+          initial={{ opacity: 0, y: 8, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: DUR.card, ease: EASE }}
+          className="relative mb-12 ml-1 rounded-[20px] rounded-bl-[6px] bg-snow px-4 py-3 text-ink shadow-lg"
+        >
+          <p className="text-body font-semibold leading-tight">{forName ? `Найду идеи подарков для ${forName}` : 'Найду идеальный подарок'}</p>
+          <p className="mt-1 text-footnote text-ink-soft">Учитываю интересы, вишлист и бюджет</p>
+        </motion.div>
       </div>
 
-      {tab === 'saved' ? (
-        <div className="mt-6 flex-1 px-5">
-          <h1 className="type-title">Сохранённые идеи</h1>
-          {savedIdeas.length === 0 ? (
-            <div className="mt-10 flex flex-col items-center text-center">
-              <Art name="gift" size={140} />
-              <p className="mt-3 max-w-[28ch] text-callout text-snow/70">Сохраняйте понравившиеся идеи, чтобы вернуться к ним позже</p>
-            </div>
-          ) : (
-            <div className="mt-5 space-y-3">
-              {savedIdeas.map((idea) => (
-                <IdeaCard key={idea.id} idea={idea} saved onToggle={() => removeIdea(idea.id)} />
-              ))}
+      <section className="relative z-10 flex-1 rounded-t-[32px] bg-marzipan px-5 pb-8 pt-5 text-ink">
+        {/* Recipient */}
+        <p className="type-label text-ink/75">Для кого</p>
+        <div className="no-scrollbar -mx-5 mt-2 flex gap-2 overflow-x-auto px-5">
+          {recipients.map((r) => (
+            <Chip
+              key={r.personId}
+              tone="light"
+              active={who === r.personId}
+              onClick={() => {
+                setWho(r.personId)
+                setBudget(budgetFor(r.budget))
+                setInterests(DEMO_WISHLISTS[r.personId]?.interests ?? [])
+                setResults(null)
+              }}
+            >
+              <Icon name="gift" size={15} /> {r.name}
+            </Chip>
+          ))}
+          {[
+            ['friend', 'Друг'],
+            ['colleague', 'Коллега'],
+            ['family', 'Родственник'],
+            ['partner', 'Партнёр'],
+          ].map(([id, label]) => (
+            <Chip key={id} tone="light" active={who === id} onClick={() => setWho(id)}>
+              {label}
+            </Chip>
+          ))}
+        </div>
+
+        {/* Budget */}
+        <p className="type-label mt-4 text-ink/75">Бюджет</p>
+        <div className="mt-2 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Бюджет">
+          {BUDGETS.map((b) => (
+            <motion.button
+              key={b.id}
+              role="radio"
+              aria-checked={budget === b.id}
+              whileTap={PRESS}
+              onClick={() => {
+                haptic.select()
+                setBudget(b.id)
+              }}
+              className={`h-11 whitespace-nowrap rounded-full px-2 text-footnote font-semibold transition-colors duration-200 ${budget === b.id ? 'bg-ember text-snow' : 'bg-snow text-ink/75'}`}
+            >
+              {b.label}
+            </motion.button>
+          ))}
+        </div>
+
+        {/* Interests */}
+        <p className="type-label mt-4 text-ink/75">Интересы получателя</p>
+        <div className="mt-2 flex flex-wrap gap-2">
+          {interests.map((id) => (
+            <button
+              key={id}
+              onClick={() => setInterests((s) => s.filter((x) => x !== id))}
+              aria-label={`Убрать интерес ${interestById[id].title}`}
+              className="flex h-10 items-center gap-1.5 rounded-full bg-snow pl-1.5 pr-3 text-footnote font-semibold"
+            >
+              <Art name={interestById[id].art} size={26} noShadow />
+              {interestById[id].title}
+              <Icon name="close" size={13} className="text-ink/40" />
+            </button>
+          ))}
+          <button onClick={() => setPickInterests(true)} className="flex h-10 items-center gap-1.5 rounded-full border-[1.5px] border-dashed border-ink/25 px-3.5 text-footnote font-semibold text-ink/70">
+            <Icon name="plus" size={14} /> Добавить
+          </button>
+        </div>
+
+        {/* Query */}
+        <p className="type-label mt-4 text-ink/75">Что ищем?</p>
+        <form
+          className="mt-2 flex items-center gap-2 rounded-full bg-snow p-1.5 pl-4 shadow-[0_0_0_1px_rgba(40,29,25,.08)] focus-within:shadow-[0_0_0_2px_#D5361C]"
+          onSubmit={(e) => {
+            e.preventDefault()
+            generate()
+          }}
+        >
+          <Icon name="sparkle" size={18} className="shrink-0 text-ember" />
+          <input
+            aria-label="Что ищем"
+            value={query}
+            maxLength={MAX_QUERY_LENGTH + 20}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Например: уютный подарок для дома"
+            className="h-11 min-w-0 flex-1 bg-transparent text-callout outline-none placeholder:text-ink/40"
+          />
+          <motion.button whileTap={PRESS} aria-label="Подобрать идеи" disabled={loading} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ember text-snow disabled:opacity-50">
+            <Icon name="arrowRight" size={20} strokeWidth={2.2} />
+          </motion.button>
+        </form>
+        <p className="mt-2 text-caption text-ink-soft">Бесплатно осталось: {left} из {FREE_AI_GENERATIONS}</p>
+        {error && (
+          <div className="mt-3">
+            <ErrorState title="Не получилось подобрать" text={error} />
+          </div>
+        )}
+
+        {/* Results */}
+        <div className="mt-5" aria-live="polite">
+          {loading && (
+            <div className="flex items-center gap-2 text-secondary text-ink-soft">
+              <span className="sbtn-spinner text-ember" aria-hidden /> Подбираем идеи…
             </div>
           )}
-        </div>
-      ) : results || loading ? (
-        <div className="mt-6 flex-1 px-5">
-          <div className="flex items-end justify-between">
-            <h1 className="type-title max-w-[10ch]">{loading ? 'Подбираем идеи' : 'Вот что подойдёт'}</h1>
-            <button onClick={() => setResults(null)} className="h-10 rounded-full bg-black/20 px-4 text-secondary">
-              Изменить
-            </button>
-          </div>
-          {loading ? (
-            <div className="mt-10 flex flex-col items-center">
-              <motion.div animate={{ rotate: [-8, 8, -8], y: [0, -10, 0] }} transition={{ duration: 0.9, repeat: Infinity }}>
-                <Art name="gift" size={150} />
-              </motion.div>
-              <p className="mt-4 text-callout text-snow/70">Учитываем интересы и бюджет…</p>
-            </div>
-          ) : (
+          {!loading && !results && (
+            <SantomiButton fullWidth leadingIcon="sparkle" onClick={() => generate()}>
+              {forName ? `Подобрать для ${forName}` : 'Подобрать идеи'}
+            </SantomiButton>
+          )}
+          {!loading && results && (
             <>
-              <div className="mt-5 space-y-3">
-                {results!.length === 0 && (
-                  <p className="rounded-[24px] bg-black/20 p-5 text-callout">С таким бюджетом идей не нашлось. Попробуйте увеличить бюджет.</p>
-                )}
-                {results!.map((idea, i) => (
-                  <motion.div key={idea.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
-                    <IdeaCard
-                      idea={idea}
-                      saved={savedIdeas.some((s) => s.id === idea.id)}
-                      onToggle={() => {
-                        if (savedIdeas.some((s) => s.id === idea.id)) removeIdea(idea.id)
-                        else {
-                          saveIdea(idea)
-                          toast('Идея сохранена')
-                        }
-                      }}
-                    />
-                  </motion.div>
-                ))}
-              </div>
-              <div className="no-scrollbar -mx-5 mt-4 flex gap-2 overflow-x-auto px-5">
+              <h2 className="text-card font-semibold">{forName ? `Рекомендации для ${forName}` : 'Рекомендации'}</h2>
+              {results.length === 0 ? (
+                <p className="mt-2 rounded-[18px] bg-snow p-4 text-callout">С таким бюджетом идей не нашлось. Попробуйте бюджет побольше.</p>
+              ) : (
+                <ul className="mt-3 space-y-2.5">
+                  <AnimatePresence initial={false}>
+                    {results.map((idea, i) => (
+                      <motion.li key={idea.id} {...cardIn(i)}>
+                        <IdeaCard idea={idea} saved={savedIdeas.some((s) => s.id === idea.id)} onToggle={() => toggleSave(idea)} />
+                      </motion.li>
+                    ))}
+                  </AnimatePresence>
+                </ul>
+              )}
+              <div className="no-scrollbar -mx-5 mt-3 flex gap-2 overflow-x-auto px-5">
                 {FOLLOW_UPS.map((f) => (
-                  <Chip key={f.id} onClick={() => generate(f.id)}>
+                  <Chip key={f.id} tone="light" onClick={() => generate(f.id)}>
                     {f.label}
                   </Chip>
                 ))}
               </div>
-              <p className="mt-4 text-caption leading-snug text-snow/55">
-                Цены — примерный диапазон по категории, а не актуальные цены магазинов. Осталось бесплатных подборов: {left} из {FREE_AI_GENERATIONS}
-              </p>
+              <p className="mt-3 text-caption leading-snug text-ink-soft">Цены — примерный диапазон по категории, а не цены магазинов. Демо: идеи из локального каталога, не ИИ.</p>
             </>
           )}
         </div>
-      ) : (
-        <>
-          <div className="mt-6 flex items-end justify-between px-5">
-            <AnimatePresence mode="wait">
-              <motion.h1 key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="type-display max-w-[10ch]">
-                {questions[step]}
-              </motion.h1>
-            </AnimatePresence>
-          </div>
-          <div className="mt-4 flex items-center justify-between px-5">
-            <Steps count={4} current={step} />
-            <span className="text-footnote text-snow/60">
-              Бесплатно: {left} из {FREE_AI_GENERATIONS}
-            </span>
-          </div>
+        <div className="mt-4 flex justify-center">
+          <DemoBadge className="!bg-ink/8 !text-ink/70" />
+        </div>
+      </section>
 
-          <div className="mt-8 flex-1 px-5">
-            <AnimatePresence mode="wait">
-              <motion.div key={step} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                {step === 0 && (
-                  <div className="flex flex-wrap gap-2">
-                    {recipientOptions.map((o) => (
-                      <Chip
-                        key={o.personId}
-                        active={who === o.personId}
-                        onClick={() => {
-                          setWho(o.personId)
-                          setBudget(o.budget)
-                          setInterests(DEMO_WISHLISTS[o.personId]?.interests ?? [])
-                          setLimits(DEMO_WISHLISTS[o.personId]?.avoid.join(', ') ?? '')
-                        }}
-                      >
-                        <Icon name="gift" size={16} />
-                        {o.label}, мой получатель
-                      </Chip>
-                    ))}
-                    {WHO.map((w) => (
-                      <Chip key={w} active={who === w} onClick={() => setWho(w)}>
-                        {w}
-                      </Chip>
-                    ))}
-                  </div>
-                )}
-                {step === 1 && (
-                  <>
-                    <p className="text-numeral leading-none tracking-[-0.04em]">до {formatRub(budget)}</p>
-                    <div className="mt-6 flex flex-wrap gap-2">
-                      {BUDGETS.map((b) => (
-                        <Chip key={b} active={budget === b} onClick={() => setBudget(b)}>
-                          {formatRub(b)}
-                        </Chip>
-                      ))}
-                    </div>
-                  </>
-                )}
-                {step === 2 && (
-                  <div className="flex flex-wrap gap-2">
-                    {INTERESTS.map((i) => (
-                      <Chip
-                        key={i.id}
-                        active={interests.includes(i.id)}
-                        onClick={() => setInterests((s) => (s.includes(i.id) ? s.filter((x) => x !== i.id) : [...s, i.id]))}
-                      >
-                        {i.title}
-                      </Chip>
-                    ))}
-                  </div>
-                )}
-                {step === 3 && (
-                  <div className="space-y-4">
-                    {hasWishlist && (
-                      <Chip active={useWishlist} onClick={() => setUseWishlist(!useWishlist)}>
-                        {useWishlist && <Icon name="check" size={16} />}
-                        Учесть вишлист {whoRecipient!.label}
-                      </Chip>
-                    )}
-                    <textarea
-                      className={`${inputDark} h-28 resize-none py-3`}
-                      placeholder="Например: не любит сладкое, аллергия на шерсть"
-                      maxLength={140}
-                      value={limits}
-                      onChange={(e) => setLimits(e.target.value)}
-                      aria-label="Пожелания и ограничения"
-                    />
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+      <Sheet open={pickInterests} onClose={() => setPickInterests(false)} title="Интересы получателя">
+        <div className="grid grid-cols-3 gap-2">
+          {INTERESTS.map((it) => {
+            const on = interests.includes(it.id)
+            return (
+              <motion.button
+                key={it.id}
+                whileTap={PRESS}
+                aria-pressed={on}
+                onClick={() => setInterests((s) => (on ? s.filter((x) => x !== it.id) : [...s, it.id]))}
+                className={`flex flex-col items-center gap-1 rounded-[18px] p-2 transition-colors ${on ? 'bg-pine text-snow' : 'bg-snow'}`}
+              >
+                <Art name={it.art} size={52} noShadow />
+                <span className="text-caption font-semibold">{it.title}</span>
+              </motion.button>
+            )
+          })}
+        </div>
+        <SantomiButton variant="secondary" fullWidth className="mt-4" onClick={() => setPickInterests(false)}>
+          Готово
+        </SantomiButton>
+      </Sheet>
 
-          <div className="mt-6 flex gap-2 px-5">
-            {step > 0 && (
-              <Button tone="dark" onClick={() => setStep(step - 1)} className="!px-5" aria-label="Назад">
-                <Icon name="back" size={20} />
-              </Button>
-            )}
-            <Button
-              tone={step === 3 ? 'ember' : 'snow'}
-              className="flex-1"
-              icon={step === 3 ? 'sparkle' : undefined}
-              disabled={step === 0 && !who}
-              onClick={() => (step < 3 ? setStep(step + 1) : generate())}
-            >
-              {step === 3 ? 'Подобрать идеи' : 'Дальше'}
-            </Button>
-          </div>
-        </>
-      )}
+      <Sheet open={savedOpen} onClose={() => setSavedOpen(false)} title="Сохранённые идеи">
+        {savedIdeas.length === 0 ? (
+          <p className="pb-4 text-center text-callout text-ink-soft">Нажмите ♡ на рекомендации, чтобы сохранить её</p>
+        ) : (
+          <ul className="space-y-2.5">
+            {savedIdeas.map((idea) => (
+              <li key={idea.id}>
+                <IdeaCard idea={idea} saved onToggle={() => removeIdea(idea.id)} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </Sheet>
 
       <Sheet open={paywall} onClose={() => setPaywall(false)} title="Бесплатные подборы закончились">
         <div className="flex flex-col items-center text-center">
-          <Art name="gift" size={120} />
-          <p className="mt-2 max-w-[30ch] text-callout text-ink/70">
-            С Santomi AI Plus — 50 подборов на 30 дней, анализ вишлистов и сохранённые идеи
-          </p>
-          <Button tone="gold" icon="star" className="mt-5 w-full" onClick={() => navigate('/premium')}>
+          <Art name="robot" size={120} />
+          <p className="mt-2 max-w-[30ch] text-callout text-ink/70">С Santomi AI Plus — 50 подборов на 30 дней, анализ вишлистов и сохранённые идеи</p>
+          <SantomiButton variant="premium" leadingIcon="star" fullWidth className="mt-5" onClick={() => navigate('/premium')}>
             Подробнее об AI Plus
-          </Button>
-          <Link to="/home" className="mt-3 text-secondary text-ink/60" onClick={() => setPaywall(false)}>
+          </SantomiButton>
+          <button className="mt-3 h-11 text-secondary text-ink-soft" onClick={() => setPaywall(false)}>
             Не сейчас
-          </Link>
+          </button>
         </div>
       </Sheet>
     </Screen>
@@ -298,23 +351,16 @@ export function GiftAI() {
 }
 
 function IdeaCard({ idea, saved, onToggle }: { idea: GiftIdea; saved: boolean; onToggle: () => void }) {
-  const art = interestById[idea.interests[0]]?.art ?? 'gift'
+  const art = ideaArt(idea, (i) => interestById[i]?.art ?? 'gift')
   return (
-    <div className="flex gap-3 rounded-[28px] bg-marzipan p-3 pr-4 text-ink">
-      <div className="flex h-[84px] w-[84px] shrink-0 items-center justify-center rounded-[22px] bg-snow">
-        <Art name={art} size={70} noShadow />
-      </div>
-      <div className="min-w-0 flex-1 py-1">
-        <p className="text-body font-medium leading-tight">{idea.title}</p>
-        <p className="mt-1 text-footnote text-ink/65">{idea.why}</p>
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          <span className="rounded-full bg-ink px-2.5 py-0.5 text-caption text-snow">{formatRange(idea.priceMin, idea.priceMax)}</span>
-          {idea.interests.map((i) => (
-            <span key={i} className="rounded-full bg-ink/8 px-2.5 py-0.5 text-caption">
-              {interestById[i].title}
-            </span>
-          ))}
-        </div>
+    <div className="flex gap-3 rounded-[22px] bg-snow p-3 text-ink">
+      <span className="flex h-[76px] w-[76px] shrink-0 items-center justify-center rounded-[18px] bg-marzipan">
+        <Art name={art} size={64} noShadow />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-body font-semibold leading-tight">{idea.title}</p>
+        <p className="mt-0.5 text-callout font-semibold text-ember">{formatRange(idea.priceMin, idea.priceMax)}</p>
+        <p className="mt-0.5 text-footnote text-ink-soft">{idea.why}</p>
       </div>
       <motion.button
         whileTap={{ scale: 0.85 }}
@@ -324,9 +370,9 @@ function IdeaCard({ idea, saved, onToggle }: { idea: GiftIdea; saved: boolean; o
         }}
         aria-label={saved ? 'Убрать из сохранённых' : 'Сохранить идею'}
         aria-pressed={saved}
-        className={`flex h-10 w-10 shrink-0 items-center justify-center self-start rounded-full ${saved ? 'bg-ember text-snow' : 'bg-ink/8'}`}
+        className={`flex h-10 w-10 shrink-0 items-center justify-center self-start rounded-full transition-colors ${saved ? 'bg-ember text-snow' : 'bg-ember/10 text-ember'}`}
       >
-        <Icon name="star" size={18} />
+        <Icon name="heart" size={18} />
       </motion.button>
     </div>
   )

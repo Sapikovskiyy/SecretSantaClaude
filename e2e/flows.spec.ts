@@ -28,7 +28,7 @@ test('welcome → home, returning user skips onboarding', async ({ page }, info)
   }
   await page.getByRole('button', { name: 'Начать' }).click()
   await expect(page).toHaveURL(/\/home$/)
-  await expect(page.getByText('Мои игры')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Мои игры' })).toBeVisible()
   await page.waitForTimeout(500)
   await shots('02-home', page, info.project.name)
   await page.goto('/')
@@ -37,47 +37,96 @@ test('welcome → home, returning user skips onboarding', async ({ page }, info)
 
 test('create a room, invite, add demo participants, run the draw and reveal', async ({ page }, info) => {
   await enterApp(page)
-  await page.getByRole('link', { name: /Создать\s*игру/ }).click()
+  await page.getByRole('link', { name: 'Создать игру' }).first().click()
+  await expect(page.getByRole('heading', { name: 'Создать игру' })).toBeVisible()
+  // validation keeps the user on step 1
+  await page.getByRole('button', { name: 'Далее' }).click()
+  await expect(page.getByText('Введите название — хотя бы 2 буквы')).toBeVisible()
   await page.getByLabel('Название игры').fill('Тестовая игра')
-  await page.getByRole('button', { name: 'Далее' }).first().click()
-  await expect(page.getByRole('heading', { name: 'Какой бюджет подарка?' })).toBeVisible()
-  await page.getByRole('button', { name: '3 000 ₽' }).click()
+  await page.getByLabel('Бюджет на подарок').selectOption('2000')
   await page.waitForTimeout(400)
-  await shots('03-create-budget', page, info.project.name)
-  await page.getByRole('button', { name: 'Далее' }).first().click()
-  await expect(page.getByRole('heading', { name: 'Когда обмен подарками?' })).toBeVisible()
-  await page.waitForTimeout(300)
-  await page.getByRole('button', { name: 'Далее' }).first().click()
-  await expect(page.getByText('Почти готово')).toBeVisible()
-  await page.getByRole('button', { name: 'Создать игру' }).first().click()
+  await shots('03-create', page, info.project.name)
+  await page.getByRole('button', { name: 'Далее' }).click()
+  await expect(page.getByLabel('Максимум участников')).toBeVisible()
+  await page.getByRole('button', { name: 'Далее' }).click()
+  await expect(page.getByText('Всё готово к приглашению друзей')).toBeVisible()
+  await page.getByRole('button', { name: 'Создать игру' }).click()
 
   await expect(page).toHaveURL(/\/invite\?new=1/)
-  await expect(page.getByText('Зовите друзей в игру')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Пригласить друзей' })).toBeVisible()
   for (let i = 0; i < 3; i++) await page.getByRole('button', { name: 'Добавить тестового участника' }).click()
-  await expect(page.getByText('4 участника')).toBeVisible()
+  await expect(page.getByText('Участники (4 из 10)')).toBeVisible()
+  await page.waitForTimeout(500)
   await shots('04-invite', page, info.project.name)
-  await page.getByRole('link', { name: 'Перейти к игре' }).click()
+  // real QR generated from the invite URL
+  await page.getByRole('button', { name: 'Показать QR-код' }).click()
+  await expect(page.locator('[role="img"][aria-label^="QR-код ссылки"] svg')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await page.getByRole('button', { name: 'Перейти к игре' }).click()
 
+  await expect(page.getByText('Участники').first()).toBeVisible()
+  // new screens open at the top, not at the previous screen's scroll position
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0)
+  await page.waitForTimeout(2600) // let join toasts fade for a clean screenshot
   await shots('05-room', page, info.project.name)
-  await page.getByRole('button', { name: 'Провести жеребьёвку' }).first().click()
+  await page.getByRole('button', { name: 'Перейти к жеребьёвке' }).click()
+
+  await expect(page.getByRole('heading', { name: 'Проверьте участников' })).toBeVisible()
+  await page.waitForTimeout(500)
+  await shots('09-draw', page, info.project.name)
+  await page.getByRole('button', { name: 'Запустить жеребьёвку' }).click()
+  await page.getByRole('button', { name: 'Запустить', exact: true }).click()
+  await expect(page.getByText('Жеребьёвка проведена')).toBeVisible()
+  await page.getByRole('button', { name: 'Узнать, кому я дарю' }).click()
+
   await expect(page).toHaveURL(/\/reveal$/)
   await page.waitForTimeout(600)
-  await shots('06-reveal-sealed', page, info.project.name)
-  // The envelope gently wiggles, so open it via keyboard (also checks a11y).
-  await page.getByRole('button', { name: 'Открыть конверт' }).press('Enter')
-  await expect(page.getByText('Вы — Тайный Санта для')).toBeVisible({ timeout: 5000 })
+  await shots('10-reveal-idle', page, info.project.name)
+  // The gift gently sways, so open it via keyboard (also checks a11y).
+  await page.getByRole('button', { name: 'Открыть подарок' }).press('Enter')
+  await expect(page.getByText('Ты даришь подарок')).toBeVisible({ timeout: 4000 })
+  await expect(page.getByText('Несколько подсказок')).toBeVisible()
   await page.waitForTimeout(900)
-  await shots('07-reveal-open', page, info.project.name)
+  await shots('10-reveal-open', page, info.project.name)
 })
 
-test('draw cannot run twice and needs 3 people', async ({ page }) => {
+test('draw cannot run twice; participants cannot start it', async ({ page }) => {
   await enterApp(page)
-  // Seeded "Друзья с универа" has 4 members and I'm the organizer → run draw.
+  // Seeded "Друзья с универа": 4 members, I'm the organizer.
+  await page.goto('/rooms/r-friends/draw')
+  await page.getByRole('button', { name: 'Запустить жеребьёвку' }).click()
+  await page.getByRole('button', { name: 'Запустить', exact: true }).click()
+  await expect(page.getByText('Жеребьёвка проведена')).toBeVisible()
   await page.goto('/rooms/r-friends')
-  await page.getByRole('button', { name: 'Провести жеребьёвку' }).first().click()
-  await expect(page).toHaveURL(/\/reveal$/)
-  await page.goto('/rooms/r-friends')
-  await expect(page.getByRole('button', { name: 'Провести жеребьёвку' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Перейти к жеребьёвке' })).toHaveCount(0)
+  await page.goto('/rooms/r-friends/draw')
+  await expect(page).toHaveURL(/\/rooms\/r-friends$/)
+  // In the family room I'm not the organizer → the draw screen redirects away.
+  await page.goto('/rooms/r-family/draw')
+  await expect(page).toHaveURL(/\/rooms\/r-family$/)
+})
+
+test('participants: exclusions, impossible configuration, reminders', async ({ page }, info) => {
+  await enterApp(page)
+  await page.goto('/rooms/r-friends/participants')
+  await expect(page.getByRole('heading', { name: /Участники \(4/ })).toBeVisible()
+  await page.getByRole('button', { name: 'Напомнить' }).first().click()
+  await expect(page.getByText(/Напоминание для .* отправлено/)).toBeVisible()
+  // Build exclusions until the draw becomes impossible: me ⇄ everyone.
+  for (const other of ['Даша', 'Егор', 'Кира']) {
+    await page.getByRole('button', { name: 'Добавить исключение' }).first().click()
+    await page.getByLabel('Кто').selectOption({ label: 'Вы' })
+    await page.getByLabel('Кому нельзя').selectOption({ label: other })
+    await page.getByRole('dialog').getByRole('button', { name: 'Добавить исключение' }).click()
+  }
+  await expect(page.getByText('Пары не сложатся').first()).toBeVisible()
+  await page.waitForTimeout(400)
+  await shots('06-participants', page, info.project.name)
+  await page.getByRole('tab', { name: 'Правила' }).click()
+  await expect(page.getByText(/Пары видит только сервер/)).toBeVisible()
+  // The draw screen blocks the impossible configuration
+  await page.goto('/rooms/r-friends/draw')
+  await expect(page.getByRole('button', { name: 'Запустить жеребьёвку' })).toBeDisabled()
 })
 
 test('join by invite code and invalid code state', async ({ page }, info) => {
@@ -90,7 +139,7 @@ test('join by invite code and invalid code state', async ({ page }, info) => {
   await shots('08-join', page, info.project.name)
   await page.getByRole('button', { name: 'Присоединиться' }).first().click()
   await expect(page).toHaveURL(/\/rooms\/r-office$/)
-  await expect(page.getByText('Ждём жеребьёвку').first()).toBeVisible()
+  await expect(page.getByText(/Жеребьёвку проведёт организатор/)).toBeVisible()
 })
 
 test('telegram-style startapp deep link opens the join flow', async ({ page }) => {
@@ -198,48 +247,78 @@ test('anonymous chat: offline send fails and can be retried', async ({ page, con
   await expect(page.getByLabel('Доставлено').last()).toBeVisible()
 })
 
-test('gift AI: wizard, results, free limit leads to premium info', async ({ page }, info) => {
+test('gift AI: topic guard, results, saving, free limit leads to AI Plus', async ({ page }, info) => {
   await enterApp(page)
   await page.goto('/ai')
-  await page.getByRole('button', { name: 'Друг' }).click()
-  await page.getByRole('button', { name: 'Дальше' }).click()
-  await page.getByRole('button', { name: 'Дальше' }).click()
-  await page.getByRole('button', { name: 'Кофе и чай' }).click()
-  await page.getByRole('button', { name: 'Дальше' }).click()
-  await page.getByRole('button', { name: 'Подобрать идеи' }).click()
-  await expect(page.getByText('Вот что подойдёт')).toBeVisible({ timeout: 5000 })
-  await page.waitForTimeout(600)
+  await expect(page.getByText('Найду идеальный подарок')).toBeVisible()
+  // off-topic request is refused before any generation is spent
+  await page.getByLabel('Что ищем').fill('напиши код на python')
+  await page.getByLabel('Что ищем').press('Enter')
+  await expect(page.getByText('Gift AI помогает только с подарками', { exact: false })).toBeVisible()
+  await expect(page.getByText('Бесплатно осталось: 3 из 3')).toBeVisible()
+
+  await page.getByLabel('Что ищем').fill('что-то уютное, любит кофе')
+  await page.getByRole('button', { name: 'Подобрать идеи' }).last().click()
+  await expect(page.getByRole('heading', { name: 'Рекомендации' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Сохранить идею' })).toHaveCount(5)
+  await page.getByRole('button', { name: 'Сохранить идею' }).first().click()
+  await expect(page.getByRole('button', { name: 'Сохранённые идеи (1)' })).toBeVisible()
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.waitForTimeout(2600)
   await shots('12-ai', page, info.project.name)
   await page.getByRole('button', { name: 'Предложи дешевле' }).click()
-  await expect(page.getByText('Вот что подойдёт')).toBeVisible({ timeout: 5000 })
   await page.getByRole('button', { name: 'Попробуй ещё' }).click()
-  await expect(page.getByText('Вот что подойдёт')).toBeVisible({ timeout: 5000 })
+  await expect(page.getByText('Бесплатно осталось: 0 из 3')).toBeVisible()
   await page.getByRole('button', { name: 'Что-то необычное' }).click()
   await expect(page.getByText('Бесплатные подборы закончились')).toBeVisible()
+  await page.getByRole('button', { name: 'Подробнее об AI Plus' }).click()
+  await expect(page).toHaveURL(/\/premium$/)
 })
 
-test('premium never simulates a payment', async ({ page }, info) => {
+test('gift AI uses the revealed recipient', async ({ page }) => {
+  await enterApp(page)
+  await page.goto('/rooms/r-family/reveal')
+  await page.getByRole('button', { name: 'Пропустить' }).click()
+  await page.goto('/ai?room=r-family')
+  await expect(page.getByText('Найду идеи подарков для Вика')).toBeVisible()
+  await page.getByRole('button', { name: 'Подобрать для Вика' }).click()
+  await expect(page.getByRole('heading', { name: 'Рекомендации для Вика' })).toBeVisible()
+})
+
+test('AI Plus never simulates a payment', async ({ page }, info) => {
   await enterApp(page)
   await page.goto('/premium')
-  await page.waitForTimeout(500)
-  await shots('13-premium', page, info.project.name)
-  await page.getByRole('button', { name: 'Подключить за Stars' }).first().click()
+  await expect(page.getByRole('heading', { name: 'Подарки на новом уровне' })).toBeVisible()
+  await page.waitForTimeout(1600)
+  await shots('13-ai-plus', page, info.project.name)
+  await page.getByRole('button', { name: /Купить за 99/ }).click()
   await expect(page.getByText('Оплата появится скоро')).toBeVisible()
 })
 
 test('profile and 404', async ({ page }, info) => {
   await enterApp(page)
   await page.goto('/profile')
-  await expect(page.getByText('Santomi AI Plus')).toBeVisible()
+  await expect(page.getByText('Активные игры')).toBeVisible()
+  await expect(page.getByText('Прошлые игры')).toBeVisible()
+  // no fake logout without a separate login
+  await expect(page.getByText(/Выйти/)).toHaveCount(0)
   await page.waitForTimeout(500)
   await shots('14-profile', page, info.project.name)
   await page.goto('/does-not-exist')
   await expect(page.getByText('Такой страницы нет')).toBeVisible()
 })
 
+test('home shows reveal hero and games list', async ({ page }) => {
+  await enterApp(page)
+  await expect(page.getByText('Жеребьёвка прошла!')).toBeVisible()
+  await expect(page.getByRole('link', { name: /Семейный Новый год/ })).toBeVisible()
+  await page.getByText('Жеребьёвка прошла!').click()
+  await expect(page).toHaveURL(/\/reveal$/)
+})
+
 test('no horizontal overflow on key screens', async ({ page }) => {
   await enterApp(page)
-  for (const path of ['/home', '/wishlist', '/wishlist/interests', '/ai', '/profile', '/rooms/r-family', '/join/SANTA5']) {
+  for (const path of ['/home', '/rooms/new', '/rooms/r-friends/invite', '/rooms/r-friends', '/rooms/r-friends/participants', '/rooms/r-friends/draw', '/wishlist', '/wishlist/interests', '/ai', '/premium', '/profile', '/rooms/r-family', '/rooms/r-family/reveal', '/join/SANTA5']) {
     await page.goto(path)
     await page.waitForTimeout(400)
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)

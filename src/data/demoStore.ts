@@ -75,6 +75,23 @@ function seedRooms(): Room[] {
       createdAt: now - 86_400_000,
     },
     {
+      // A finished game from last season, for «Прошлые игры»
+      id: 'r-past',
+      name: 'Офисный Санта',
+      budget: 1500,
+      date: isoInDays(-290),
+      organizerId: 'p-boris',
+      members: [m('p-boris', true, 'ready'), m(ME, true, 'ready'), m('p-egor', true, 'ready'), m('p-mila', true, 'ready'), m('p-lev', true, 'ready')],
+      chatEnabled: true,
+      theme: 'cocoa',
+      exclusions: [],
+      stage: 'exchanged',
+      inviteCode: 'OLD24X',
+      createdAt: now - 86_400_000 * 330,
+      myRecipientId: 'p-egor',
+      revealSeen: true,
+    },
+    {
       // Room you are NOT in yet — try the invite flow with code SANTA5
       id: 'r-office',
       name: 'Офис на Мясницкой',
@@ -359,7 +376,8 @@ export const useDemo = create<DemoState>()(
       }
     },
     {
-      name: 'santomi-demo-v1',
+      // v2: new seed (past game) and chat delivery states — old demo data is discarded.
+      name: 'santomi-demo-v2',
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

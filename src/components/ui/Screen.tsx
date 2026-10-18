@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, type ReactNode } from 'react'
 import { useNavigate, useNavigationType } from 'react-router'
 import { motion } from 'motion/react'
 import { bindBackButton, isTelegram } from '@/lib/telegram'
@@ -50,6 +50,11 @@ export function Screen({ children, surface = 'cocoa', back, right, className = '
   const goBack = () => (typeof back === 'string' ? navigate(back) : navigate(-1))
 
   useEffect(() => bindBackButton(Boolean(back), goBack), [back]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Every screen opens at the top (the window scroll otherwise carries over between routes).
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
 
   // Navigation-aware transition (motion spec: 220–320 ms, 6–16 px): back slides from the left.
   const dir = navType === 'POP' ? -1 : 1

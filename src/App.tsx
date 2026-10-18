@@ -18,6 +18,8 @@ import { RecipientWishlist } from './screens/RecipientWishlist'
 import { GiftAI } from './screens/GiftAI'
 import { Profile } from './screens/Profile'
 import { Premium } from './screens/Premium'
+import { Participants } from './screens/Participants'
+import { Draw } from './screens/Draw'
 import { NotFound } from './screens/NotFound'
 import { Offline } from './components/Offline'
 import { ServerNotConnected } from './screens/ServerNotConnected'
@@ -57,6 +59,8 @@ export function App() {
           <Route path="/rooms/new" element={<CreateRoom />} />
           <Route path="/rooms/:id" element={<RoomDashboard />} />
           <Route path="/rooms/:id/invite" element={<Invite />} />
+          <Route path="/rooms/:id/participants" element={<Participants />} />
+          <Route path="/rooms/:id/draw" element={<Draw />} />
           <Route path="/rooms/:id/reveal" element={<Reveal />} />
           <Route path="/rooms/:id/recipient" element={<RecipientWishlist />} />
           <Route path="/rooms/:id/chat/:role" element={<Chat />} />

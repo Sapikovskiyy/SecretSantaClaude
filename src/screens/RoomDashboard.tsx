@@ -1,18 +1,25 @@
+/**
+ * 05 · Room dashboard — sheet 02/screen 05.
+ * Snowy house scene, cream panel: name + description, three stat tiles, participant and
+ * wishlist progress (animated ~400 ms), actions. Stage-aware: gathering → invite / remind /
+ * draw (organizer only, when allowed); drawn → recipient card, chat, gift status.
+ * The organizer only ever sees aggregate readiness, never pairs.
+ */
 import { useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
 import { motion } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
-import { Button, IconButton, SwipeConfirm } from '@/components/ui/Buttons'
-import { Avatar, Chip, DemoBadge, Field, Progress, Sheet, Toggle, inputLight } from '@/components/ui/Kit'
+import { Avatar, Chip, Field, Sheet, Toggle, inputLight } from '@/components/ui/Kit'
 import { Icon } from '@/components/ui/Icon'
 import { Art } from '@/components/art/Art'
-import { themeFace, stageLabel } from '@/components/RoomCard'
+import { PageHeader, SantomiButton, StatusPill } from '@/components/ds'
+import { HeroScene, NavRow, ProgressRow, StatTile, roomStatus, useRoomStats } from '@/components/ds/blocks'
 import { ME, isMember, unreadCount, useDemo } from '@/data/demoStore'
-import { personName, usePerson, useRoomPeople } from '@/data/people'
+import { personName, usePerson } from '@/data/people'
 import type { GiftStatus, Room } from '@/domain/types'
-import { countdownLabel, formatDate, formatRub, plural } from '@/lib/format'
-import { haptic } from '@/lib/telegram'
+import { countdownLabel, formatRub } from '@/lib/format'
 import { toast } from '@/data/uiStore'
+import { PRESS, cardIn } from '@/motion/tokens'
 import { NotFound } from './NotFound'
 
 const GIFT_STEPS: { id: GiftStatus; label: string }[] = [
@@ -21,315 +28,187 @@ const GIFT_STEPS: { id: GiftStatus; label: string }[] = [
   { id: 'ready', label: 'Упаковал' },
 ]
 
+const shortDate = (iso: string) => new Date(iso + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' })
+
 export function RoomDashboard() {
   const { id } = useParams()
   const navigate = useNavigate()
   const room = useDemo((s) => s.rooms.find((r) => r.id === id))
-  const { runDraw, setGiftStatus, removeMember, chats, me } = useDemo()
-  const people = useRoomPeople(room)
+  const { setGiftStatus, chats, me } = useDemo()
+  const { people, ready, limit } = useRoomStats(room)
   const recipient = usePerson(room?.myRecipientId)
-  const [sheet, setSheet] = useState<null | 'members' | 'exclusions' | 'settings'>(null)
+  const [settings, setSettings] = useState(false)
 
   if (!room) return <NotFound />
   if (!isMember(room)) return <Navigate to={`/join/${room.inviteCode}`} replace />
   const isOrganizer = room.organizerId === ME
-  const face = themeFace[room.theme]
-  const ready = room.members.filter((m) => m.wishlistReady).length
   const myMember = room.members.find((m) => m.personId === ME)
-  const giftCounts = {
-    ready: room.members.filter((m) => m.giftStatus === 'ready').length,
-    bought: room.members.filter((m) => m.giftStatus === 'bought').length,
-  }
-
-  const draw = () => {
-    const res = runDraw(room.id)
-    if (res.ok) {
-      haptic.success()
-      navigate(`/rooms/${room.id}/reveal`)
-    } else {
-      haptic.error()
-      toast(
-        res.reason === 'too_few'
-          ? 'Нужно минимум 3 участника'
-          : res.reason === 'impossible'
-            ? 'С такими исключениями пары не складываются'
-            : 'Жеребьёвка уже прошла',
-        'error',
-      )
-    }
-  }
+  const status = roomStatus(room)
+  const sceneArt = { ember: 'house', pine: 'house', cocoa: 'gift-star' }[room.theme]
 
   return (
-    <Screen back="/home" right={isOrganizer ? <IconButton icon="edit" label="Настройки игры" onClick={() => setSheet('settings')} /> : undefined}>
-      {/* Hero card */}
-      <div className={`relative mx-5 overflow-hidden rounded-[36px] p-6 ${face.bg}`}>
-        <div className="pointer-events-none absolute -bottom-8 -right-6">
-          <Art name={face.art} size={180} noShadow />
-        </div>
-        <span className="relative inline-flex rounded-full bg-black/20 px-3 py-1 text-caption backdrop-blur">{stageLabel(room)}</span>
-        <h1 className="type-title relative mt-4 max-w-[10ch]">{room.name}</h1>
-        {room.description && <p className="relative mt-2 max-w-[24ch] text-secondary text-snow/75">{room.description}</p>}
-        <dl className="relative mt-6 flex gap-6 text-secondary">
-          <div>
-            <dt className="text-snow/60">Обмен</dt>
-            <dd className="mt-0.5 font-medium">{formatDate(room.date)}</dd>
-          </div>
-          <div>
-            <dt className="text-snow/60">Бюджет</dt>
-            <dd className="mt-0.5 font-medium">до {formatRub(room.budget)}</dd>
-          </div>
-        </dl>
-      </div>
-      <p className="mt-3 px-6 text-footnote text-snow/50">{countdownLabel(room.date)}</p>
+    <Screen back="/home" headless className="!pb-0">
+      <PageHeader
+        back="/home"
+        title={room.name}
+        right={
+          isOrganizer && room.stage === 'gathering' ? (
+            <motion.button whileTap={PRESS} aria-label="Настройки игры" onClick={() => setSettings(true)} className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
+              <Icon name="edit" size={20} />
+            </motion.button>
+          ) : undefined
+        }
+      />
 
-      {/* Participants */}
-      <button onClick={() => setSheet('members')} className="mx-5 mt-4 flex items-center gap-3 rounded-[28px] bg-truffle p-4 text-left">
-        <div className="flex -space-x-2">
-          {people.slice(0, 4).map((p) => (
-            <Avatar key={p.id} person={p} size={36} ring />
-          ))}
-        </div>
-        <div className="flex-1">
-          <p className="text-callout font-medium">
-            {people.length} {plural(people.length, 'участник', 'участника', 'участников')}
-          </p>
-          <p className="text-footnote text-snow/55">
-            Вишлисты готовы у {ready} из {room.members.length}
-          </p>
-        </div>
-        <Icon name="forward" size={18} className="text-snow/40" />
-      </button>
-      <div className="mx-5 mt-2 px-1">
-        <Progress value={ready / Math.max(1, room.members.length)} tone="marzipan" />
-      </div>
+      <HeroScene art={sceneArt} size={210} height={210} glow={room.theme === 'pine' ? 'pine' : 'ember'} />
 
-      {/* Stage-specific block */}
-      <div className="mt-6 flex-1 px-5">
-        {room.stage === 'gathering' && isOrganizer && (
-          <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              <Link to={`/rooms/${room.id}/invite`} className="flex h-[92px] flex-col justify-between rounded-[26px] bg-pine p-4">
-                <Icon name="share" />
-                <span className="text-callout font-medium">Пригласить</span>
-              </Link>
-              <button onClick={() => setSheet('exclusions')} className="flex h-[92px] flex-col justify-between rounded-[26px] bg-truffle p-4 text-left">
-                <Icon name="shuffle" />
-                <span className="text-callout font-medium">
-                  Исключения{room.exclusions.length ? ` (${room.exclusions.length})` : ''}
-                </span>
-              </button>
+      <section className="relative z-10 -mt-3 flex-1 rounded-t-[32px] bg-marzipan px-5 pb-8 pt-6 text-ink">
+        <motion.div {...cardIn(0)}>
+          <div className="flex items-start justify-between gap-3">
+            <h1 className="text-section">{room.name}</h1>
+            <StatusPill tone={status.tone}>{status.label}</StatusPill>
+          </div>
+          {room.description && <p className="mt-1.5 text-callout text-ink/70">{room.description}</p>}
+          <p className="mt-1 text-footnote text-ink-soft">{countdownLabel(room.date)}</p>
+        </motion.div>
+
+        <motion.div {...cardIn(1)} className="mt-4 flex gap-2">
+          <StatTile icon="calendar" value={shortDate(room.date)} label="Обмен" />
+          <StatTile icon="gift" value={`до ${formatRub(room.budget)}`} label="Бюджет" />
+          <StatTile icon="users" value={people.length} label="Участники" />
+        </motion.div>
+
+        <motion.div {...cardIn(2)} className="mt-3 space-y-2">
+          <ProgressRow label="Участники" done={people.length} total={limit} tone="pine" people={people} onClick={() => navigate(`/rooms/${room.id}/participants`)} />
+          <ProgressRow label="Вишлисты" done={ready.length} total={people.length} tone="ember" people={ready} onClick={() => navigate(`/rooms/${room.id}/participants`)} />
+        </motion.div>
+
+        {/* Gathering */}
+        {room.stage === 'gathering' && (
+          <div className="mt-5 space-y-3">
+            {!myMember?.wishlistReady && (
+              <NavRow icon={<Art name="stocking" size={34} noShadow />} title="Заполните свой вишлист" subtitle="Так Санте будет проще выбрать подарок" to="/wishlist" />
+            )}
+            <div className="grid grid-cols-2 gap-2">
+              <SantomiButton variant="secondary" size="medium" leadingIcon="users" onClick={() => navigate(`/rooms/${room.id}/invite`)}>
+                Пригласить
+              </SantomiButton>
+              <SantomiButton
+                variant={isOrganizer ? 'secondary' : 'primary'}
+                size="medium"
+                leadingIcon="bell"
+                onClick={() => toast(isOrganizer ? 'Напоминание отправлено (демо)' : 'Организатору отправлено напоминание (демо)')}
+              >
+                Напомнить
+              </SantomiButton>
             </div>
-            {!myMember?.wishlistReady && <WishlistNudge />}
-            <p className="pt-2 text-center text-footnote text-snow/50">
-              {room.members.length < 3 ? 'Для жеребьёвки нужно минимум 3 участника' : 'Когда все соберутся — запускайте'}
-            </p>
-            <SwipeConfirm label="Провести жеребьёвку" knobIcon="shuffle" tone="ember" onConfirm={draw} disabled={room.members.length < 3} />
-          </div>
-        )}
-
-        {room.stage === 'gathering' && !isOrganizer && (
-          <div className="space-y-3">
-            <div className="rounded-[28px] bg-truffle p-5">
-              <p className="type-h3">Ждём жеребьёвку</p>
-              <p className="mt-1 text-secondary text-snow/60">
-                Организатор {personName(room.organizerId, me)} запустит её, когда все соберутся. Пока заполните вишлист.
+            {isOrganizer ? (
+              <SantomiButton fullWidth leadingIcon="shuffle" onClick={() => navigate(`/rooms/${room.id}/draw`)}>
+                Перейти к жеребьёвке
+              </SantomiButton>
+            ) : (
+              <p className="rounded-[18px] bg-snow/70 p-4 text-secondary text-ink/75">
+                Жеребьёвку проведёт организатор — {personName(room.organizerId, me)}. Мы сообщим, когда она пройдёт.
               </p>
-            </div>
-            <WishlistNudge />
+            )}
           </div>
         )}
 
+        {/* Drawn, envelope not opened */}
         {room.stage === 'drawn' && !room.revealSeen && (
           <motion.button
-            whileTap={{ scale: 0.98 }}
+            whileTap={PRESS}
             onClick={() => navigate(`/rooms/${room.id}/reveal`)}
-            className="flex w-full items-center gap-4 rounded-[32px] bg-marzipan p-5 text-left text-ink"
+            className="mt-5 flex w-full items-center gap-4 rounded-[22px] bg-snow p-4 text-left"
           >
-            <Art name="envelope" size={96} noShadow />
+            <Art name="gift-star" size={80} noShadow />
             <span className="flex-1">
-              <span className="type-h3 block">Ваш конверт ждёт</span>
-              <span className="mt-1 block text-secondary text-ink/60">Откройте, чтобы узнать, кому дарите</span>
+              <span className="block text-card font-semibold">Ваш подарок ждёт</span>
+              <span className="mt-0.5 block text-secondary text-ink-soft">Откройте, чтобы узнать, кому дарите</span>
             </span>
+            <Icon name="forward" size={18} className="text-ink/40" />
           </motion.button>
         )}
 
-        {room.stage === 'drawn' && room.revealSeen && recipient && (
-          <div className="space-y-3">
-            <div className="rounded-[32px] bg-marzipan p-5 text-ink">
-              <p className="text-secondary text-ink/60">Вы дарите подарок</p>
-              <div className="mt-3 flex items-center gap-3">
-                <Avatar person={recipient} size={56} />
-                <p className="type-title">{recipient.name}</p>
+        {/* Drawn & revealed (or finished) */}
+        {room.stage !== 'gathering' && room.revealSeen && recipient && (
+          <div className="mt-5 space-y-3">
+            <div className="rounded-[22px] bg-snow p-4">
+              <p className="text-secondary text-ink-soft">{room.stage === 'exchanged' ? 'Вы дарили подарок' : 'Вы дарите подарок'}</p>
+              <div className="mt-2 flex items-center gap-3">
+                <Avatar person={recipient} size={52} />
+                <p className="text-section">{recipient.name}</p>
               </div>
-              <div className="mt-5 grid grid-cols-2 gap-2">
-                <Link to={`/rooms/${room.id}/recipient`} className="flex h-14 items-center justify-center gap-2 rounded-full bg-ink text-callout font-medium text-snow">
-                  <Icon name="gift" size={18} /> Вишлист
-                </Link>
+              {room.stage === 'drawn' && (
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <SantomiButton variant="secondary" size="medium" leadingIcon="gift" onClick={() => navigate(`/rooms/${room.id}/recipient`)}>
+                    Вишлист
+                  </SantomiButton>
+                  {room.chatEnabled && (
+                    <SantomiButton size="medium" leadingIcon="chat" onClick={() => navigate(`/rooms/${room.id}/chat/toRecipient`)}>
+                      Написать
+                    </SantomiButton>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {room.stage === 'drawn' && (
+              <>
+                <div className="rounded-[22px] bg-snow p-4">
+                  <p className="text-secondary text-ink-soft">Как дела с подарком?</p>
+                  <div className="mt-2.5 flex flex-wrap gap-2">
+                    {GIFT_STEPS.map((g) => (
+                      <Chip
+                        key={g.id}
+                        tone="light"
+                        active={myMember?.giftStatus === g.id}
+                        onClick={() => {
+                          setGiftStatus(room.id, g.id)
+                          if (g.id === 'ready') toast('Отлично! Подарок готов')
+                        }}
+                      >
+                        {myMember?.giftStatus === g.id && <Icon name="check" size={16} />}
+                        {g.label}
+                      </Chip>
+                    ))}
+                  </div>
+                </div>
                 {room.chatEnabled && (
-                  <Link to={`/rooms/${room.id}/chat/toRecipient`} className="relative flex h-14 items-center justify-center gap-2 rounded-full bg-ember text-callout font-medium text-snow">
-                    <Icon name="chat" size={18} /> Написать
-                    {unreadCount(chats, room.id, 'toRecipient') > 0 && <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-marzipan" />}
-                  </Link>
+                  <NavRow
+                    icon="lock"
+                    title="Ваш Тайный Санта"
+                    subtitle="Анонимный чат — Санта знает вас, вы его нет"
+                    to={`/rooms/${room.id}/chat/fromSanta`}
+                    trailing={
+                      unreadCount(chats, room.id, 'fromSanta') > 0 ? (
+                        <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-ember px-2 text-caption font-semibold text-snow">{unreadCount(chats, room.id, 'fromSanta')}</span>
+                      ) : undefined
+                    }
+                  />
                 )}
-              </div>
-            </div>
-
-            <div className="rounded-[28px] bg-truffle p-5">
-              <p className="text-secondary text-snow/60">Как дела с подарком?</p>
-              <div className="mt-3 flex gap-2">
-                {GIFT_STEPS.map((g) => (
-                  <Chip
-                    key={g.id}
-                    active={myMember?.giftStatus === g.id}
-                    onClick={() => {
-                      setGiftStatus(room.id, g.id)
-                      if (g.id === 'ready') toast('Отлично! Подарок готов')
-                    }}
-                  >
-                    {myMember?.giftStatus === g.id && <Icon name="check" size={16} />}
-                    {g.label}
-                  </Chip>
-                ))}
-              </div>
-            </div>
-
-            {room.chatEnabled && (
-              <Link to={`/rooms/${room.id}/chat/fromSanta`} className="flex items-center gap-3 rounded-[28px] bg-truffle p-4">
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-ember/20 text-ember-glow">
-                  <Icon name="lock" size={20} />
-                </span>
-                <span className="flex-1">
-                  <span className="block text-callout font-medium">Ваш Тайный Санта</span>
-                  <span className="block text-footnote text-snow/55">Анонимный чат — Санта знает вас, вы его нет</span>
-                </span>
-                {unreadCount(chats, room.id, 'fromSanta') > 0 && (
-                  <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-ember px-2 text-caption font-semibold">
-                    {unreadCount(chats, room.id, 'fromSanta')}
-                  </span>
+                {isOrganizer && (
+                  <div className="rounded-[22px] bg-snow/70 p-4">
+                    <p className="text-secondary text-ink-soft">Подготовка подарков в группе</p>
+                    <p className="mt-1 text-callout">
+                      Готово {room.members.filter((m) => m.giftStatus === 'ready').length}, куплено {room.members.filter((m) => m.giftStatus === 'bought').length} из{' '}
+                      {room.members.length}
+                    </p>
+                    <p className="mt-1 text-caption text-ink-soft">Кто кому дарит, не видит даже организатор</p>
+                  </div>
                 )}
-              </Link>
-            )}
-
-            {isOrganizer && (
-              <div className="rounded-[28px] bg-truffle p-5">
-                <p className="text-secondary text-snow/60">Подготовка подарков в группе</p>
-                <p className="mt-1 text-callout">
-                  Готово {giftCounts.ready}, куплено {giftCounts.bought} из {room.members.length}
-                </p>
-                <p className="mt-2 text-caption text-snow/45">Кто кому дарит, не видит даже организатор</p>
-              </div>
+              </>
             )}
           </div>
         )}
-      </div>
 
-      <MembersSheet open={sheet === 'members'} onClose={() => setSheet(null)} room={room} canEdit={isOrganizer && room.stage === 'gathering'} onRemove={(pid) => removeMember(room.id, pid)} />
-      <ExclusionsSheet open={sheet === 'exclusions'} onClose={() => setSheet(null)} room={room} />
-      <SettingsSheet open={sheet === 'settings'} onClose={() => setSheet(null)} room={room} />
+        <Link to={`/rooms/${room.id}/participants`} className="mt-4 flex h-11 items-center justify-center gap-1 text-secondary font-medium text-ink-soft">
+          Участники и исключения <Icon name="forward" size={16} />
+        </Link>
+      </section>
+
+      <SettingsSheet open={settings} onClose={() => setSettings(false)} room={room} />
     </Screen>
-  )
-}
-
-function WishlistNudge() {
-  return (
-    <Link to="/wishlist" className="flex items-center gap-3 rounded-[28px] bg-marzipan p-4 text-ink">
-      <Art name="mitten" size={64} noShadow />
-      <span className="flex-1">
-        <span className="block text-callout font-medium">Заполните вишлист</span>
-        <span className="block text-footnote text-ink/60">Так Санте будет проще выбрать подарок</span>
-      </span>
-      <Icon name="forward" size={18} />
-    </Link>
-  )
-}
-
-function MembersSheet({ open, onClose, room, canEdit, onRemove }: { open: boolean; onClose: () => void; room: Room; canEdit: boolean; onRemove: (id: string) => void }) {
-  const people = useRoomPeople(room)
-  return (
-    <Sheet open={open} onClose={onClose} title="Участники">
-      <ul className="divide-y divide-ink/8">
-        {people.map((p) => {
-          const m = room.members.find((x) => x.personId === p.id)!
-          return (
-            <li key={p.id} className="flex items-center gap-3 py-3">
-              <Avatar person={p} size={44} />
-              <div className="flex-1">
-                <p className="text-body font-medium">
-                  {p.name}
-                  {p.id === room.organizerId && <span className="ml-2 text-caption font-normal text-ink/50">организатор</span>}
-                </p>
-                <p className="text-footnote text-ink/55">{m.wishlistReady ? 'Вишлист готов' : 'Вишлист не заполнен'}</p>
-              </div>
-              {canEdit && p.id !== room.organizerId && (
-                <button aria-label={`Удалить ${p.name}`} onClick={() => onRemove(p.id)} className="flex h-10 w-10 items-center justify-center rounded-full bg-ink/6">
-                  <Icon name="trash" size={18} />
-                </button>
-              )}
-            </li>
-          )
-        })}
-      </ul>
-      {people.some((p) => p.isDemo) && <DemoBadge className="mt-3 !bg-ink/8 !text-ink/70" />}
-    </Sheet>
-  )
-}
-
-function ExclusionsSheet({ open, onClose, room }: { open: boolean; onClose: () => void; room: Room }) {
-  const people = useRoomPeople(room)
-  const { addExclusion, removeExclusion, me } = useDemo()
-  const [a, setA] = useState<string>('')
-  const [b, setB] = useState<string>('')
-  const [mutual, setMutual] = useState(true)
-  return (
-    <Sheet open={open} onClose={onClose} title="Исключения">
-      <p className="mb-4 text-center text-secondary text-ink/60">Например, пары или коллеги, которые и так дарят друг другу подарки</p>
-      {room.exclusions.length > 0 && (
-        <ul className="mb-4 space-y-2">
-          {room.exclusions.map((e, i) => (
-            <li key={i} className="flex items-center gap-2 rounded-[18px] bg-snow px-4 py-3 text-callout">
-              <span className="flex-1">
-                {personName(e.a, me)} {e.mutual ? '⇄' : '→'} {personName(e.b, me)}
-              </span>
-              <button aria-label="Убрать исключение" onClick={() => removeExclusion(room.id, i)}>
-                <Icon name="close" size={18} />
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-      <div className="grid grid-cols-2 gap-2">
-        <select className={inputLight} value={a} onChange={(e) => setA(e.target.value)} aria-label="Первый участник">
-          <option value="">Кто</option>
-          {people.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-        <select className={inputLight} value={b} onChange={(e) => setB(e.target.value)} aria-label="Второй участник">
-          <option value="">Кому нельзя</option>
-          {people
-            .filter((p) => p.id !== a)
-            .map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-        </select>
-      </div>
-      <Toggle checked={mutual} onChange={setMutual} label="В обе стороны" />
-      <Button
-        className="mt-2 w-full"
-        disabled={!a || !b || a === b}
-        onClick={() => {
-          addExclusion(room.id, { a, b, mutual })
-          setA('')
-          setB('')
-        }}
-      >
-        Добавить исключение
-      </Button>
-    </Sheet>
   )
 }
 
@@ -354,8 +233,9 @@ function SettingsSheet({ open, onClose, room }: { open: boolean; onClose: () => 
           </Field>
         </div>
         <Toggle checked={chat} onChange={setChat} label="Анонимный чат" />
-        <Button
-          className="w-full"
+        <SantomiButton
+          fullWidth
+          leadingIcon="check"
           onClick={() => {
             if (name.trim().length < 2 || Number(budget) < 100) return toast('Проверьте название и бюджет', 'error')
             updateRoom(room.id, { name: name.trim(), budget: Number(budget), date, chatEnabled: chat })
@@ -364,7 +244,7 @@ function SettingsSheet({ open, onClose, room }: { open: boolean; onClose: () => 
           }}
         >
           Сохранить
-        </Button>
+        </SantomiButton>
       </div>
     </Sheet>
   )

@@ -9,7 +9,8 @@ import { Link, type LinkProps } from 'react-router'
 import { haptic } from '@/lib/telegram'
 import { Icon, type IconName } from '@/components/ui/Icon'
 
-export type ButtonVariant = 'primary' | 'success' | 'premium' | 'secondary' | 'ghost' | 'danger'
+/** `telegram` is reserved for the single «Отправить в Telegram» action on the invite screen. */
+export type ButtonVariant = 'primary' | 'success' | 'premium' | 'secondary' | 'ghost' | 'danger' | 'telegram'
 export type ButtonSize = 'small' | 'medium' | 'large'
 
 interface CommonProps {

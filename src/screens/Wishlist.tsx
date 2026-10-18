@@ -16,6 +16,7 @@ import { Sheet } from '@/components/ui/Kit'
 import { Art } from '@/components/art/Art'
 import { useDemo } from '@/data/demoStore'
 import { INTERESTS, interestById } from '@/domain/interests'
+import { ideaArt } from '@/domain/giftIdeas'
 import type { InterestId, Priority, WishItem } from '@/domain/types'
 import { formatRange, formatRub, plural } from '@/lib/format'
 import { haptic } from '@/lib/telegram'
@@ -314,7 +315,7 @@ export function Wishlist() {
                       className="flex gap-3 rounded-[22px] bg-marzipan p-3 text-ink"
                     >
                       <span className="flex h-[68px] w-[68px] shrink-0 items-center justify-center rounded-[18px] bg-snow">
-                        <Art name={interestById[idea.interests[0]]?.art ?? 'gift'} size={58} noShadow />
+                        <Art name={ideaArt(idea, (i) => interestById[i]?.art ?? 'gift')} size={58} noShadow />
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="text-callout font-bold leading-tight">{idea.title}</p>

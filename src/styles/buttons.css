@@ -124,6 +124,14 @@
     --sb-rim: rgba(255, 255, 255, 0.9);
     --sb-gloss: 0.5;
   }
+  /* Brand action only for «Отправить в Telegram» (handoff 04) */
+  .sbtn-telegram {
+    --sb-bg: linear-gradient(155deg, #5cb4ff 0%, #2a8ce8 50%, #1764b8 100%);
+    --sb-fg: #ffffff;
+    --sb-edge: #0f4d91;
+    --sb-shadow: rgba(23, 100, 184, 0.7);
+    --sb-rim: rgba(210, 236, 255, 0.6);
+  }
   /* Quiet variants: no dramatic gradient, minimal depth (hierarchy rule) */
   .sbtn-ghost {
     --sb-bg: transparent;

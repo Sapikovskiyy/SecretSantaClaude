@@ -23,7 +23,8 @@ Owner: CEO / Product Owner. Claude acts as the full technical team.
 - `src/domain/*` — pure logic (draw algorithm, gift ideas). Must stay framework-free so it can run in Supabase Edge Functions (Deno).
 - `src/data/demoStore.ts` — **Demo Mode only** (localStorage), enabled by `VITE_DEMO_MODE=true` / `--mode demo` (`src/lib/mode.ts`). Production builds show `ServerNotConnected` until the backend exists.
 - `supabase/migrations` — schema + RLS + atomic `store_draw` (pre-existing, keep).
-- `src/screens/*` — one file per screen. `src/components/ui/*` — design-system primitives.
+- `src/screens/*` — one file per screen (14 handoff screens + Join, RecipientWishlist, ServerNotConnected). Shared composites in `src/components/ds/blocks.tsx`.
+- Gift AI free text must pass `domain/topic.ts` (gift-only guard) before any generation; never add artificial loading delays. `src/components/ui/*` — design-system primitives.
 - Phase 2+ backend: Supabase (Postgres + RLS + Edge Functions). Telegram `initData` verified server-side only.
 
 ## Security rules

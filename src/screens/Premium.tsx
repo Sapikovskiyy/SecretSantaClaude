@@ -1,89 +1,121 @@
 /**
- * Premium screens. No payment is simulated: the buy buttons explain that
- * Telegram Stars checkout arrives in Phase 5 (brief: never fake a payment).
+ * 13 · AI Plus paywall — sheet 04/screen 13.
+ * Large display headline + robot, cream benefits, Stars price block, gold CTA.
+ * No payment is simulated: Telegram Stars checkout arrives in Phase 5; premium is never
+ * unlocked from the client. The mockup's «100 ₽» is a hypothesis — price is shown in Stars
+ * and marked preliminary until the CEO confirms it (configurable on the server).
  */
 import { useState } from 'react'
 import { motion } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
-import { Button } from '@/components/ui/Buttons'
 import { Sheet } from '@/components/ui/Kit'
-import { Icon } from '@/components/ui/Icon'
+import { Icon, type IconName } from '@/components/ui/Icon'
 import { Art } from '@/components/art/Art'
+import { Logo } from '@/components/Logo'
+import { PageHeader, SantomiButton } from '@/components/ds'
+import { NavRow } from '@/components/ds/blocks'
+import { FREE_AI_GENERATIONS, useDemo } from '@/data/demoStore'
+import { cardIn } from '@/motion/tokens'
 
-// Placeholder prices — final Stars pricing is a CEO decision (Phase 5).
-const PLANS = [
-  {
-    id: 'ai',
-    title: 'AI Plus',
-    period: '30 дней',
-    price: 'около 100 ₽ в Stars',
-    surface: 'bg-pine',
-    art: 'gift',
-    perks: ['50 подборов подарков', 'Анализ вишлиста получателя', 'Уточнения: дешевле, необычнее', 'Сохранённые идеи'],
-  },
-  {
-    id: 'magic',
-    title: 'Magic',
-    period: 'для одной игры',
-    price: 'цена уточняется',
-    surface: 'bg-[radial-gradient(120%_100%_at_20%_0%,#e2492c,#a42813_55%,#5c150b)]',
-    art: 'bauble',
-    perks: ['До 100 участников', 'Праздничные темы оформления', 'Особая анимация конверта', 'Расширенные настройки организатора'],
-  },
-] as const
+/** Preliminary price (matches AI_PLUS_PRICE_STARS in .env.example); the server is the source of truth. */
+const AI_PLUS_PRICE_STARS = 99
+
+const BENEFITS: { icon: IconName; title: string; text: string }[] = [
+  { icon: 'gift', title: '50 AI-подборов на 30 дней', text: 'Уникальные идеи подарков для любых близких' },
+  { icon: 'list', title: 'Анализ вишлиста', text: 'Учитываем интересы и пожелания получателя' },
+  { icon: 'bulb', title: 'Персональные идеи', text: 'С учётом характера, повода и вашего бюджета' },
+  { icon: 'heart', title: 'Сохранённые идеи', text: 'Возвращайтесь к понравившимся подаркам' },
+]
 
 export function Premium() {
-  const [info, setInfo] = useState(false)
+  const aiUsed = useDemo((s) => s.aiUsed)
+  const [info, setInfo] = useState<null | 'ai' | 'magic'>(null)
+  const left = Math.max(0, FREE_AI_GENERATIONS - aiUsed)
+
   return (
-    <Screen back>
-      <div className="px-5">
-        <h1 className="type-display ml-auto max-w-[9ch] text-right">Больше магии</h1>
-        <p className="mt-3 text-right text-callout text-snow/60">Основная игра всегда бесплатна</p>
+    <Screen back headless className="!pb-0">
+      <PageHeader back title="AI Plus" right={<Logo compact className="scale-90" />} />
+
+      {/* Hero */}
+      <div className="relative flex min-h-[230px] items-end px-5">
+        <div aria-hidden className="absolute right-0 top-0 h-full w-[70%] bg-[radial-gradient(closest-side,rgba(213,54,28,.6),rgba(40,29,25,0))]" />
+        {/* one-time light sweep on entry (motion spec 13) */}
+        <motion.div
+          aria-hidden
+          initial={{ x: '-60%', opacity: 0 }}
+          animate={{ x: '160%', opacity: [0, 0.5, 0] }}
+          transition={{ duration: 1.4, ease: 'easeOut', delay: 0.3 }}
+          className="pointer-events-none absolute inset-y-0 w-24 -skew-x-12 bg-gradient-to-r from-transparent via-white/25 to-transparent"
+        />
+        <div className="relative z-10 max-w-[58%] pb-6">
+          <h1 className="type-hero">Подарки на новом уровне</h1>
+          <p className="mt-3 text-secondary text-snow/70">Santomi Gift AI подберёт идеи с учётом интересов, вишлиста и характера получателя</p>
+        </div>
+        <div className="pointer-events-none absolute -right-2 bottom-0">
+          <Art name="robot" size={190} eager />
+        </div>
       </div>
 
-      <div className="mt-6 space-y-4 px-5">
-        {PLANS.map((p, i) => (
-          <motion.div
-            key={p.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className={`relative overflow-hidden rounded-[36px] p-6 ${p.surface}`}
-          >
-            <div className="pointer-events-none absolute -right-6 -top-4">
-              <Art name={p.art} size={140} noShadow />
+      <section className="relative z-10 flex-1 rounded-t-[32px] bg-marzipan px-5 pb-8 pt-6 text-ink">
+        <ul className="space-y-2">
+          {BENEFITS.map((b, i) => (
+            <motion.li key={b.title} {...cardIn(i)} className="flex items-center gap-3 rounded-[20px] bg-snow p-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-ember/10 text-ember">
+                <Icon name={b.icon} size={20} />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-body font-semibold">{b.title}</span>
+                <span className="block text-footnote text-ink-soft">{b.text}</span>
+              </span>
+            </motion.li>
+          ))}
+        </ul>
+
+        {/* Price */}
+        <motion.div {...cardIn(4)} className="relative mt-4 rounded-[24px] bg-snow p-4 pt-5">
+          <span className="absolute -top-3 left-4 rounded-full bg-ember px-3 py-1 text-caption font-semibold text-snow">Выгодно</span>
+          <div className="flex items-end justify-between gap-3">
+            <div>
+              <p className="flex items-baseline gap-1.5">
+                <span className="text-title">{AI_PLUS_PRICE_STARS}</span>
+                <Icon name="star" size={22} className="self-center text-gold" />
+                <span className="text-callout text-ink-soft">/ 30 дней</span>
+              </p>
+              <p className="text-footnote text-ink-soft">Подписка AI Plus, оплата в Telegram Stars</p>
             </div>
-            <p className="text-secondary text-snow/70">Santomi</p>
-            <p className="type-title">{p.title}</p>
-            <p className="mt-1 text-secondary text-snow/70">
-              {p.period}, {p.price}
-            </p>
-            <ul className="mt-5 space-y-2">
-              {p.perks.map((perk) => (
-                <li key={perk} className="flex items-center gap-2 text-callout">
-                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-snow/20">
-                    <Icon name="check" size={14} strokeWidth={2.4} />
-                  </span>
-                  {perk}
-                </li>
-              ))}
-            </ul>
-            <Button tone={p.id === 'ai' ? 'gold' : 'snow'} icon="star" className="mt-6 w-full" onClick={() => setInfo(true)}>
-              Подключить за Stars
-            </Button>
-          </motion.div>
-        ))}
-      </div>
+            <span className="shrink-0 rounded-[14px] bg-marzipan px-3 py-2 text-center text-caption font-semibold leading-tight text-ink/70">
+              Цена
+              <br />
+              предварительная
+            </span>
+          </div>
+          <SantomiButton variant="premium" fullWidth leadingIcon="star" className="mt-4" onClick={() => setInfo('ai')}>
+            Купить за {AI_PLUS_PRICE_STARS} ⭐
+          </SantomiButton>
+          <p className="mt-2 text-center text-caption text-ink-soft">Сейчас бесплатно доступно ещё {left} из {FREE_AI_GENERATIONS} подборов</p>
+        </motion.div>
 
-      <Sheet open={info} onClose={() => setInfo(false)} title="Оплата появится скоро">
+        <p className="mt-3 flex items-start gap-2 text-caption leading-snug text-ink-soft">
+          <Icon name="help" size={14} className="mt-0.5 shrink-0" />
+          Условия продления и отмены будут показаны в окне оплаты Telegram перед покупкой.
+        </p>
+
+        <div className="mt-5">
+          <NavRow icon={<Art name="bauble" size={34} noShadow />} title="Santomi Magic" subtitle="Большие группы, темы и особая анимация" onClick={() => setInfo('magic')} />
+        </div>
+      </section>
+
+      <Sheet open={info !== null} onClose={() => setInfo(null)} title={info === 'magic' ? 'Santomi Magic' : 'Оплата появится скоро'}>
         <div className="text-center">
-          <Art name="star" size={96} />
-          <p className="mx-auto mt-3 max-w-[30ch] text-callout text-ink/70">
-            Оплата через Telegram Stars подключается на этапе 5. В демо-режиме покупки не проводятся и не имитируются.
+          <Art name={info === 'magic' ? 'bauble' : 'star'} size={96} />
+          <p className="mx-auto mt-3 max-w-[32ch] text-callout text-ink/70">
+            {info === 'magic'
+              ? 'До 100 участников, праздничные темы и особая анимация раскрытия для одной игры. Цена уточняется.'
+              : 'Оплата через Telegram Stars подключается на этапе 5. В демо-режиме покупки не проводятся и не имитируются.'}
           </p>
-          <Button tone="snow" className="mt-5 w-full" onClick={() => setInfo(false)}>
+          <SantomiButton variant="secondary" fullWidth className="mt-5" onClick={() => setInfo(null)}>
             Понятно
-          </Button>
+          </SantomiButton>
         </div>
       </Sheet>
     </Screen>

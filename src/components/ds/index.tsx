@@ -19,6 +19,7 @@ export function PageHeader({
   back,
   right,
   leading,
+  onBack,
 }: {
   title?: ReactNode
   subtitle?: ReactNode
@@ -26,6 +27,8 @@ export function PageHeader({
   back?: boolean | string
   right?: ReactNode
   leading?: ReactNode
+  /** Overrides navigation, e.g. to step back inside a multi-step form. */
+  onBack?: () => void
 }) {
   const navigate = useNavigate()
   // Inside Telegram the native BackButton is used (ScreenShell binds it), so we hide ours.
@@ -40,7 +43,8 @@ export function PageHeader({
             aria-label="Назад"
             onClick={() => {
               haptic.tap()
-              if (typeof back === 'string') navigate(back)
+              if (onBack) onBack()
+              else if (typeof back === 'string') navigate(back)
               else navigate(-1)
             }}
             className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-snow backdrop-blur-md"

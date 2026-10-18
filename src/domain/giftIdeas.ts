@@ -41,6 +41,25 @@ const C: Omit<GiftIdea, 'id'>[] = [
 
 export const GIFT_CATALOG: GiftIdea[] = C.map((g, i) => ({ ...g, id: `idea-${i}` }))
 
+/** Picks the illustration that matches the object itself, not just its category. */
+const ART_BY_KEYWORD: [RegExp, string][] = [
+  [/кружк|кофе|кофемолк|чай|шоколад/i, 'mug'],
+  [/книг|чтени/i, 'book'],
+  [/игр|головоломк/i, 'gamepad'],
+  [/колонк|наушник|зарядн|лампа с настройкой/i, 'headphones'],
+  [/пластинк|концерт/i, 'vinyl'],
+  [/аромат|свеч|крем|уход|рук/i, 'perfume'],
+  [/плед|лампа/i, 'house'],
+  [/варежк|платок/i, 'stocking'],
+  [/скетч|керамик|вышив|фотокниг/i, 'palette'],
+  [/скалодром|ролик|бутылк|мяч/i, 'ball'],
+  [/игрушк|сертификат|подписк/i, 'gift-star'],
+]
+
+export function ideaArt(idea: Pick<GiftIdea, 'title' | 'interests'>, fallback: (i: InterestId) => string): string {
+  return ART_BY_KEYWORD.find(([re]) => re.test(idea.title))?.[1] ?? fallback(idea.interests[0] ?? 'other')
+}
+
 export type FollowUp = 'cheaper' | 'unusual' | 'practical' | 'again'
 
 export interface IdeaQuery {
