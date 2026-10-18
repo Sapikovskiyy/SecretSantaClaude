@@ -1,74 +1,76 @@
-import { useEffect } from 'react';
-import { Navigate, Route, Routes, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
-import { AnimatePresence, motion } from 'motion/react';
-import { pageVariants } from '@/motion';
-import { useBackButton } from '@/hooks/useBackButton';
-import { isDemo, startParam, telegramFirstName } from '@/lib/telegram';
-import { Screen } from '@/components/ui';
-import { GiftArt } from '@/components/Art';
-import { useApp } from '@/store/app';
-import Welcome from '@/pages/Welcome';
-import Home from '@/pages/Home';
-import CreateRoom from '@/pages/CreateRoom';
-import Invite from '@/pages/Invite';
-import Join from '@/pages/Join';
-import Room from '@/pages/Room';
-import Interests from '@/pages/Interests';
-import Wishlist from '@/pages/Wishlist';
-import Reveal from '@/pages/Reveal';
-import Chat from '@/pages/Chat';
-import GiftAI from '@/pages/GiftAI';
-import Profile from '@/pages/Profile';
+import { useEffect, useState } from 'react'
+import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router'
+import { AnimatePresence } from 'motion/react'
+import { useDemo } from './data/demoStore'
+import { Dock, Toasts } from './components/ui/Kit'
+import { startParam } from './lib/telegram'
+import { Welcome } from './screens/Welcome'
+import { Home } from './screens/Home'
+import { CreateRoom } from './screens/CreateRoom'
+import { RoomDashboard } from './screens/RoomDashboard'
+import { Invite } from './screens/Invite'
+import { Join } from './screens/Join'
+import { Wishlist } from './screens/Wishlist'
+import { Interests } from './screens/Interests'
+import { Reveal } from './screens/Reveal'
+import { Chat } from './screens/Chat'
+import { RecipientWishlist } from './screens/RecipientWishlist'
+import { GiftAI } from './screens/GiftAI'
+import { Profile } from './screens/Profile'
+import { Premium } from './screens/Premium'
+import { NotFound } from './screens/NotFound'
+import { Offline } from './components/Offline'
+import { ServerNotConnected } from './screens/ServerNotConnected'
+import { IS_DEMO } from './lib/mode'
 
-function NotConnected() {
-  return (
-    <Screen><div className="flex flex-1 flex-col items-center justify-center text-center">
-      <GiftArt className="h-40 w-40" />
-      <h1 className="mt-4 font-display text-2xl">Сервер ещё не подключён</h1>
-      <p className="mt-2 text-sm text-taupe">Боевой режим требует настроенного бэкенда. Подробности в README.</p>
-    </div></Screen>
-  );
-}
+// The wishlist editor is a full-screen sheet flow (handoff 08), so it has no dock.
+const DOCK_ROUTES = ['/home', '/ai', '/profile']
 
-function AnimatedRoutes() {
-  const location = useLocation();
-  const dir = useNavigationType() === 'POP' ? -1 : 1;
-  const onboarded = useApp((s) => s.onboarded);
-  return (
-    <AnimatePresence mode="wait" initial={false} custom={dir}>
-      <motion.div key={location.pathname} custom={dir} variants={pageVariants} initial="enter" animate="center" exit="exit">
-        <Routes location={location}>
-      <Route path="/" element={onboarded ? <Navigate to="/home" replace /> : <Welcome />} />
-      <Route path="/home" element={<Home />} />
-      <Route path="/create" element={<CreateRoom />} />
-      <Route path="/invite/:id" element={<Invite />} />
-      <Route path="/join/:code" element={<Join />} />
-      <Route path="/room/:id" element={<Room />} />
-      <Route path="/interests" element={<Interests />} />
-      <Route path="/wishlist" element={<Wishlist />} />
-      <Route path="/reveal/:id" element={<Reveal />} />
-      <Route path="/chat/:id" element={<Chat />} />
-      <Route path="/ai" element={<GiftAI />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
+export function App() {
+  const location = useLocation()
+  const navigate = useNavigate()
+  const onboarded = useDemo((s) => s.onboarded)
+  const [handledStart, setHandledStart] = useState(false)
 
-export default function App() {
-  const nav = useNavigate();
-  const setMeName = useApp((s) => s.setMeName);
-  useBackButton();
+  // Telegram deep link: t.me/<bot>/<app>?startapp=CODE → join flow.
   useEffect(() => {
-    const n = telegramFirstName();
-    if (n) setMeName(n);
-    const sp = startParam();
-    if (sp?.startsWith('join_')) nav(`/join/${sp.slice(5)}`, { replace: true });
-  }, [nav, setMeName]);
-  if (!isDemo) return <NotConnected />;
+    if (handledStart) return
+    setHandledStart(true)
+    const code = startParam()
+    if (code && /^[A-Za-z0-9_-]{4,64}$/.test(code)) navigate(`/join/${code}`, { replace: true })
+  }, [handledStart, navigate])
+
+  const showDock = DOCK_ROUTES.includes(location.pathname)
+
+  // Production builds never fall back to demo data.
+  if (!IS_DEMO) return <ServerNotConnected />
+
   return (
-    <AnimatedRoutes />
-  );
+    <>
+      <Offline />
+      <Toasts />
+      <AnimatePresence mode="wait" initial={false}>
+        <Routes location={location} key={location.pathname}>
+          <Route path="/" element={onboarded ? <Navigate to="/home" replace /> : <Welcome />} />
+          <Route path="/welcome" element={<Welcome />} />
+          <Route path="/home" element={<Home />} />
+          <Route path="/rooms/new" element={<CreateRoom />} />
+          <Route path="/rooms/:id" element={<RoomDashboard />} />
+          <Route path="/rooms/:id/invite" element={<Invite />} />
+          <Route path="/rooms/:id/reveal" element={<Reveal />} />
+          <Route path="/rooms/:id/recipient" element={<RecipientWishlist />} />
+          <Route path="/rooms/:id/chat/:role" element={<Chat />} />
+          <Route path="/join" element={<Join />} />
+          <Route path="/join/:code" element={<Join />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+          <Route path="/wishlist/interests" element={<Interests />} />
+          <Route path="/ai" element={<GiftAI />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/premium" element={<Premium />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </AnimatePresence>
+      {showDock && <Dock />}
+    </>
+  )
 }

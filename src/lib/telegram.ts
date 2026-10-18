@@ -1,41 +1,96 @@
-interface TgWebApp {
-  initData: string;
-  initDataUnsafe: { user?: { id: number; first_name: string }; start_param?: string };
-  ready(): void; expand(): void;
-  setHeaderColor?(c: string): void; setBackgroundColor?(c: string): void;
-  BackButton: { show(): void; hide(): void; onClick(f: () => void): void; offClick(f: () => void): void };
-  HapticFeedback?: { impactOccurred(s: string): void; notificationOccurred(t: string): void };
-  openTelegramLink?(url: string): void;
-}
-declare global { interface Window { Telegram?: { WebApp?: TgWebApp } } }
+/**
+ * Thin typed wrapper over the official telegram-web-app.js SDK.
+ * Every call is optional-chained so the same build runs in a normal browser.
+ *
+ * SECURITY: initDataUnsafe is used only for UI hints (name, start_param).
+ * Identity must be verified server-side from raw initData (Phase 2).
+ */
 
-export const tg = () => window.Telegram?.WebApp;
-export const isDemo = import.meta.env.VITE_DEMO_MODE === 'true';
+interface TgButton {
+  show(): void
+  hide(): void
+  onClick(cb: () => void): void
+  offClick(cb: () => void): void
+}
+
+interface TgWebApp {
+  initData: string
+  initDataUnsafe: {
+    user?: { id: number; first_name: string; last_name?: string; username?: string; photo_url?: string }
+    start_param?: string
+  }
+  platform: string
+  version: string
+  ready(): void
+  expand(): void
+  isVersionAtLeast?(v: string): boolean
+  setHeaderColor?(c: string): void
+  setBackgroundColor?(c: string): void
+  setBottomBarColor?(c: string): void
+  disableVerticalSwipes?(): void
+  openTelegramLink?(url: string): void
+  openLink?(url: string): void
+  BackButton?: TgButton
+  HapticFeedback?: {
+    impactOccurred(style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft'): void
+    notificationOccurred(type: 'error' | 'success' | 'warning'): void
+    selectionChanged(): void
+  }
+}
+
+declare global {
+  interface Window {
+    Telegram?: { WebApp?: TgWebApp }
+  }
+}
+
+export const tg: TgWebApp | undefined = typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined
+
+/** True only when launched from Telegram (initData present). */
+export const isTelegram = Boolean(tg && tg.initData)
+
+const atLeast = (v: string) => Boolean(tg?.isVersionAtLeast?.(v))
 
 export function initTelegram() {
-  const w = tg();
-  if (!w) return;
-  w.ready(); w.expand();
-  try { w.setHeaderColor?.('#281D19'); w.setBackgroundColor?.('#281D19'); } catch { /* older clients */ }
+  if (!tg || !isTelegram) return
+  tg.ready()
+  tg.expand()
+  if (atLeast('6.1')) {
+    tg.setHeaderColor?.('#2A1F1B')
+    tg.setBackgroundColor?.('#1C1411')
+  }
+  if (atLeast('7.10')) tg.setBottomBarColor?.('#1C1411')
+  if (atLeast('7.7')) tg.disableVerticalSwipes?.()
 }
-export const telegramFirstName = () => tg()?.initDataUnsafe.user?.first_name; // display only, never proof of identity
-export const startParam = () => tg()?.initDataUnsafe.start_param ?? new URLSearchParams(location.search).get('tgWebAppStartParam') ?? undefined;
-export function haptic(kind: 'light' | 'medium' | 'success' = 'light') {
-  const h = tg()?.HapticFeedback;
-  if (!h) return;
-  if (kind === 'success') h.notificationOccurred('success'); else h.impactOccurred(kind);
+
+export function tgUserName(): string | undefined {
+  return isTelegram ? tg?.initDataUnsafe.user?.first_name : undefined
 }
-export function inviteLink(code: string) {
-  const bot = import.meta.env.VITE_BOT_USERNAME || 'santomi_bot';
-  const app = import.meta.env.VITE_APP_SHORT_NAME || 'app';
-  return `https://t.me/${bot}/${app}?startapp=join_${code}`;
+
+// Captured once at load: routing may rewrite the URL before React effects run.
+const initialStartParam: string | undefined = isTelegram
+  ? tg?.initDataUnsafe.start_param
+  : // Browser fallback: ?startapp=CODE also works for testing
+    (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('startapp') : null) ?? undefined
+
+export function startParam(): string | undefined {
+  return initialStartParam
 }
-export function shareInvite(code: string, roomName: string) {
-  const url = `https://t.me/share/url?url=${encodeURIComponent(inviteLink(code))}&text=${encodeURIComponent(`Присоединяйся к Тайному Санте «${roomName}»!`)}`;
-  const w = tg();
-  if (w?.openTelegramLink) w.openTelegramLink(url); else window.open(url, '_blank');
+
+export const haptic = {
+  tap: () => (atLeast('6.1') ? tg?.HapticFeedback?.impactOccurred('light') : undefined),
+  press: () => (atLeast('6.1') ? tg?.HapticFeedback?.impactOccurred('medium') : undefined),
+  select: () => (atLeast('6.1') ? tg?.HapticFeedback?.selectionChanged() : undefined),
+  success: () => (atLeast('6.1') ? tg?.HapticFeedback?.notificationOccurred('success') : undefined),
+  error: () => (atLeast('6.1') ? tg?.HapticFeedback?.notificationOccurred('error') : undefined),
 }
-export function extractCode(input: string) {
-  const m = /join_([A-Za-z0-9]+)/.exec(input);
-  return (m ? m[1] : input).trim().toUpperCase();
+
+export function bindBackButton(visible: boolean, onBack: () => void) {
+  const bb = tg?.BackButton
+  if (!bb || !isTelegram || !atLeast('6.1')) return () => {}
+  if (visible) {
+    bb.show()
+    bb.onClick(onBack)
+  } else bb.hide()
+  return () => bb.offClick(onBack)
 }

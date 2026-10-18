@@ -1,0 +1,162 @@
+@import 'tailwindcss';
+
+/*
+  Santomi design tokens — v2, from design-handoff/SANTOMI_UI_UX_TZ_RU.md §2.
+  Chocolate surfaces, Christmas red, emerald, cream panels, restrained gold.
+*/
+@theme {
+  /* Two type roles: expressive serif display + clean UI sans (both full Cyrillic, bundled locally). */
+  --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Prata', Georgia, 'Times New Roman', serif;
+
+  --color-cocoa: #281d19;        /* base chocolate surface */
+  --color-bark: #1d1512;         /* deepest chocolate */
+  --color-truffle: #3a2b25;      /* raised dark surface */
+  --color-truffle-soft: #4a3830; /* dark controls on dark */
+  --color-taupe: #8f7d72;        /* muted controls */
+  --color-taupe-soft: #b5a399;   /* muted text on chocolate */
+  --color-ember: #d5361c;        /* Christmas red — primary action */
+  --color-ember-deep: #8e1f0e;
+  --color-ember-glow: #ff6a45;
+  --color-pine: #006b43;         /* emerald */
+  --color-pine-deep: #004a2e;
+  --color-pine-glow: #1f9a62;
+  --color-marzipan: #ffe4ce;     /* cream panel */
+  --color-marzipan-deep: #f2cdb0;
+  --color-snow: #fff9f2;         /* warm white surface */
+  --color-gold: #e6b96c;         /* restrained accent */
+  --color-ink: #281d19;          /* text on light surfaces */
+  --color-ink-soft: #7a6a61;     /* secondary text on light surfaces */
+  --color-telegram: #2a8ce8;     /* only for the "Отправить в Telegram" action */
+
+  --radius-pill: 999px;
+  --radius-chip: 18px;
+  --radius-card: 24px;
+  --radius-panel: 32px;
+  --radius-tile: 22px;
+
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root {
+  color-scheme: dark;
+  /* Safe areas: Telegram (Bot API 8+) exposes its own insets; fall back to env() */
+  --sa-top: max(env(safe-area-inset-top, 0px), var(--tg-safe-area-inset-top, 0px));
+  --sa-bottom: max(env(safe-area-inset-bottom, 0px), var(--tg-safe-area-inset-bottom, 0px));
+  --content-top: calc(var(--sa-top) + var(--tg-content-safe-area-inset-top, 0px));
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bark);
+  color: var(--color-snow);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  text-rendering: optimizeLegibility;
+}
+
+/* Base element styles live in the base layer so utilities always win. */
+@layer base {
+  button {
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-marzipan);
+    outline-offset: 3px;
+  }
+}
+
+/*
+  Type scale. Serif display only for emotional headlines (welcome, questions, reveal);
+  screen titles and UI use the sans.
+*/
+@layer components {
+.type-hero {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.6rem, 12.4vw, 3.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+}
+.type-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.05rem, 9.4vw, 2.6rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+.type-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.7rem, 7.6vw, 2.05rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+}
+.type-screen {
+  font-weight: 700;
+  font-size: 1.2rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+.type-h3 {
+  font-weight: 700;
+  font-size: 1.125rem;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+.type-label {
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.3;
+}
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Ambient decor (welcome / hero only). Motion spec: ±1–2°, 6–9 s period. */
+@keyframes float-a {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-6px) rotate(-4deg); }
+}
+@keyframes float-b {
+  0%, 100% { transform: translateY(0) rotate(10deg); }
+  50% { transform: translateY(5px) rotate(12deg); }
+}
+@keyframes breathe {
+  0%, 100% { transform: rotate(-1.5deg) translateY(0); }
+  50% { transform: rotate(1.5deg) translateY(-4px); }
+}
+.float-a { animation: float-a 8s var(--ease-soft) infinite; }
+.float-b { animation: float-b 9s var(--ease-soft) infinite; }
+.breathe { animation: breathe 7.5s ease-in-out infinite; }
+
+@keyframes chevrons {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 1; }
+}
+.chev > *:nth-child(1) { animation: chevrons 1.6s infinite; }
+.chev > *:nth-child(2) { animation: chevrons 1.6s 0.2s infinite; }
+.chev > *:nth-child(3) { animation: chevrons 1.6s 0.4s infinite; }

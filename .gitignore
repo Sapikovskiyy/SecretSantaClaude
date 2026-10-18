@@ -3,5 +3,16 @@ dist/
 .env
 .env.*
 !.env.example
+.dev.vars
 .wrangler/
 *.tsbuildinfo
+*.log
+playwright-report/
+test-results/
+screenshots/
+coverage/
+.DS_Store
+Thumbs.db
+.idea/
+supabase/.temp/
+supabase/.branches/
