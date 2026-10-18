@@ -45,7 +45,7 @@ export function Interests() {
         back="/wishlist"
         leading={<StepProgress current={3} total={4} />}
         right={
-          <button onClick={() => navigate('/wishlist')} className="h-11 whitespace-nowrap px-1 text-[14px] font-semibold text-snow/70">
+          <button onClick={() => navigate('/wishlist')} className="h-11 whitespace-nowrap px-1 text-secondary font-semibold text-snow/70">
             Пропустить
           </button>
         }
@@ -53,7 +53,7 @@ export function Interests() {
 
       <div className="px-5 pt-5">
         <h1 className="type-display max-w-[11ch]">Какие у вас интересы?</h1>
-        <p className="mt-3 max-w-[32ch] text-[15px] leading-snug text-snow/70">
+        <p className="mt-3 max-w-[32ch] text-callout leading-snug text-snow/70">
           Выберите интересы, чтобы получать более подходящие идеи подарков.
         </p>
       </div>
@@ -76,7 +76,7 @@ export function Interests() {
         className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[480px] bg-[linear-gradient(to_top,var(--color-cocoa)_72%,transparent)] px-5 pt-10"
         style={{ paddingBottom: 'calc(var(--sa-bottom) + 16px)' }}
       >
-        <p className="mb-3 text-center text-[13px] font-medium text-snow/60" aria-live="polite">
+        <p className="mb-3 text-center text-footnote font-medium text-snow/60" aria-live="polite">
           {selected.length ? `Выбрано: ${selected.length}` : 'Можно выбрать несколько'}
         </p>
         <PrimaryCTA trailing="arrowRight" onClick={save}>
@@ -108,7 +108,7 @@ function InterestTile({ title, art, selected, onToggle }: { title: string; art: 
       <span className="absolute left-[14%] right-[14%] top-[7%] aspect-square">
         <Art name={art} size="100%" noShadow />
       </span>
-      <span className="absolute bottom-3 left-4 text-[16px] font-bold text-ink">{title}</span>
+      <span className="absolute bottom-3 left-4 text-body font-bold text-ink">{title}</span>
 
       {/* check */}
       <span

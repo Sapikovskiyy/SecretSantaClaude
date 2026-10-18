@@ -20,6 +20,12 @@ test('welcome → home, returning user skips onboarding', async ({ page }, info)
   await start(page)
   await page.waitForTimeout(1200)
   await shots('01-welcome', page, info.project.name)
+  // Both CTAs must be fully visible without scrolling on every tested phone size.
+  for (const name of ['Начать', 'Присоединиться к игре']) {
+    const box = await page.getByRole('button', { name }).boundingBox()
+    expect(box, name).not.toBeNull()
+    expect(box!.y + box!.height, `${name} above the fold`).toBeLessThanOrEqual(page.viewportSize()!.height)
+  }
   await page.getByRole('button', { name: 'Начать' }).click()
   await expect(page).toHaveURL(/\/home$/)
   await expect(page.getByText('Мои игры')).toBeVisible()

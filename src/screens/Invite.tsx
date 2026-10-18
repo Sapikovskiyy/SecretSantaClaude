@@ -1,6 +1,7 @@
 import { Link, useParams, useSearchParams } from 'react-router'
 import { AnimatePresence, motion } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
+import { buttonClass } from '@/components/ds'
 import { Button } from '@/components/ui/Buttons'
 import { Avatar, DemoBadge } from '@/components/ui/Kit'
 import { Icon } from '@/components/ui/Icon'
@@ -26,7 +27,7 @@ export function Invite() {
   return (
     <Screen surface="pine" back={`/rooms/${room.id}`}>
       <div className="px-5">
-        <p className="text-[14px] text-snow/70">{isNew ? 'Игра создана' : room.name}</p>
+        <p className="text-secondary text-snow/70">{isNew ? 'Игра создана' : room.name}</p>
         <h1 className="type-title mt-2 max-w-[12ch]">Зовите друзей в игру</h1>
       </div>
 
@@ -37,8 +38,8 @@ export function Invite() {
       </div>
 
       <div className="mx-5 rounded-[36px] bg-marzipan p-5 text-ink">
-        <p className="text-[14px] text-ink/60">Код приглашения</p>
-        <p className="mt-1 text-[40px] font-medium tracking-[0.14em]">{room.inviteCode}</p>
+        <p className="text-secondary text-ink/60">Код приглашения</p>
+        <p className="mt-1 text-numeral font-medium tracking-[0.14em]">{room.inviteCode}</p>
         <button
           onClick={async () => {
             await copyText(link)
@@ -48,7 +49,7 @@ export function Invite() {
           className="mt-3 flex w-full items-center gap-3 rounded-[20px] bg-snow px-4 py-3 text-left"
         >
           <Icon name="link" size={20} className="shrink-0 text-ink/50" />
-          <span className="min-w-0 flex-1 truncate text-[14px] text-ink/70">{link}</span>
+          <span className="min-w-0 flex-1 truncate text-secondary text-ink/70">{link}</span>
           <Icon name="copy" size={20} className="shrink-0" />
         </button>
         <Button
@@ -75,7 +76,7 @@ export function Invite() {
             {people.map((p) => (
               <motion.li key={p.id} layout initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center gap-1">
                 <Avatar person={p} size={52} />
-                <span className="text-[12px] text-snow/70">{p.name}</span>
+                <span className="text-caption text-snow/70">{p.name}</span>
               </motion.li>
             ))}
           </AnimatePresence>
@@ -88,12 +89,12 @@ export function Invite() {
               toast(`${p.name} присоединяется к игре`)
             } else toast('Больше нельзя добавить участников', 'error')
           }}
-          className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white/10 text-[15px]"
+          className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-full bg-white/10 text-callout"
         >
           <Icon name="plus" size={18} />
           Добавить тестового участника
         </button>
-        <Link to={`/rooms/${room.id}`} className="mt-3 flex h-14 w-full items-center justify-center rounded-full bg-snow text-[16px] font-medium text-ink">
+        <Link to={`/rooms/${room.id}`} className={buttonClass({ variant: 'secondary', size: 'large', fullWidth: true, className: 'mt-3' })}>
           Перейти к игре
         </Link>
       </section>

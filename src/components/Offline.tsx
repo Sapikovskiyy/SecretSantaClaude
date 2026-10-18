@@ -21,7 +21,7 @@ export function Offline() {
           initial={{ y: -40, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: -40, opacity: 0 }}
-          className="fixed inset-x-0 z-[70] mx-auto w-fit rounded-full bg-ember px-4 py-2 text-[13px] text-snow"
+          className="fixed inset-x-0 z-[70] mx-auto w-fit rounded-full bg-ember px-4 py-2 text-footnote text-snow"
           style={{ top: 'calc(var(--content-top) + 8px)' }}
           role="status"
         >

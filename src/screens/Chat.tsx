@@ -126,7 +126,7 @@ export function Chat() {
           <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold">
             <Icon name="lock" size={18} />
           </span>
-          <div className="text-[13px] leading-snug">
+          <div className="text-footnote leading-snug">
             <p className="font-bold text-gold">Вы общаетесь анонимно</p>
             <p className="mt-0.5 text-snow/65">
               {toRecipient
@@ -141,7 +141,7 @@ export function Chat() {
             <div className="flex flex-col items-center px-6 pt-6 text-center">
               <Art name={toRecipient ? 'envelope' : 'gift'} size={120} />
               <p className="type-h3 mt-3">{toRecipient ? 'Задайте первый вопрос' : 'Санта ещё не писал'}</p>
-              <p className="mt-1 max-w-[30ch] text-[14px] text-snow/55">
+              <p className="mt-1 max-w-[30ch] text-secondary text-snow/55">
                 {toRecipient ? 'Подсказки ниже помогут начать' : 'Вы тоже можете написать первым'}
               </p>
             </div>
@@ -172,7 +172,7 @@ export function Chat() {
       <div className="sticky bottom-0 z-20 bg-[linear-gradient(to_top,var(--color-bark)_85%,transparent)] px-4 pt-6" style={{ paddingBottom: 'calc(var(--sa-bottom) + 12px)' }}>
         {messages.length < 4 ? (
           <div className="mb-3 rounded-[22px] bg-truffle/70 p-3">
-            <p className="mb-2 px-1 text-[13px] font-bold text-snow/80">{toRecipient ? 'Попробуйте спросить' : 'Быстрые ответы'}</p>
+            <p className="mb-2 px-1 text-footnote font-bold text-snow/80">{toRecipient ? 'Попробуйте спросить' : 'Быстрые ответы'}</p>
             <div className="grid grid-cols-2 gap-2">
               {suggestions.map((s) => (
                 <SuggestionCard key={s.text} s={s} onPick={() => send(s.text)} />
@@ -185,7 +185,7 @@ export function Chat() {
               <button
                 key={s.text}
                 onClick={() => send(s.text)}
-                className="flex h-10 shrink-0 items-center gap-2 rounded-full bg-white/8 px-4 text-[13px] font-semibold text-snow/85"
+                className="flex h-10 shrink-0 items-center gap-2 rounded-full bg-white/8 px-4 text-footnote font-semibold text-snow/85"
               >
                 <Icon name={s.icon} size={16} />
                 {s.text}
@@ -214,7 +214,7 @@ export function Chat() {
             }}
             placeholder="Написать сообщение…"
             aria-label="Сообщение"
-            className="max-h-32 min-h-[48px] flex-1 resize-none bg-transparent py-3 text-[16px] text-ink placeholder:text-ink/40 outline-none"
+            className="max-h-32 min-h-[48px] flex-1 resize-none bg-transparent py-3 text-body text-ink placeholder:text-ink/40 outline-none"
           />
           <motion.button
             whileTap={PRESS}
@@ -225,7 +225,7 @@ export function Chat() {
             <Icon name="send" size={20} />
           </motion.button>
         </form>
-        <div className="mt-2 flex items-center justify-between px-2 text-[11px] text-snow/40">
+        <div className="mt-2 flex items-center justify-between px-2 text-caption text-snow/40">
           <DemoBadge />
           {text.length > MAX_LEN - 80 && (
             <span>
@@ -236,7 +236,7 @@ export function Chat() {
       </div>
 
       <Sheet open={report} onClose={() => setReport(false)} title="Пожаловаться на переписку">
-        <p className="mb-4 text-center text-[14px] text-ink/60">Модератор увидит только эту переписку. Собеседник не узнает о жалобе.</p>
+        <p className="mb-4 text-center text-secondary text-ink/60">Модератор увидит только эту переписку. Собеседник не узнает о жалобе.</p>
         <div className="space-y-2">
           {REPORT_REASONS.map((r) => (
             <button
@@ -245,7 +245,7 @@ export function Chat() {
                 setReport(false)
                 toast('Жалоба отправлена (демо)')
               }}
-              className="flex h-14 w-full items-center justify-between rounded-[18px] bg-snow px-5 text-left text-[16px] font-semibold"
+              className="flex h-14 w-full items-center justify-between rounded-[18px] bg-snow px-5 text-left text-body font-semibold"
             >
               {r}
               <Icon name="forward" size={18} className="text-ink/40" />
@@ -268,12 +268,12 @@ function Bubble({ m, onRetry }: { m: ChatMessage; onRetry: () => void }) {
       className={`flex flex-col ${m.mine ? 'items-end' : 'items-start'}`}
     >
       <div
-        className={`max-w-[82%] rounded-[22px] px-4 pb-2 pt-3 text-[15px] leading-snug ${
+        className={`max-w-[82%] rounded-[22px] px-4 pb-2 pt-3 text-callout leading-snug ${
           m.mine ? `rounded-br-[8px] bg-ember text-snow ${failed ? 'opacity-70' : ''}` : 'rounded-bl-[8px] bg-marzipan text-ink'
         }`}
       >
         <p className="whitespace-pre-wrap break-words">{m.text}</p>
-        <p className={`mt-1 flex items-center justify-end gap-1 text-[11px] ${m.mine ? 'text-snow/70' : 'text-ink/45'}`}>
+        <p className={`mt-1 flex items-center justify-end gap-1 text-caption ${m.mine ? 'text-snow/70' : 'text-ink/45'}`}>
           {timeHM(m.at)}
           {m.mine && m.status === 'sending' && <Icon name="clock" size={13} aria-label="Отправляется" />}
           {m.mine && (m.status === 'sent' || !m.status) && <Icon name="checks" size={15} aria-label="Доставлено" />}
@@ -281,7 +281,7 @@ function Bubble({ m, onRetry }: { m: ChatMessage; onRetry: () => void }) {
         </p>
       </div>
       {failed && (
-        <button onClick={onRetry} className="mt-1 flex items-center gap-1 px-2 text-[12px] font-semibold text-ember-glow">
+        <button onClick={onRetry} className="mt-1 flex items-center gap-1 px-2 text-caption font-semibold text-ember-glow">
           <Icon name="refresh" size={13} /> Не отправлено. Повторить
         </button>
       )}
@@ -294,7 +294,7 @@ function SuggestionCard({ s, onPick }: { s: Suggestion; onPick: () => void }) {
     <motion.button
       whileTap={PRESS}
       onClick={onPick}
-      className="flex min-h-[56px] items-center gap-2.5 rounded-[16px] bg-white/[0.07] px-3 py-2 text-left text-[12.5px] font-semibold leading-tight text-snow/90"
+      className="flex min-h-[56px] items-center gap-2.5 rounded-[16px] bg-white/[0.07] px-3 py-2 text-left text-caption font-semibold leading-tight text-snow/90"
     >
       <Icon name={s.icon} size={18} className="shrink-0 text-gold" />
       {s.text}

@@ -78,7 +78,7 @@ export function WishEditor({
           <textarea className={`${inputLight} h-20 resize-none py-3`} placeholder="Цвет, размер, модель" value={description} maxLength={300} onChange={(e) => setDescription(e.target.value)} />
         </Field>
         <div>
-          <p className="mb-2 text-[14px] opacity-70">Категория</p>
+          <p className="mb-2 text-secondary opacity-70">Категория</p>
           <div className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5">
             {INTERESTS.map((i) => (
               <Chip key={i.id} tone="light" active={category === i.id} onClick={() => setCategory(i.id)}>
@@ -88,7 +88,7 @@ export function WishEditor({
           </div>
         </div>
         <div>
-          <p className="mb-2 text-[14px] opacity-70">Насколько хочется</p>
+          <p className="mb-2 text-secondary opacity-70">Насколько хочется</p>
           <div className="flex flex-wrap gap-2">
             {PRIORITIES.map((p) => (
               <Chip key={p.id} tone="light" active={priority === p.id} onClick={() => setPriority(p.id)}>

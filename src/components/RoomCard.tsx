@@ -32,12 +32,12 @@ export function RoomCard({ room, compact }: { room: Room; compact?: boolean }) {
         <div className="pointer-events-none absolute -bottom-6 -right-8 opacity-95">
           <Art name={face.art} size={compact ? 140 : 170} noShadow />
         </div>
-        <span className="relative inline-flex w-fit items-center gap-1.5 rounded-full bg-black/20 px-3 py-1 text-[12px] backdrop-blur">
+        <span className="relative inline-flex w-fit items-center gap-1.5 rounded-full bg-black/20 px-3 py-1 text-caption backdrop-blur">
           {fresh && <span className="h-2 w-2 animate-pulse rounded-full bg-marzipan" />}
           {stageLabel(room)}
         </span>
-        <h3 className="type-h3 relative mt-3 max-w-[11ch] text-[22px] leading-[1.1]">{room.name}</h3>
-        <p className="relative mt-1 text-[13px] opacity-75">
+        <h3 className="type-h3 relative mt-3 max-w-[11ch] text-card leading-[1.1]">{room.name}</h3>
+        <p className="relative mt-1 text-footnote opacity-75">
           {countdownLabel(room.date)}
           <br />
           До {formatRub(room.budget)}

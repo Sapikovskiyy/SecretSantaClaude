@@ -66,10 +66,10 @@ export function RoomDashboard() {
         <div className="pointer-events-none absolute -bottom-8 -right-6">
           <Art name={face.art} size={180} noShadow />
         </div>
-        <span className="relative inline-flex rounded-full bg-black/20 px-3 py-1 text-[12px] backdrop-blur">{stageLabel(room)}</span>
+        <span className="relative inline-flex rounded-full bg-black/20 px-3 py-1 text-caption backdrop-blur">{stageLabel(room)}</span>
         <h1 className="type-title relative mt-4 max-w-[10ch]">{room.name}</h1>
-        {room.description && <p className="relative mt-2 max-w-[24ch] text-[14px] text-snow/75">{room.description}</p>}
-        <dl className="relative mt-6 flex gap-6 text-[14px]">
+        {room.description && <p className="relative mt-2 max-w-[24ch] text-secondary text-snow/75">{room.description}</p>}
+        <dl className="relative mt-6 flex gap-6 text-secondary">
           <div>
             <dt className="text-snow/60">Обмен</dt>
             <dd className="mt-0.5 font-medium">{formatDate(room.date)}</dd>
@@ -80,7 +80,7 @@ export function RoomDashboard() {
           </div>
         </dl>
       </div>
-      <p className="mt-3 px-6 text-[13px] text-snow/50">{countdownLabel(room.date)}</p>
+      <p className="mt-3 px-6 text-footnote text-snow/50">{countdownLabel(room.date)}</p>
 
       {/* Participants */}
       <button onClick={() => setSheet('members')} className="mx-5 mt-4 flex items-center gap-3 rounded-[28px] bg-truffle p-4 text-left">
@@ -90,10 +90,10 @@ export function RoomDashboard() {
           ))}
         </div>
         <div className="flex-1">
-          <p className="text-[15px] font-medium">
+          <p className="text-callout font-medium">
             {people.length} {plural(people.length, 'участник', 'участника', 'участников')}
           </p>
-          <p className="text-[13px] text-snow/55">
+          <p className="text-footnote text-snow/55">
             Вишлисты готовы у {ready} из {room.members.length}
           </p>
         </div>
@@ -110,17 +110,17 @@ export function RoomDashboard() {
             <div className="grid grid-cols-2 gap-3">
               <Link to={`/rooms/${room.id}/invite`} className="flex h-[92px] flex-col justify-between rounded-[26px] bg-pine p-4">
                 <Icon name="share" />
-                <span className="text-[15px] font-medium">Пригласить</span>
+                <span className="text-callout font-medium">Пригласить</span>
               </Link>
               <button onClick={() => setSheet('exclusions')} className="flex h-[92px] flex-col justify-between rounded-[26px] bg-truffle p-4 text-left">
                 <Icon name="shuffle" />
-                <span className="text-[15px] font-medium">
+                <span className="text-callout font-medium">
                   Исключения{room.exclusions.length ? ` (${room.exclusions.length})` : ''}
                 </span>
               </button>
             </div>
             {!myMember?.wishlistReady && <WishlistNudge />}
-            <p className="pt-2 text-center text-[13px] text-snow/50">
+            <p className="pt-2 text-center text-footnote text-snow/50">
               {room.members.length < 3 ? 'Для жеребьёвки нужно минимум 3 участника' : 'Когда все соберутся — запускайте'}
             </p>
             <SwipeConfirm label="Провести жеребьёвку" knobIcon="shuffle" tone="ember" onConfirm={draw} disabled={room.members.length < 3} />
@@ -131,7 +131,7 @@ export function RoomDashboard() {
           <div className="space-y-3">
             <div className="rounded-[28px] bg-truffle p-5">
               <p className="type-h3">Ждём жеребьёвку</p>
-              <p className="mt-1 text-[14px] text-snow/60">
+              <p className="mt-1 text-secondary text-snow/60">
                 Организатор {personName(room.organizerId, me)} запустит её, когда все соберутся. Пока заполните вишлист.
               </p>
             </div>
@@ -148,7 +148,7 @@ export function RoomDashboard() {
             <Art name="envelope" size={96} noShadow />
             <span className="flex-1">
               <span className="type-h3 block">Ваш конверт ждёт</span>
-              <span className="mt-1 block text-[14px] text-ink/60">Откройте, чтобы узнать, кому дарите</span>
+              <span className="mt-1 block text-secondary text-ink/60">Откройте, чтобы узнать, кому дарите</span>
             </span>
           </motion.button>
         )}
@@ -156,17 +156,17 @@ export function RoomDashboard() {
         {room.stage === 'drawn' && room.revealSeen && recipient && (
           <div className="space-y-3">
             <div className="rounded-[32px] bg-marzipan p-5 text-ink">
-              <p className="text-[14px] text-ink/60">Вы дарите подарок</p>
+              <p className="text-secondary text-ink/60">Вы дарите подарок</p>
               <div className="mt-3 flex items-center gap-3">
                 <Avatar person={recipient} size={56} />
                 <p className="type-title">{recipient.name}</p>
               </div>
               <div className="mt-5 grid grid-cols-2 gap-2">
-                <Link to={`/rooms/${room.id}/recipient`} className="flex h-14 items-center justify-center gap-2 rounded-full bg-ink text-[15px] font-medium text-snow">
+                <Link to={`/rooms/${room.id}/recipient`} className="flex h-14 items-center justify-center gap-2 rounded-full bg-ink text-callout font-medium text-snow">
                   <Icon name="gift" size={18} /> Вишлист
                 </Link>
                 {room.chatEnabled && (
-                  <Link to={`/rooms/${room.id}/chat/toRecipient`} className="relative flex h-14 items-center justify-center gap-2 rounded-full bg-ember text-[15px] font-medium text-snow">
+                  <Link to={`/rooms/${room.id}/chat/toRecipient`} className="relative flex h-14 items-center justify-center gap-2 rounded-full bg-ember text-callout font-medium text-snow">
                     <Icon name="chat" size={18} /> Написать
                     {unreadCount(chats, room.id, 'toRecipient') > 0 && <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-marzipan" />}
                   </Link>
@@ -175,7 +175,7 @@ export function RoomDashboard() {
             </div>
 
             <div className="rounded-[28px] bg-truffle p-5">
-              <p className="text-[14px] text-snow/60">Как дела с подарком?</p>
+              <p className="text-secondary text-snow/60">Как дела с подарком?</p>
               <div className="mt-3 flex gap-2">
                 {GIFT_STEPS.map((g) => (
                   <Chip
@@ -199,11 +199,11 @@ export function RoomDashboard() {
                   <Icon name="lock" size={20} />
                 </span>
                 <span className="flex-1">
-                  <span className="block text-[15px] font-medium">Ваш Тайный Санта</span>
-                  <span className="block text-[13px] text-snow/55">Анонимный чат — Санта знает вас, вы его нет</span>
+                  <span className="block text-callout font-medium">Ваш Тайный Санта</span>
+                  <span className="block text-footnote text-snow/55">Анонимный чат — Санта знает вас, вы его нет</span>
                 </span>
                 {unreadCount(chats, room.id, 'fromSanta') > 0 && (
-                  <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-ember px-2 text-[12px] font-semibold">
+                  <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-ember px-2 text-caption font-semibold">
                     {unreadCount(chats, room.id, 'fromSanta')}
                   </span>
                 )}
@@ -212,11 +212,11 @@ export function RoomDashboard() {
 
             {isOrganizer && (
               <div className="rounded-[28px] bg-truffle p-5">
-                <p className="text-[14px] text-snow/60">Подготовка подарков в группе</p>
-                <p className="mt-1 text-[15px]">
+                <p className="text-secondary text-snow/60">Подготовка подарков в группе</p>
+                <p className="mt-1 text-callout">
                   Готово {giftCounts.ready}, куплено {giftCounts.bought} из {room.members.length}
                 </p>
-                <p className="mt-2 text-[12px] text-snow/45">Кто кому дарит, не видит даже организатор</p>
+                <p className="mt-2 text-caption text-snow/45">Кто кому дарит, не видит даже организатор</p>
               </div>
             )}
           </div>
@@ -235,8 +235,8 @@ function WishlistNudge() {
     <Link to="/wishlist" className="flex items-center gap-3 rounded-[28px] bg-marzipan p-4 text-ink">
       <Art name="mitten" size={64} noShadow />
       <span className="flex-1">
-        <span className="block text-[15px] font-medium">Заполните вишлист</span>
-        <span className="block text-[13px] text-ink/60">Так Санте будет проще выбрать подарок</span>
+        <span className="block text-callout font-medium">Заполните вишлист</span>
+        <span className="block text-footnote text-ink/60">Так Санте будет проще выбрать подарок</span>
       </span>
       <Icon name="forward" size={18} />
     </Link>
@@ -254,11 +254,11 @@ function MembersSheet({ open, onClose, room, canEdit, onRemove }: { open: boolea
             <li key={p.id} className="flex items-center gap-3 py-3">
               <Avatar person={p} size={44} />
               <div className="flex-1">
-                <p className="text-[16px] font-medium">
+                <p className="text-body font-medium">
                   {p.name}
-                  {p.id === room.organizerId && <span className="ml-2 text-[12px] font-normal text-ink/50">организатор</span>}
+                  {p.id === room.organizerId && <span className="ml-2 text-caption font-normal text-ink/50">организатор</span>}
                 </p>
-                <p className="text-[13px] text-ink/55">{m.wishlistReady ? 'Вишлист готов' : 'Вишлист не заполнен'}</p>
+                <p className="text-footnote text-ink/55">{m.wishlistReady ? 'Вишлист готов' : 'Вишлист не заполнен'}</p>
               </div>
               {canEdit && p.id !== room.organizerId && (
                 <button aria-label={`Удалить ${p.name}`} onClick={() => onRemove(p.id)} className="flex h-10 w-10 items-center justify-center rounded-full bg-ink/6">
@@ -282,11 +282,11 @@ function ExclusionsSheet({ open, onClose, room }: { open: boolean; onClose: () =
   const [mutual, setMutual] = useState(true)
   return (
     <Sheet open={open} onClose={onClose} title="Исключения">
-      <p className="mb-4 text-center text-[14px] text-ink/60">Например, пары или коллеги, которые и так дарят друг другу подарки</p>
+      <p className="mb-4 text-center text-secondary text-ink/60">Например, пары или коллеги, которые и так дарят друг другу подарки</p>
       {room.exclusions.length > 0 && (
         <ul className="mb-4 space-y-2">
           {room.exclusions.map((e, i) => (
-            <li key={i} className="flex items-center gap-2 rounded-[18px] bg-snow px-4 py-3 text-[15px]">
+            <li key={i} className="flex items-center gap-2 rounded-[18px] bg-snow px-4 py-3 text-callout">
               <span className="flex-1">
                 {personName(e.a, me)} {e.mutual ? '⇄' : '→'} {personName(e.b, me)}
               </span>

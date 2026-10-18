@@ -11,7 +11,8 @@ Owner: CEO / Product Owner. Claude acts as the full technical team.
 ## Design system (do not drift)
 - Visual source of truth: `design-handoff/` — 4 sheets of 14 screens (structure) + original 3-screen reference (art direction), plus SANTOMI_UI_UX_TZ_RU.md and MOTION_SPEC_RU.md.
 - Tokens live in `src/styles/index.css` (`@theme`): cocoa, bark, truffle, taupe, ember, pine, marzipan, snow.
-- Type: Prata (serif display: `.type-hero`, `.type-display`, `.type-title`) + Manrope (UI: `.type-screen`, `.type-h3`, `.type-label`). Bundled via @fontsource, no external CDN.
+- Type: system SF Pro stack (`-apple-system, BlinkMacSystemFont, 'Inter', …`) — SF Pro on Apple devices, bundled Inter (OFL) elsewhere. Never bundle SF Pro files. Roles: `.type-hero/.type-display/.type-title/.type-screen/.type-h3/.type-label`; sizes via `text-hero|title|section|card|button|body|callout|secondary|footnote|caption|numeral` tokens (`@theme` in index.css). No arbitrary `text-[Npx]` for text, no uppercase.
+- Buttons: `SantomiButton` / `SantomiLinkButton` only (variants primary·success·premium·secondary·ghost·danger; styles in `src/styles/buttons.css`). One dimensional gradient CTA per screen; premium (gold) only for AI Plus.
 - Signature controls: `SwipeConfirm` pill, round `IconButton`, marzipan bottom panels, `Sheet` bottom sheets, floating `Dock`.
 - Illustrations: `Art` renders 3D WebP from `src/assets/3d` (source PNGs → `npm run assets <folder>`); vector fallback only for keys without a render.
 - DS v2 primitives: `src/components/ds` (PageHeader, PrimaryCTA, SecondaryCTA, CreamSheet, Segmented, StatusPill, states). Motion tokens: `src/motion/tokens.ts`.

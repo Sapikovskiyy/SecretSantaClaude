@@ -2,44 +2,33 @@ import { useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'rea
 import { animate, motion, useMotionValue, useTransform } from 'motion/react'
 import { haptic } from '@/lib/telegram'
 import { Chevrons, Icon, type IconName } from './Icon'
+import { SantomiButton, type ButtonVariant } from '@/components/ds/SantomiButton'
 
-type Tone = 'ember' | 'snow' | 'dark' | 'taupe' | 'pine' | 'ghost'
+type Tone = 'ember' | 'snow' | 'dark' | 'taupe' | 'pine' | 'ghost' | 'gold' | 'danger'
 
-const tones: Record<Tone, string> = {
-  ember: 'bg-ember text-snow shadow-[0_10px_30px_-10px_rgba(199,50,28,.8)]',
-  snow: 'bg-snow text-ink',
-  dark: 'bg-truffle/80 text-snow backdrop-blur-md',
-  taupe: 'bg-taupe text-snow',
-  pine: 'bg-pine text-snow',
-  ghost: 'bg-transparent text-current ring-1 ring-current/25',
+/** Legacy tones → SantomiButton variants (keeps older screens on one button system). */
+const TONE_TO_VARIANT: Record<Tone, ButtonVariant> = {
+  ember: 'primary',
+  pine: 'success',
+  gold: 'premium',
+  snow: 'secondary',
+  taupe: 'secondary',
+  dark: 'ghost',
+  ghost: 'ghost',
+  danger: 'danger',
 }
 
 type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   tone?: Tone
   icon?: IconName
   size?: 'md' | 'lg'
+  loading?: boolean
   children?: ReactNode
 }
 
-/** Pill button. Used for secondary actions and inside panels. */
-export function Button({ tone = 'ember', icon, size = 'lg', className = '', children, onClick, ...rest }: BtnProps) {
-  return (
-    <motion.button
-      whileTap={{ scale: 0.96 }}
-      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-      className={`inline-flex items-center justify-center gap-2 rounded-full font-medium disabled:opacity-40 ${
-        size === 'lg' ? 'h-16 px-7 text-[17px]' : 'h-12 px-5 text-[15px]'
-      } ${tones[tone]} ${className}`}
-      onClick={(e) => {
-        haptic.tap()
-        onClick?.(e)
-      }}
-      {...(rest as object)}
-    >
-      {icon && <Icon name={icon} size={20} />}
-      {children}
-    </motion.button>
-  )
+/** @deprecated use SantomiButton directly in new code. */
+export function Button({ tone = 'ember', icon, size = 'lg', loading, ...rest }: BtnProps) {
+  return <SantomiButton variant={TONE_TO_VARIANT[tone]} size={size === 'lg' ? 'large' : 'medium'} leadingIcon={icon} loading={loading} {...rest} />
 }
 
 /** Round icon button (reference: back button, check circles). */
@@ -81,7 +70,7 @@ export function IconButton({
     >
       <Icon name={icon} size={Math.round(size * 0.42)} />
       {badge ? (
-        <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-ember px-1 text-[11px] font-semibold text-snow ring-2 ring-cocoa">
+        <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-ember px-1 text-caption font-semibold text-snow ring-2 ring-cocoa">
           {badge}
         </span>
       ) : null}
@@ -169,7 +158,7 @@ export function SwipeConfirm({
       >
         <Icon name={knobIcon} size={22} strokeWidth={2} className="pointer-events-none" />
       </motion.div>
-      <motion.span style={{ opacity: labelOpacity }} className="pointer-events-none absolute inset-0 flex items-center justify-center gap-3 pl-12 text-[16px]">
+      <motion.span style={{ opacity: labelOpacity }} className="pointer-events-none absolute inset-0 flex items-center justify-center gap-3 pl-12 text-body">
         {label}
         <Chevrons className="opacity-60" />
       </motion.span>

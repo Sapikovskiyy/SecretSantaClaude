@@ -1,8 +1,8 @@
-import { Link, Navigate, useParams } from 'react-router'
+import { Navigate, useParams } from 'react-router'
 import { motion } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
+import { SantomiLinkButton } from '@/components/ds'
 import { Avatar, Chip, DemoBadge } from '@/components/ui/Kit'
-import { Icon } from '@/components/ui/Icon'
 import { Art } from '@/components/art/Art'
 import { useDemo } from '@/data/demoStore'
 import { usePerson } from '@/data/people'
@@ -27,12 +27,12 @@ export function RecipientWishlist() {
         <Avatar person={recipient} size={56} />
         <h1 className="type-title max-w-[9ch] text-right">Вишлист {recipient.name}</h1>
       </div>
-      <p className="mt-3 px-5 text-right text-[14px] text-snow/55">Бюджет до {formatRub(room.budget)}</p>
+      <p className="mt-3 px-5 text-right text-secondary text-snow/55">Бюджет до {formatRub(room.budget)}</p>
 
       {data.interests.length > 0 && (
         <div className="mt-6 flex flex-wrap gap-2 px-5">
           {data.interests.map((i) => (
-            <span key={i} className="flex items-center gap-1 rounded-full bg-white/8 py-1 pl-1 pr-3 text-[13px]">
+            <span key={i} className="flex items-center gap-1 rounded-full bg-white/8 py-1 pl-1 pr-3 text-footnote">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-snow">
                 <Art name={interestById[i].art} size={26} noShadow />
               </span>
@@ -46,7 +46,7 @@ export function RecipientWishlist() {
         {data.items.length === 0 && (
           <div className="rounded-[28px] bg-truffle p-5 text-center">
             <p className="type-h3">Вишлист пока пуст</p>
-            <p className="mt-1 text-[14px] text-snow/60">Спросите в анонимном чате, что порадует</p>
+            <p className="mt-1 text-secondary text-snow/60">Спросите в анонимном чате, что порадует</p>
           </div>
         )}
         {data.items.map((w, i) => (
@@ -61,18 +61,18 @@ export function RecipientWishlist() {
               <Art name={interestById[w.category].art} size={64} noShadow />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[16px] font-medium leading-tight">{w.title}</p>
-              {w.description && <p className="mt-0.5 text-[13px] text-ink/60">{w.description}</p>}
-              <p className="mt-1 text-[13px] text-ink/60">{w.price ? `Около ${formatRub(w.price)}` : 'Цена не указана'}</p>
+              <p className="text-body font-medium leading-tight">{w.title}</p>
+              {w.description && <p className="mt-0.5 text-footnote text-ink/60">{w.description}</p>}
+              <p className="mt-1 text-footnote text-ink/60">{w.price ? `Около ${formatRub(w.price)}` : 'Цена не указана'}</p>
             </div>
-            {w.priority === 'high' && <span className="rounded-full bg-ember px-2.5 py-1 text-[11px] font-medium text-snow">Очень хочет</span>}
+            {w.priority === 'high' && <span className="rounded-full bg-ember px-2.5 py-1 text-caption font-medium text-snow">Очень хочет</span>}
           </motion.div>
         ))}
       </div>
 
       {data.avoid.length > 0 && (
         <div className="mt-5 px-5">
-          <p className="mb-2 text-[14px] text-snow/60">Лучше не дарить</p>
+          <p className="mb-2 text-secondary text-snow/60">Лучше не дарить</p>
           <div className="flex flex-wrap gap-2">
             {data.avoid.map((a) => (
               <Chip key={a}>{a}</Chip>
@@ -82,10 +82,9 @@ export function RecipientWishlist() {
       )}
 
       <div className="mt-auto space-y-3 px-5 pt-8">
-        <Link to={`/ai?room=${room.id}`} className="flex h-16 items-center justify-center gap-2 rounded-full bg-pine text-[16px] font-medium">
-          <Icon name="sparkle" size={20} />
+        <SantomiLinkButton to={`/ai?room=${room.id}`} variant="success" leadingIcon="sparkle" fullWidth>
           Подобрать идеи для {recipient.name}
-        </Link>
+        </SantomiLinkButton>
         <div className="flex justify-center">
           <DemoBadge />
         </div>

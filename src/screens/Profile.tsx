@@ -27,7 +27,7 @@ export function Profile() {
       <div className="flex flex-col items-center px-5 pt-2 text-center">
         <Avatar person={me} size={96} />
         <h1 className="type-title mt-4">{me.name === 'Вы' ? 'Гость' : me.name}</h1>
-        <p className="mt-1 text-[14px] text-snow/55">{isTelegram ? 'Вход через Telegram' : 'Откройте в Telegram, чтобы играть с друзьями'}</p>
+        <p className="mt-1 text-secondary text-snow/55">{isTelegram ? 'Вход через Telegram' : 'Откройте в Telegram, чтобы играть с друзьями'}</p>
         <DemoBadge className="mt-3" />
       </div>
 
@@ -39,16 +39,16 @@ export function Profile() {
           {active.map((r) => (
             <RoomCard key={r.id} room={r} />
           ))}
-          {active.length === 0 && <p className="text-[14px] text-snow/55">Пока нет активных игр</p>}
+          {active.length === 0 && <p className="text-secondary text-snow/55">Пока нет активных игр</p>}
         </div>
-        {past.length > 0 && <p className="mt-3 px-5 text-[14px] text-snow/55">Прошлые игры: {past.length}</p>}
+        {past.length > 0 && <p className="mt-3 px-5 text-secondary text-snow/55">Прошлые игры: {past.length}</p>}
       </section>
 
       {/* AI Plus status */}
       <Link to="/premium" className="relative mx-5 mt-6 flex items-center gap-4 overflow-hidden rounded-[32px] bg-pine p-5">
         <div className="flex-1">
           <p className="type-h3">Santomi AI Plus</p>
-          <p className="mt-1 text-[14px] text-snow/70">
+          <p className="mt-1 text-secondary text-snow/70">
             Не подключён. Бесплатных подборов осталось {Math.max(0, FREE_AI_GENERATIONS - aiUsed)}
           </p>
         </div>
@@ -68,7 +68,7 @@ export function Profile() {
           toast('Демо-данные сброшены')
           navigate('/', { replace: true })
         }}
-        className="mx-auto mt-6 h-11 rounded-full px-5 text-[14px] text-snow/50"
+        className="mx-auto mt-6 h-11 rounded-full px-5 text-secondary text-snow/50"
       >
         Сбросить демо-данные
       </button>
@@ -78,11 +78,11 @@ export function Profile() {
         <Toggle label="Результаты жеребьёвки" checked={prefs.draw} onChange={(v) => setPrefs({ ...prefs, draw: v })} />
         <Toggle label="Анонимные сообщения" checked={prefs.messages} onChange={(v) => setPrefs({ ...prefs, messages: v })} />
         <Toggle label="Напоминания о дне обмена" checked={prefs.reminders} onChange={(v) => setPrefs({ ...prefs, reminders: v })} />
-        <p className="mt-2 text-[13px] text-ink/55">Уведомления придут от бота Santomi после подключения сервера (этап 3)</p>
+        <p className="mt-2 text-footnote text-ink/55">Уведомления придут от бота Santomi после подключения сервера (этап 3)</p>
       </Sheet>
 
       <Sheet open={help} onClose={() => setHelp(false)} title="Как это работает">
-        <ol className="space-y-3 text-[15px]">
+        <ol className="space-y-3 text-callout">
           {[
             'Создайте игру и отправьте друзьям ссылку',
             'Каждый заполняет вишлист',
@@ -91,7 +91,7 @@ export function Profile() {
             'Задавайте вопросы анонимно и готовьте подарок',
           ].map((t, i) => (
             <li key={t} className="flex gap-3">
-              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ember text-[13px] font-medium text-snow">{i + 1}</span>
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-ember text-footnote font-medium text-snow">{i + 1}</span>
               {t}
             </li>
           ))}
@@ -109,8 +109,8 @@ function Row({ icon, label, value, onClick }: { icon: IconName; label: string; v
     <li className="border-b border-white/6 last:border-0">
       <button onClick={onClick} className="flex h-16 w-full items-center gap-3 px-5 text-left">
         <Icon name={icon} size={20} className="text-snow/70" />
-        <span className="flex-1 text-[16px]">{label}</span>
-        {value && <span className="text-[13px] text-snow/45">{value}</span>}
+        <span className="flex-1 text-body">{label}</span>
+        {value && <span className="text-footnote text-snow/45">{value}</span>}
         <Icon name="forward" size={16} className="text-snow/35" />
       </button>
     </li>

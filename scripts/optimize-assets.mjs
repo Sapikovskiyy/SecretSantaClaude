@@ -6,7 +6,7 @@
 // Source files must be named a01.png…a15.png (see MAP below) — the original
 // ZIP had long Cyrillic names, so they are renamed on extraction.
 import sharp from 'sharp'
-import { mkdirSync, statSync } from 'node:fs'
+import { existsSync, mkdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
 const MAP = {
@@ -25,6 +25,11 @@ const MAP = {
   a13: 'book', // зелёная книга с лентой
   a14: 'envelope', // перламутровый конверт с печатью
   a15: 'robot', // робот-санта с подарком
+  // second batch (interests: sport, beauty, creative, music)
+  a16: 'ball', // футбольный мяч с бантом
+  a17: 'perfume', // флакон духов с бантом
+  a18: 'palette', // палитра с кистью
+  a19: 'vinyl', // виниловая пластинка с бантом
 }
 
 const src = process.argv[2]
@@ -33,7 +38,11 @@ const out = new URL('../src/assets/3d/', import.meta.url)
 mkdirSync(out, { recursive: true })
 
 for (const [file, key] of Object.entries(MAP)) {
-  const input = join(src, `${file}.png`)
+  const input = [join(src, `${file}.png`), join(src, `${file}.webp`)].find((p) => existsSync(p))
+  if (!input) {
+    console.log(`skip ${file} (not found)`)
+    continue
+  }
   const { data, info } = await sharp(input).ensureAlpha().raw().toBuffer({ resolveWithObject: true })
   // Kill near-transparent fringe pixels left by background removal.
   for (let i = 3; i < data.length; i += 4) if (data[i] < 28) data[i] = 0

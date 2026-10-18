@@ -45,13 +45,13 @@ export function Welcome() {
             Санты!
           </motion.span>
         </h1>
-        <motion.p className="mt-4 max-w-[30ch] text-[15px] leading-relaxed text-snow/80" {...phase(0.32)}>
+        <motion.p className="mt-4 max-w-[30ch] text-callout leading-relaxed text-snow/80" {...phase(0.32)}>
           Создавайте игры, обменивайтесь подарками и дарите новогоднее настроение вместе в Telegram.
         </motion.p>
       </div>
 
       {/* Hero scene */}
-      <div className="relative flex flex-1 items-center justify-center" style={{ minHeight: 260 }}>
+      <div className="relative flex flex-1 items-center justify-center" style={{ minHeight: 190 }}>
         <div className="float-a absolute left-[4%] top-[6%]">
           <Art name="star" size={58} noShadow />
         </div>
@@ -70,7 +70,8 @@ export function Welcome() {
           transition={{ duration: 0.5, ease: EASE, delay: 0.3 }}
         >
           <div className="breathe">
-            <Art name="gift" size="min(74vw, 300px)" eager />
+            {/* sized by both width and height so both CTAs stay above the fold on short phones */}
+            <Art name="gift" size="min(70vw, 30dvh, 300px)" eager />
           </div>
         </motion.div>
       </div>

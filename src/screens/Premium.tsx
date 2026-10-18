@@ -38,7 +38,7 @@ export function Premium() {
     <Screen back>
       <div className="px-5">
         <h1 className="type-display ml-auto max-w-[9ch] text-right">Больше магии</h1>
-        <p className="mt-3 text-right text-[15px] text-snow/60">Основная игра всегда бесплатна</p>
+        <p className="mt-3 text-right text-callout text-snow/60">Основная игра всегда бесплатна</p>
       </div>
 
       <div className="mt-6 space-y-4 px-5">
@@ -53,14 +53,14 @@ export function Premium() {
             <div className="pointer-events-none absolute -right-6 -top-4">
               <Art name={p.art} size={140} noShadow />
             </div>
-            <p className="text-[14px] text-snow/70">Santomi</p>
+            <p className="text-secondary text-snow/70">Santomi</p>
             <p className="type-title">{p.title}</p>
-            <p className="mt-1 text-[14px] text-snow/70">
+            <p className="mt-1 text-secondary text-snow/70">
               {p.period}, {p.price}
             </p>
             <ul className="mt-5 space-y-2">
               {p.perks.map((perk) => (
-                <li key={perk} className="flex items-center gap-2 text-[15px]">
+                <li key={perk} className="flex items-center gap-2 text-callout">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-snow/20">
                     <Icon name="check" size={14} strokeWidth={2.4} />
                   </span>
@@ -68,7 +68,7 @@ export function Premium() {
                 </li>
               ))}
             </ul>
-            <Button tone="snow" className="mt-6 w-full" onClick={() => setInfo(true)}>
+            <Button tone={p.id === 'ai' ? 'gold' : 'snow'} icon="star" className="mt-6 w-full" onClick={() => setInfo(true)}>
               Подключить за Stars
             </Button>
           </motion.div>
@@ -78,10 +78,10 @@ export function Premium() {
       <Sheet open={info} onClose={() => setInfo(false)} title="Оплата появится скоро">
         <div className="text-center">
           <Art name="star" size={96} />
-          <p className="mx-auto mt-3 max-w-[30ch] text-[15px] text-ink/70">
+          <p className="mx-auto mt-3 max-w-[30ch] text-callout text-ink/70">
             Оплата через Telegram Stars подключается на этапе 5. В демо-режиме покупки не проводятся и не имитируются.
           </p>
-          <Button className="mt-5 w-full" onClick={() => setInfo(false)}>
+          <Button tone="snow" className="mt-5 w-full" onClick={() => setInfo(false)}>
             Понятно
           </Button>
         </div>

@@ -49,9 +49,9 @@ export function Home() {
           className="relative mx-5 mt-6 flex items-center gap-3 overflow-hidden rounded-[32px] bg-[radial-gradient(120%_120%_at_20%_0%,#e2492c,#a42813_55%,#5c150b)] p-5 text-left"
         >
           <div className="flex-1">
-            <p className="text-[13px] text-snow/75">{pendingReveal.name}</p>
-            <p className="type-h3 mt-1 text-[21px]">Жеребьёвка прошла. Узнайте, кому дарите</p>
-            <span className="mt-3 inline-flex h-10 items-center gap-2 rounded-full bg-snow px-4 text-[14px] font-medium text-ink">
+            <p className="text-footnote text-snow/75">{pendingReveal.name}</p>
+            <p className="type-h3 mt-1 text-card">Жеребьёвка прошла. Узнайте, кому дарите</p>
+            <span className="mt-3 inline-flex h-10 items-center gap-2 rounded-full bg-snow px-4 text-secondary font-medium text-ink">
               Открыть конверт
               <Icon name="forward" size={16} />
             </span>
@@ -65,7 +65,7 @@ export function Home() {
       <section className="mt-8">
         <div className="flex items-end justify-between px-5">
           <h2 className="type-h3">Мои игры</h2>
-          <span className="text-[14px] text-snow/50">
+          <span className="text-secondary text-snow/50">
             {rooms.length} {plural(rooms.length, 'игра', 'игры', 'игр')}
           </span>
         </div>
@@ -78,7 +78,7 @@ export function Home() {
               <span className="flex h-16 w-16 items-center justify-center rounded-[22px] bg-ember text-snow shadow-[0_10px_24px_-8px_rgba(199,50,28,.8)]">
                 <Icon name="plus" size={28} strokeWidth={2} />
               </span>
-              <span className="text-[17px] font-medium leading-tight">
+              <span className="text-button font-medium leading-tight">
                 Создать
                 <br />
                 игру
@@ -94,7 +94,7 @@ export function Home() {
       <section className="mt-6 grid grid-cols-2 gap-3 px-5">
         <Link to="/wishlist" className="relative flex h-[168px] flex-col overflow-hidden rounded-[32px] bg-marzipan p-5 text-ink">
           <span className="type-h3">Вишлист</span>
-          <span className="mt-1 text-[13px] text-ink/60">
+          <span className="mt-1 text-footnote text-ink/60">
             {wishlist.length ? `${wishlist.length} ${plural(wishlist.length, 'желание', 'желания', 'желаний')}` : 'Пока пусто'}
           </span>
           <div className="pointer-events-none absolute -bottom-5 -right-4">
@@ -103,7 +103,7 @@ export function Home() {
         </Link>
         <Link to="/ai" className="relative flex h-[168px] flex-col overflow-hidden rounded-[32px] bg-pine p-5">
           <span className="type-h3">Идеи подарков</span>
-          <span className="mt-1 text-[13px] text-snow/70">Подберём за минуту</span>
+          <span className="mt-1 text-footnote text-snow/70">Подберём за минуту</span>
           <div className="pointer-events-none absolute -bottom-5 -right-3">
             <Art name="gift" size={104} noShadow />
           </div>
@@ -119,10 +119,10 @@ export function Home() {
             <Icon name="chat" />
           </span>
           <span className="flex-1">
-            <span className="block text-[15px] font-medium">Тайный Санта написал вам</span>
-            <span className="block text-[13px] text-snow/55">{chatRoom.name}</span>
+            <span className="block text-callout font-medium">Тайный Санта написал вам</span>
+            <span className="block text-footnote text-snow/55">{chatRoom.name}</span>
           </span>
-          <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-ember px-2 text-[12px] font-semibold">{unread}</span>
+          <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-ember px-2 text-caption font-semibold">{unread}</span>
         </Link>
       )}
     </Screen>

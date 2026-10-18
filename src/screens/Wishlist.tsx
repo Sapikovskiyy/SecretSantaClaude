@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
+import { buttonClass } from '@/components/ds'
 import { PageHeader, PrimaryCTA, Segmented } from '@/components/ds'
 import { Icon } from '@/components/ui/Icon'
 import { Sheet } from '@/components/ui/Kit'
@@ -111,7 +112,7 @@ export function Wishlist() {
           >
             <Icon name="star" size={20} />
             {interests.length > 0 && (
-              <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-pine px-1 text-[11px] font-bold">
+              <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-pine px-1 text-caption font-bold">
                 {interests.length}
               </span>
             )}
@@ -173,13 +174,13 @@ export function Wishlist() {
                 <div className="min-w-0 flex-1">
                   {wishlist.length === 0 && isNew && !draft.title.trim() ? (
                     <>
-                      <p className="text-[17px] font-bold leading-tight">Добавьте первое желание</p>
-                      <p className="mt-1 text-[13px] text-ink-soft">Санта увидит его после жеребьёвки</p>
+                      <p className="text-button font-bold leading-tight">Добавьте первое желание</p>
+                      <p className="mt-1 text-footnote text-ink-soft">Санта увидит его после жеребьёвки</p>
                     </>
                   ) : (
                     <>
-                      <p className="truncate text-[17px] font-bold leading-tight">{draft.title.trim() || (isNew ? 'Новое желание' : 'Без названия')}</p>
-                      <p className="mt-1 text-[15px] font-semibold text-ink/80">{draft.price ? `≈ ${formatRub(Number(draft.price))}` : 'Цена не указана'}</p>
+                      <p className="truncate text-button font-bold leading-tight">{draft.title.trim() || (isNew ? 'Новое желание' : 'Без названия')}</p>
+                      <p className="mt-1 text-callout font-semibold text-ink/80">{draft.price ? `≈ ${formatRub(Number(draft.price))}` : 'Цена не указана'}</p>
                     </>
                   )}
                 </div>
@@ -237,7 +238,7 @@ export function Wishlist() {
                             haptic.select()
                             setDraft({ ...draft, priority: p.id })
                           }}
-                          className={`h-12 rounded-[16px] text-[14px] font-semibold transition-colors duration-200 ${
+                          className={`h-12 rounded-[16px] text-secondary font-semibold transition-colors duration-200 ${
                             active ? 'bg-ember text-snow shadow-[0_8px_18px_-10px_rgba(213,54,28,.9)]' : 'bg-snow text-ink/70'
                           }`}
                         >
@@ -296,8 +297,8 @@ export function Wishlist() {
               <div className="flex flex-col items-center px-4 pt-6 text-center">
                 <Art name="robot" size={150} />
                 <p className="type-h3 mt-3">Здесь будут идеи</p>
-                <p className="mt-1 max-w-[30ch] text-[14px] text-snow/65">Сохраняйте понравившиеся подарки в Gift AI, чтобы вернуться к ним позже</p>
-                <Link to="/ai" className="mt-5 flex h-12 items-center rounded-full bg-snow px-5 text-[15px] font-semibold text-ink">
+                <p className="mt-1 max-w-[30ch] text-secondary text-snow/65">Сохраняйте понравившиеся подарки в Gift AI, чтобы вернуться к ним позже</p>
+                <Link to="/ai" className={buttonClass({ variant: 'secondary', size: 'medium', className: 'mt-5' })}>
                   Открыть Gift AI
                 </Link>
               </div>
@@ -316,8 +317,8 @@ export function Wishlist() {
                         <Art name={interestById[idea.interests[0]]?.art ?? 'gift'} size={58} noShadow />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[15px] font-bold leading-tight">{idea.title}</p>
-                        <p className="mt-1 text-[12px] text-ink-soft">Примерно {formatRange(idea.priceMin, idea.priceMax)}</p>
+                        <p className="text-callout font-bold leading-tight">{idea.title}</p>
+                        <p className="mt-1 text-caption text-ink-soft">Примерно {formatRange(idea.priceMin, idea.priceMax)}</p>
                         <div className="mt-2 flex gap-2">
                           <button
                             onClick={() => {
@@ -325,11 +326,11 @@ export function Wishlist() {
                               removeIdea(idea.id)
                               toast('Перенесено в вишлист')
                             }}
-                            className="h-9 rounded-full bg-ember px-3.5 text-[13px] font-semibold text-snow"
+                            className="h-9 rounded-full bg-ember px-3.5 text-footnote font-semibold text-snow"
                           >
                             В мой вишлист
                           </button>
-                          <button onClick={() => removeIdea(idea.id)} className="h-9 rounded-full bg-ink/8 px-3.5 text-[13px] font-semibold">
+                          <button onClick={() => removeIdea(idea.id)} className="h-9 rounded-full bg-ink/8 px-3.5 text-footnote font-semibold">
                             Убрать
                           </button>
                         </div>
@@ -409,7 +410,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={tween(DUR.chip)}
-            className="mt-1.5 block text-[13px] font-medium text-ember"
+            className="mt-1.5 block text-footnote font-medium text-ember"
             role="alert"
           >
             {error}
@@ -421,7 +422,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 }
 
 const inputCls = (error?: boolean) =>
-  `h-[52px] w-full rounded-[16px] bg-snow px-4 text-[16px] text-ink placeholder:text-ink/35 outline-none transition-shadow duration-200 ${
+  `h-[52px] w-full rounded-[16px] bg-snow px-4 text-body text-ink placeholder:text-ink/35 outline-none transition-shadow duration-200 ${
     error ? 'shadow-[0_0_0_2px_#D5361C]' : 'shadow-[0_0_0_1px_rgba(40,29,25,.08)] focus:shadow-[0_0_0_2px_#D5361C]'
   }`
 
@@ -430,7 +431,7 @@ function AvoidList({ avoid, onAdd, onRemove }: { avoid: string[]; onAdd: (t: str
   return (
     <div className="rounded-[20px] bg-snow/70 p-4">
       <p className="type-label text-ink/75">Не дарить</p>
-      <p className="mt-0.5 text-[12px] text-ink-soft">Санта увидит этот список вместе с вишлистом</p>
+      <p className="mt-0.5 text-caption text-ink-soft">Санта увидит этот список вместе с вишлистом</p>
       {avoid.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2">
           <AnimatePresence initial={false}>
@@ -444,7 +445,7 @@ function AvoidList({ avoid, onAdd, onRemove }: { avoid: string[]; onAdd: (t: str
                 transition={tween(DUR.chip)}
                 onClick={() => onRemove(a)}
                 aria-label={`Убрать «${a}»`}
-                className="flex h-9 items-center gap-1.5 rounded-full bg-ink/8 pl-3.5 pr-2.5 text-[13px] font-semibold"
+                className="flex h-9 items-center gap-1.5 rounded-full bg-ink/8 pl-3.5 pr-2.5 text-footnote font-semibold"
               >
                 {a}
                 <Icon name="close" size={14} />
@@ -463,7 +464,7 @@ function AvoidList({ avoid, onAdd, onRemove }: { avoid: string[]; onAdd: (t: str
         }}
       >
         <input className={`${inputCls()} h-11`} placeholder="Например, сладкое" value={text} onChange={(e) => setText(e.target.value)} aria-label="Что не дарить" />
-        <button className="h-11 shrink-0 rounded-full bg-ink px-4 text-[14px] font-semibold text-snow">Добавить</button>
+        <button className="h-11 shrink-0 rounded-full bg-ink px-4 text-secondary font-semibold text-snow">Добавить</button>
       </form>
     </div>
   )
@@ -476,7 +477,7 @@ function MenuRow({ icon, label, onClick, danger }: { icon: 'back' | 'forward' | 
         haptic.tap()
         onClick()
       }}
-      className={`flex h-14 w-full items-center gap-3 rounded-[18px] bg-snow px-5 text-left text-[16px] font-semibold ${danger ? 'text-ember' : ''}`}
+      className={`flex h-14 w-full items-center gap-3 rounded-[18px] bg-snow px-5 text-left text-body font-semibold ${danger ? 'text-ember' : ''}`}
     >
       <Icon name={icon} size={20} />
       {label}

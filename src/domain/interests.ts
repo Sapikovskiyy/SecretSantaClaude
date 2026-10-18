@@ -21,7 +21,7 @@ export const INTERESTS: InterestMeta[] = [
   { id: 'fashion', title: 'Стиль', hint: 'Одежда и аксессуары', art: 'mitten', face: '#FFE9D9' },
   { id: 'creative', title: 'Творчество', hint: 'Рисование, рукоделие', art: 'palette', face: '#FFF3D6' },
   { id: 'sport', title: 'Спорт', hint: 'Для активных', art: 'ball', face: '#E3F1EC' },
-  { id: 'other', title: 'Другое', hint: 'Сюрприз на ваш вкус', art: 'gift', face: '#FFE2CB' },
+  { id: 'other', title: 'Другое', hint: 'Сюрприз на ваш вкус', art: 'gift-star', face: '#FFE2CB' },
 ]
 
 export const interestById = Object.fromEntries(INTERESTS.map((i) => [i.id, i])) as Record<InterestId, InterestMeta>

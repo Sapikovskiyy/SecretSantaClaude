@@ -45,7 +45,7 @@ export function AvatarStack({ people, max = 4, size = 34 }: { people: Person[]; 
       ))}
       {rest > 0 && (
         <span
-          className="inline-flex items-center justify-center rounded-full bg-taupe text-[12px] font-medium text-snow ring-[3px] ring-cocoa"
+          className="inline-flex items-center justify-center rounded-full bg-taupe text-caption font-medium text-snow ring-[3px] ring-cocoa"
           style={{ width: size, height: size, marginLeft: -size * 0.32 }}
         >
           +{rest}
@@ -82,7 +82,7 @@ export function Chip({
         onClick?.()
       }}
       aria-pressed={active}
-      className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-[14px] transition-colors ${base}`}
+      className={`inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-secondary transition-colors ${base}`}
     >
       {children}
     </motion.button>
@@ -92,7 +92,7 @@ export function Chip({
 /** Clearly identifies simulated content (brief: demo must be obvious). */
 export function DemoBadge({ className = '' }: { className?: string }) {
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full bg-marzipan/15 px-2.5 py-1 text-[11px] font-medium text-marzipan ${className}`}>
+    <span className={`inline-flex items-center gap-1.5 rounded-full bg-marzipan/15 px-2.5 py-1 text-caption font-medium text-marzipan ${className}`}>
       <span className="h-1.5 w-1.5 rounded-full bg-marzipan" />
       Демо-режим
     </span>
@@ -169,17 +169,17 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-2 block text-[14px] opacity-70">{label}</span>
+      <span className="mb-2 block text-secondary opacity-70">{label}</span>
       {children}
-      {hint && <span className="mt-1.5 block text-[12px] opacity-55">{hint}</span>}
+      {hint && <span className="mt-1.5 block text-caption opacity-55">{hint}</span>}
     </label>
   )
 }
 
 export const inputLight =
-  'h-14 w-full rounded-[20px] bg-snow px-5 text-[17px] text-ink placeholder:text-ink/35 outline-none ring-1 ring-ink/8 focus:ring-2 focus:ring-ember'
+  'h-14 w-full rounded-[20px] bg-snow px-5 text-button text-ink placeholder:text-ink/35 outline-none ring-1 ring-ink/8 focus:ring-2 focus:ring-ember'
 export const inputDark =
-  'h-14 w-full rounded-[20px] bg-white/7 px-5 text-[17px] text-snow placeholder:text-snow/35 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-marzipan'
+  'h-14 w-full rounded-[20px] bg-white/7 px-5 text-button text-snow placeholder:text-snow/35 outline-none ring-1 ring-white/10 focus:ring-2 focus:ring-marzipan'
 
 export function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
@@ -190,7 +190,7 @@ export function Toggle({ checked, onChange, label }: { checked: boolean; onChang
         haptic.select()
         onChange(!checked)
       }}
-      className="flex w-full items-center justify-between gap-4 py-3 text-left text-[16px]"
+      className="flex w-full items-center justify-between gap-4 py-3 text-left text-body"
     >
       <span>{label}</span>
       <span className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${checked ? 'bg-ember' : 'bg-ink/15'}`}>
@@ -256,7 +256,7 @@ export function Dock() {
           to={it.to}
           onClick={() => haptic.select()}
           className={({ isActive }) =>
-            `relative flex h-14 items-center justify-center gap-2 rounded-full px-4 text-[14px] transition-colors ${
+            `relative flex h-14 items-center justify-center gap-2 rounded-full px-4 text-secondary transition-colors ${
               isActive ? 'bg-snow text-ink' : 'text-snow/70'
             }`
           }
@@ -285,7 +285,7 @@ export function Toasts() {
             initial={{ opacity: 0, y: -16, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10 }}
-            className="flex items-center gap-2 rounded-full bg-snow px-5 py-3 text-[15px] text-ink shadow-[0_12px_30px_-8px_rgba(0,0,0,.5)]"
+            className="flex items-center gap-2 rounded-full bg-snow px-5 py-3 text-callout text-ink shadow-[0_12px_30px_-8px_rgba(0,0,0,.5)]"
             role="status"
           >
             <Icon name={t.kind === 'error' ? 'x' : 'check'} size={18} className={t.kind === 'error' ? 'text-ember' : 'text-pine'} />
@@ -302,7 +302,7 @@ export function Empty({ art, title, text, action }: { art: ReactNode; title: str
     <div className="flex flex-col items-center px-8 py-6 text-center">
       {art}
       <h3 className="type-h3 mt-3">{title}</h3>
-      <p className="mt-2 max-w-[30ch] text-[15px] opacity-65">{text}</p>
+      <p className="mt-2 max-w-[30ch] text-callout opacity-65">{text}</p>
       {action && <div className="mt-5">{action}</div>}
     </div>
   )

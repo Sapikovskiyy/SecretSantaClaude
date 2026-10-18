@@ -4,11 +4,11 @@
  * plays an animation over data it receives — it can never re-draw.
  */
 import { useEffect, useState } from 'react'
-import { Link, Navigate, useParams } from 'react-router'
+import { Navigate, useParams } from 'react-router'
 import { AnimatePresence, motion, useMotionValue, useTransform, animate, type MotionValue } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
+import { SantomiLinkButton } from '@/components/ds'
 import { Avatar } from '@/components/ui/Kit'
-import { Icon } from '@/components/ui/Icon'
 import { Art } from '@/components/art/Art'
 import { useDemo } from '@/data/demoStore'
 import { usePerson } from '@/data/people'
@@ -53,9 +53,9 @@ export function Reveal() {
       <AnimatePresence mode="wait">
         {phase !== 'revealed' ? (
           <motion.div key="sealed" className="flex flex-1 flex-col items-center px-5 text-center" exit={{ opacity: 0, scale: 0.9 }}>
-            <p className="text-[14px] text-snow/70">{room.name}</p>
+            <p className="text-secondary text-snow/70">{room.name}</p>
             <h1 className="type-display mt-3 max-w-[11ch]">Кому вы дарите?</h1>
-            <p className="mt-3 text-[15px] text-snow/70">{phase === 'sealed' ? 'Потяните конверт вверх или нажмите на него' : 'Открываем…'}</p>
+            <p className="mt-3 text-callout text-snow/70">{phase === 'sealed' ? 'Потяните конверт вверх или нажмите на него' : 'Открываем…'}</p>
 
             <div className="relative mt-6 flex flex-1 items-center justify-center">
               {/* glow intensifies as it opens */}
@@ -102,33 +102,25 @@ export function Reveal() {
                 className="absolute top-0 h-64 w-64 rounded-full bg-[radial-gradient(closest-side,rgba(255,214,150,.55),transparent)]"
               />
               <Sparkles />
-              <p className="relative text-[15px] text-snow/75">Вы — Тайный Санта для</p>
+              <p className="relative text-callout text-snow/75">Вы — Тайный Санта для</p>
               <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.15, type: 'spring', stiffness: 220, damping: 14 }} className="relative mt-5">
                 <Avatar person={recipient} size={124} />
               </motion.div>
               <motion.h1 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="type-display relative mt-5">
                 {recipient.name}
               </motion.h1>
-              <p className="relative mt-2 text-[15px] text-snow/70">Бюджет подарка — до {formatRub(room.budget)}</p>
-              <p className="relative mt-1 text-[13px] text-snow/50">Это секрет: никто, кроме вас, не знает</p>
+              <p className="relative mt-2 text-callout text-snow/70">Бюджет подарка — до {formatRub(room.budget)}</p>
+              <p className="relative mt-1 text-footnote text-snow/50">Это секрет: никто, кроме вас, не знает</p>
             </div>
 
             <div className="mt-auto space-y-3 pt-8">
-              <Link
-                to={`/rooms/${room.id}/recipient`}
-                className="flex h-16 w-full items-center justify-center gap-2 rounded-full bg-snow text-[17px] font-medium text-ink"
-              >
-                <Icon name="gift" size={20} />
+              <SantomiLinkButton to={`/rooms/${room.id}/recipient`} variant="secondary" leadingIcon="gift" fullWidth>
                 Посмотреть вишлист
-              </Link>
+              </SantomiLinkButton>
               {room.chatEnabled && (
-                <Link
-                  to={`/rooms/${room.id}/chat/toRecipient`}
-                  className="flex h-16 w-full items-center justify-center gap-2 rounded-full bg-black/25 text-[17px] backdrop-blur-xl"
-                >
-                  <Icon name="chat" size={20} />
+                <SantomiLinkButton to={`/rooms/${room.id}/chat/toRecipient`} variant="ghost" leadingIcon="chat" fullWidth className="text-snow">
                   Написать анонимно
-                </Link>
+                </SantomiLinkButton>
               )}
             </div>
           </motion.div>
@@ -140,7 +132,7 @@ export function Reveal() {
 
 function SkipBtn({ onSkip }: { onSkip: () => void }) {
   return (
-    <button onClick={onSkip} className="h-11 rounded-full bg-black/25 px-4 text-[14px] backdrop-blur">
+    <button onClick={onSkip} className="h-11 rounded-full bg-black/25 px-4 text-secondary backdrop-blur">
       Пропустить
     </button>
   )
@@ -181,7 +173,7 @@ function Envelope({ flapRotate, lift }: { flapRotate: MotionValue<number>; lift:
           <path d="M6 0 L294 0 Q300 0 296 6 L160 104 Q150 110 140 104 L4 6 Q0 0 6 0Z" fill="url(#flap)" />
         </svg>
         {/* wax seal */}
-        <div className="absolute left-1/2 top-[66px] flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-[radial-gradient(circle_at_30%_25%,#fff0b8,#e7b54a_55%,#8a5a12)] text-[22px] font-semibold text-[#7a3a10] shadow-lg">
+        <div className="absolute left-1/2 top-[66px] flex h-14 w-14 -translate-x-1/2 items-center justify-center rounded-full bg-[radial-gradient(circle_at_30%_25%,#fff0b8,#e7b54a_55%,#8a5a12)] text-card font-semibold text-[#7a3a10] shadow-lg">
           S
         </div>
       </motion.div>

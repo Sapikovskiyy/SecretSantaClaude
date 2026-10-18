@@ -14,7 +14,7 @@ export function ServerNotConnected() {
       <Logo />
       <Art name="santa" size={200} eager className="mt-8" />
       <h1 className="type-title mt-6">Скоро откроемся</h1>
-      <p className="mt-3 max-w-[30ch] text-[15px] leading-relaxed text-snow/70">
+      <p className="mt-3 max-w-[30ch] text-callout leading-relaxed text-snow/70">
         Сервер Santomi ещё не подключён. Игры, вишлисты и чат заработают после запуска.
       </p>
     </main>

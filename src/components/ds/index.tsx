@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router'
 import { haptic, isTelegram } from '@/lib/telegram'
 import { Icon, type IconName } from '@/components/ui/Icon'
 import { DUR, EASE, PRESS, tween } from '@/motion/tokens'
+import { SantomiButton } from './SantomiButton'
 
 /* ───────────────────────── PageHeader ───────────────────────── */
 
@@ -52,7 +53,7 @@ export function PageHeader({
         {leading}
         <div className="min-w-0">
           {title && <h1 className="type-screen truncate">{title}</h1>}
-          {subtitle && <p className="truncate text-[12px] text-snow/60">{subtitle}</p>}
+          {subtitle && <p className="truncate text-caption text-snow/60">{subtitle}</p>}
         </div>
       </div>
       <div className="flex w-12 shrink-0 justify-end">{right}</div>
@@ -62,63 +63,24 @@ export function PageHeader({
 
 /* ───────────────────────── CTAs ───────────────────────── */
 
+export { SantomiButton, SantomiLinkButton, buttonClass } from './SantomiButton'
+export type { ButtonVariant, ButtonSize } from './SantomiButton'
+
 type CTAProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   icon?: IconName
   trailing?: IconName
   loading?: boolean
-  tone?: 'ember' | 'telegram' | 'cream'
+  variant?: 'primary' | 'success' | 'premium'
 }
 
-/** Large red pill — one per screen. Press feedback never delays the action. */
-export function PrimaryCTA({ icon, trailing, loading, tone = 'ember', className = '', children, onClick, disabled, ...rest }: CTAProps) {
-  const t = {
-    ember: 'bg-ember text-snow shadow-[0_14px_30px_-14px_rgba(213,54,28,.95)]',
-    telegram: 'bg-telegram text-white shadow-[0_14px_30px_-14px_rgba(42,140,232,.9)]',
-    cream: 'bg-snow text-ink',
-  }[tone]
-  return (
-    <motion.button
-      whileTap={disabled || loading ? undefined : PRESS}
-      transition={tween(DUR.press)}
-      disabled={disabled || loading}
-      aria-busy={loading || undefined}
-      onClick={(e) => {
-        haptic.press()
-        onClick?.(e)
-      }}
-      className={`relative flex h-[60px] w-full items-center justify-center gap-2.5 rounded-full px-6 text-[17px] font-semibold disabled:opacity-45 ${t} ${className}`}
-      {...(rest as object)}
-    >
-      {loading ? (
-        <Dots />
-      ) : (
-        <>
-          {icon && <Icon name={icon} size={20} strokeWidth={2.2} />}
-          <span>{children}</span>
-          {trailing && <Icon name={trailing} size={20} strokeWidth={2.2} className="absolute right-6" />}
-        </>
-      )}
-    </motion.button>
-  )
+/** The screen's one prominent CTA: large, full-width, dimensional gradient. */
+export function PrimaryCTA({ icon, trailing, variant = 'primary', ...rest }: CTAProps) {
+  return <SantomiButton variant={variant} size="large" fullWidth leadingIcon={icon} trailingIcon={trailing} {...rest} />
 }
 
-/** Outlined pill for the secondary path (e.g. «Присоединиться к игре»). */
-export function SecondaryCTA({ icon, className = '', children, onClick, ...rest }: CTAProps) {
-  return (
-    <motion.button
-      whileTap={PRESS}
-      transition={tween(DUR.press)}
-      onClick={(e) => {
-        haptic.tap()
-        onClick?.(e)
-      }}
-      className={`flex h-[56px] w-full items-center justify-center gap-2.5 rounded-full border border-snow/30 px-6 text-[16px] font-semibold text-snow ${className}`}
-      {...(rest as object)}
-    >
-      {icon && <Icon name={icon} size={20} />}
-      {children}
-    </motion.button>
-  )
+/** Quiet outlined pill for the secondary path (e.g. «Присоединиться к игре»). */
+export function SecondaryCTA({ icon, trailing, className = '', ...rest }: CTAProps) {
+  return <SantomiButton variant="ghost" size="large" fullWidth leadingIcon={icon} trailingIcon={trailing} className={`text-snow ${className}`} {...rest} />
 }
 
 /** Three-dot loader (real loading only — never a fake delay). */
@@ -180,7 +142,7 @@ export function Segmented<T extends string>({
               haptic.select()
               onChange(o.id)
             }}
-            className={`relative z-10 flex h-11 flex-1 items-center justify-center rounded-full px-3 text-[14px] font-semibold transition-colors duration-200 ${
+            className={`relative z-10 flex h-11 flex-1 items-center justify-center rounded-full px-3 text-secondary font-semibold transition-colors duration-200 ${
               active ? (tone === 'dark' ? 'text-ink' : 'text-snow') : tone === 'dark' ? 'text-snow/70' : 'text-ink/60'
             }`}
           >
@@ -207,7 +169,7 @@ export function StatusPill({ tone, children }: { tone: 'green' | 'gold' | 'red' 
     red: 'bg-ember/12 text-ember',
     muted: 'bg-ink/8 text-ink/70',
   }[tone]
-  return <span className={`inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-[12px] font-semibold ${t}`}>{children}</span>
+  return <span className={`inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-caption font-semibold ${t}`}>{children}</span>
 }
 
 /* ───────────────────────── States ───────────────────────── */
@@ -217,11 +179,11 @@ export function ErrorState({ title, text, onRetry }: { title: string; text?: str
     <div role="alert" className="flex items-start gap-3 rounded-[20px] bg-ember/10 p-4 text-ink">
       <Icon name="alert" size={20} className="mt-0.5 shrink-0 text-ember" />
       <div className="flex-1">
-        <p className="text-[15px] font-semibold">{title}</p>
-        {text && <p className="mt-0.5 text-[13px] text-ink/65">{text}</p>}
+        <p className="text-callout font-semibold">{title}</p>
+        {text && <p className="mt-0.5 text-footnote text-ink/65">{text}</p>}
       </div>
       {onRetry && (
-        <button onClick={onRetry} className="h-9 shrink-0 rounded-full bg-ember px-4 text-[13px] font-semibold text-snow">
+        <button onClick={onRetry} className="h-9 shrink-0 rounded-full bg-ember px-4 text-footnote font-semibold text-snow">
           Повторить
         </button>
       )}
@@ -233,7 +195,7 @@ export function LoadingState({ label = 'Загружаем…' }: { label?: stri
   return (
     <div className="flex flex-col items-center gap-3 py-10 text-snow/70">
       <Dots />
-      <p className="text-[14px]">{label}</p>
+      <p className="text-secondary">{label}</p>
     </div>
   )
 }
@@ -242,7 +204,7 @@ export function LoadingState({ label = 'Загружаем…' }: { label?: stri
 export function StepProgress({ current, total }: { current: number; total: number }) {
   return (
     <div className="flex min-w-0 flex-1 flex-col gap-1.5" aria-label={`Шаг ${current} из ${total}`}>
-      <span className="text-[13px] font-semibold text-snow/70">
+      <span className="text-footnote font-semibold text-snow/70">
         {current} из {total}
       </span>
       <span className="h-1.5 w-full overflow-hidden rounded-full bg-white/12">

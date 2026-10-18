@@ -95,7 +95,7 @@ export function GiftAI() {
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`h-10 rounded-full px-4 text-[14px] transition-colors ${tab === t ? 'bg-snow text-ink' : 'text-snow/75'}`}
+              className={`h-10 rounded-full px-4 text-secondary transition-colors ${tab === t ? 'bg-snow text-ink' : 'text-snow/75'}`}
             >
               {t === 'new' ? 'Подбор' : `Сохранённые${savedIdeas.length ? ` (${savedIdeas.length})` : ''}`}
             </button>
@@ -110,7 +110,7 @@ export function GiftAI() {
           {savedIdeas.length === 0 ? (
             <div className="mt-10 flex flex-col items-center text-center">
               <Art name="gift" size={140} />
-              <p className="mt-3 max-w-[28ch] text-[15px] text-snow/70">Сохраняйте понравившиеся идеи, чтобы вернуться к ним позже</p>
+              <p className="mt-3 max-w-[28ch] text-callout text-snow/70">Сохраняйте понравившиеся идеи, чтобы вернуться к ним позже</p>
             </div>
           ) : (
             <div className="mt-5 space-y-3">
@@ -124,7 +124,7 @@ export function GiftAI() {
         <div className="mt-6 flex-1 px-5">
           <div className="flex items-end justify-between">
             <h1 className="type-title max-w-[10ch]">{loading ? 'Подбираем идеи' : 'Вот что подойдёт'}</h1>
-            <button onClick={() => setResults(null)} className="h-10 rounded-full bg-black/20 px-4 text-[14px]">
+            <button onClick={() => setResults(null)} className="h-10 rounded-full bg-black/20 px-4 text-secondary">
               Изменить
             </button>
           </div>
@@ -133,13 +133,13 @@ export function GiftAI() {
               <motion.div animate={{ rotate: [-8, 8, -8], y: [0, -10, 0] }} transition={{ duration: 0.9, repeat: Infinity }}>
                 <Art name="gift" size={150} />
               </motion.div>
-              <p className="mt-4 text-[15px] text-snow/70">Учитываем интересы и бюджет…</p>
+              <p className="mt-4 text-callout text-snow/70">Учитываем интересы и бюджет…</p>
             </div>
           ) : (
             <>
               <div className="mt-5 space-y-3">
                 {results!.length === 0 && (
-                  <p className="rounded-[24px] bg-black/20 p-5 text-[15px]">С таким бюджетом идей не нашлось. Попробуйте увеличить бюджет.</p>
+                  <p className="rounded-[24px] bg-black/20 p-5 text-callout">С таким бюджетом идей не нашлось. Попробуйте увеличить бюджет.</p>
                 )}
                 {results!.map((idea, i) => (
                   <motion.div key={idea.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}>
@@ -164,7 +164,7 @@ export function GiftAI() {
                   </Chip>
                 ))}
               </div>
-              <p className="mt-4 text-[12px] leading-snug text-snow/55">
+              <p className="mt-4 text-caption leading-snug text-snow/55">
                 Цены — примерный диапазон по категории, а не актуальные цены магазинов. Осталось бесплатных подборов: {left} из {FREE_AI_GENERATIONS}
               </p>
             </>
@@ -181,7 +181,7 @@ export function GiftAI() {
           </div>
           <div className="mt-4 flex items-center justify-between px-5">
             <Steps count={4} current={step} />
-            <span className="text-[13px] text-snow/60">
+            <span className="text-footnote text-snow/60">
               Бесплатно: {left} из {FREE_AI_GENERATIONS}
             </span>
           </div>
@@ -215,7 +215,7 @@ export function GiftAI() {
                 )}
                 {step === 1 && (
                   <>
-                    <p className="text-[56px] leading-none tracking-[-0.04em]">до {formatRub(budget)}</p>
+                    <p className="text-numeral leading-none tracking-[-0.04em]">до {formatRub(budget)}</p>
                     <div className="mt-6 flex flex-wrap gap-2">
                       {BUDGETS.map((b) => (
                         <Chip key={b} active={budget === b} onClick={() => setBudget(b)}>
@@ -282,13 +282,13 @@ export function GiftAI() {
       <Sheet open={paywall} onClose={() => setPaywall(false)} title="Бесплатные подборы закончились">
         <div className="flex flex-col items-center text-center">
           <Art name="gift" size={120} />
-          <p className="mt-2 max-w-[30ch] text-[15px] text-ink/70">
+          <p className="mt-2 max-w-[30ch] text-callout text-ink/70">
             С Santomi AI Plus — 50 подборов на 30 дней, анализ вишлистов и сохранённые идеи
           </p>
-          <Button className="mt-5 w-full" onClick={() => navigate('/premium')}>
+          <Button tone="gold" icon="star" className="mt-5 w-full" onClick={() => navigate('/premium')}>
             Подробнее об AI Plus
           </Button>
-          <Link to="/home" className="mt-3 text-[14px] text-ink/60" onClick={() => setPaywall(false)}>
+          <Link to="/home" className="mt-3 text-secondary text-ink/60" onClick={() => setPaywall(false)}>
             Не сейчас
           </Link>
         </div>
@@ -305,12 +305,12 @@ function IdeaCard({ idea, saved, onToggle }: { idea: GiftIdea; saved: boolean; o
         <Art name={art} size={70} noShadow />
       </div>
       <div className="min-w-0 flex-1 py-1">
-        <p className="text-[16px] font-medium leading-tight">{idea.title}</p>
-        <p className="mt-1 text-[13px] text-ink/65">{idea.why}</p>
+        <p className="text-body font-medium leading-tight">{idea.title}</p>
+        <p className="mt-1 text-footnote text-ink/65">{idea.why}</p>
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          <span className="rounded-full bg-ink px-2.5 py-0.5 text-[12px] text-snow">{formatRange(idea.priceMin, idea.priceMax)}</span>
+          <span className="rounded-full bg-ink px-2.5 py-0.5 text-caption text-snow">{formatRange(idea.priceMin, idea.priceMax)}</span>
           {idea.interests.map((i) => (
-            <span key={i} className="rounded-full bg-ink/8 px-2.5 py-0.5 text-[12px]">
+            <span key={i} className="rounded-full bg-ink/8 px-2.5 py-0.5 text-caption">
               {interestById[i].title}
             </span>
           ))}

@@ -75,7 +75,7 @@ export function CreateRoom() {
     <Screen back={step === 0 ? true : undefined}>
       <div className="flex items-center justify-between px-5">
         {step > 0 ? (
-          <button onClick={() => setStep(step - 1)} className="h-11 rounded-full bg-truffle/80 px-4 text-[14px]">
+          <button onClick={() => setStep(step - 1)} className="h-11 rounded-full bg-truffle/80 px-4 text-secondary">
             Назад
           </button>
         ) : (
@@ -126,8 +126,8 @@ export function CreateRoom() {
 
             {step === 1 && (
               <>
-                <p className="text-center text-[64px] font-normal leading-none tracking-[-0.04em]">{formatRub(budget)}</p>
-                <p className="mt-2 text-center text-[14px] text-snow/55">максимальная стоимость подарка</p>
+                <p className="text-center text-numeral font-normal leading-none tracking-[-0.04em]">{formatRub(budget)}</p>
+                <p className="mt-2 text-center text-secondary text-snow/55">максимальная стоимость подарка</p>
                 <div className="no-scrollbar -mx-5 mt-8 flex gap-2 overflow-x-auto px-5">
                   {BUDGETS.map((b) => (
                     <Chip
@@ -180,7 +180,7 @@ export function CreateRoom() {
                   onChange={(e) => setDate(e.target.value)}
                   aria-label="Дата обмена"
                 />
-                <p className="mt-6 text-center text-[15px] text-snow/60">Обмен — {formatDate(date)}</p>
+                <p className="mt-6 text-center text-callout text-snow/60">Обмен — {formatDate(date)}</p>
               </>
             )}
 
@@ -190,8 +190,8 @@ export function CreateRoom() {
                   <div className="pointer-events-none absolute -bottom-4 -right-4">
                     <Art name={themeFace[theme].art} size={130} noShadow />
                   </div>
-                  <p className="type-h3 max-w-[12ch] text-[22px]">{name}</p>
-                  <p className="mt-2 text-[14px] text-snow/75">
+                  <p className="type-h3 max-w-[12ch] text-card">{name}</p>
+                  <p className="mt-2 text-secondary text-snow/75">
                     {formatDate(date)}
                     <br />
                     До {formatRub(budget)}
@@ -199,7 +199,7 @@ export function CreateRoom() {
                 </div>
 
                 <div>
-                  <p className="mb-2 text-[14px] text-snow/60">Оформление</p>
+                  <p className="mb-2 text-secondary text-snow/60">Оформление</p>
                   <div className="flex gap-2">
                     {THEMES.map((t) => (
                       <Chip key={t.id} active={theme === t.id} onClick={() => setTheme(t.id)}>
