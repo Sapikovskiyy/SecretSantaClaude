@@ -61,7 +61,7 @@ export function Screen({ children, surface = 'cocoa', back, right, className = '
   const showHeader = !headless && ((back && !isTelegram) || right)
   return (
     <motion.main
-      initial={{ opacity: 0, x: 6 * dir }}
+      initial={{ opacity: 0, x: 8 * dir }}
       animate={{ opacity: 1, x: 0 }}
       transition={tween(DUR.enter)}
       className={`relative mx-auto flex min-h-dvh w-full max-w-[480px] flex-col overflow-x-clip ${surfaces[surface]} ${className}`}

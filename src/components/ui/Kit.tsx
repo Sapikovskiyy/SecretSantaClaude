@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion, useDragControls } from 'motion/react'
+import { DUR, SHEET_SPRING, tween } from '@/motion/tokens'
 import { NavLink } from 'react-router'
 import type { Person } from '@/domain/types'
 import { haptic } from '@/lib/telegram'
@@ -113,6 +114,9 @@ export function Sheet({
   title?: string
   tone?: 'marzipan' | 'cocoa'
 }) {
+  // Drag-to-close starts only from the grab handle, so inputs, selects and the sheet's own
+  // scroll never fight the gesture (Telegram WebView + long forms).
+  const drag = useDragControls()
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
@@ -131,14 +135,17 @@ export function Sheet({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={tween(0.22)}
             onClick={onClose}
           />
           <motion.div
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            transition={{ type: 'spring', stiffness: 380, damping: 38 }}
+            transition={SHEET_SPRING}
             drag="y"
+            dragListener={false}
+            dragControls={drag}
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0, bottom: 0.6 }}
             onDragEnd={(_, info) => (info.offset.y > 120 || info.velocity.y > 600) && onClose()}
@@ -147,7 +154,13 @@ export function Sheet({
             }`}
             style={{ paddingBottom: 'calc(var(--sa-bottom) + 20px)' }}
           >
-            <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-current opacity-20" />
+            <div
+              aria-hidden
+              onPointerDown={(e) => drag.start(e)}
+              className="-mx-5 -mt-3 mb-1 flex h-9 cursor-grab touch-none items-center justify-center active:cursor-grabbing"
+            >
+              <span className="h-1.5 w-12 rounded-full bg-current opacity-20" />
+            </div>
             {title && <h2 className="type-h3 mb-4 text-center">{title}</h2>}
             {children}
           </motion.div>
@@ -295,7 +308,7 @@ export function Toasts() {
           <motion.div
             key={t.id}
             initial={{ opacity: 0, y: -16, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
+            animate={{ opacity: 1, y: 0, scale: 1, transition: tween(DUR.toast) }}
             exit={{ opacity: 0, y: -10 }}
             className="flex items-center gap-2 rounded-full bg-snow px-5 py-3 text-callout text-ink shadow-[0_12px_30px_-8px_rgba(0,0,0,.5)]"
             role="status"

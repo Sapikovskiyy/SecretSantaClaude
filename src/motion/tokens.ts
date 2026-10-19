@@ -12,7 +12,7 @@ export const DUR = {
   message: 0.18, // new chat message 140–220 ms
   toast: 0.2, // 180–240 ms
   page: 0.28, // screen transition 220–320 ms (legacy)
-  enter: 0.2, // v3: enter-only screen transition, 180–260 ms
+  enter: 0.22, // v3: enter-only screen transition (spec 220–320 ms; tap-to-settled ≈ 280 ms)
   card: 0.3, // card enter 240–340 ms
   layout: 0.24, // wishlist add/remove 180–280 ms
 } as const

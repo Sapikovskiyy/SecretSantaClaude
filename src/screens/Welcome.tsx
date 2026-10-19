@@ -84,11 +84,12 @@ export function Welcome() {
         <GlowStar size={66} delay={1.6} style={{ right: '1.8%', top: '26%' }} />
         <GlowStar size={62} delay={3.1} style={{ left: '-2.3%', top: '38.7%' }} />
         {SACK_BACK && SACK_FRONT ? (
-          <>
+          // Gentle ±1.5° sway (7.5 s, CSS, only while this screen is mounted; off for reduced motion).
+          <div className="breathe absolute inset-0" style={{ transformOrigin: '50% 95%' }}>
             <img src={SACK_BACK} alt="" draggable={false} decoding="async" fetchPriority="high" className={SACK_POS} />
             <img src={CANE} alt="" draggable={false} decoding="async" className={CANE_POS} />
             <img src={SACK_FRONT} alt="" draggable={false} decoding="async" fetchPriority="high" className={SACK_POS} />
-          </>
+          </div>
         ) : (
           <>
             <img

@@ -36,6 +36,7 @@ test('welcome → home, returning user skips onboarding', async ({ page }, info)
 })
 
 test('create a room, invite, add demo participants, run the draw and reveal', async ({ page }, info) => {
+  test.setTimeout(60_000) // longest end-to-end flow (create → invite → draw → reveal)
   await enterApp(page)
   await page.getByRole('link', { name: 'Создать игру' }).first().click()
   await expect(page.getByRole('heading', { name: 'Создадим игру!' })).toBeVisible()

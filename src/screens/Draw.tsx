@@ -116,18 +116,17 @@ export function Draw() {
         <GlowStar size={50} delay={1.8} style={{ right: '7%', top: '12%' }} />
         <GlowStar size={36} delay={3} style={{ right: '12%', bottom: '18%' }} />
         <span className="absolute bottom-[8%] left-1/2 h-[18%] w-[78%] -translate-x-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(40,10,4,.55),rgba(40,10,4,0))]" />
-        {done && (
-          <motion.span
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1.15 }}
-            transition={{ duration: 0.6, ease: EASE }}
-            className="absolute h-[70%] w-[80%] rounded-full bg-[radial-gradient(closest-side,rgba(255,214,150,.45),transparent)]"
-          />
-        )}
+        {/* Warm glow: pulses only while the server works (opacity only), settles bright on success */}
+        <motion.span
+          className="absolute h-[70%] w-[80%] rounded-full bg-[radial-gradient(closest-side,rgba(255,214,150,.45),transparent)]"
+          initial={{ opacity: 0 }}
+          animate={phase === 'running' ? { opacity: [0.25, 0.8, 0.25] } : { opacity: done ? 1 : 0 }}
+          transition={phase === 'running' ? { duration: 1.8, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.5, ease: EASE }}
+        />
         <motion.span
           className="relative"
-          animate={phase === 'running' ? { rotate: [0, -4, 4, -3, 3, 0] } : { rotate: 0 }}
-          transition={phase === 'running' ? { duration: 0.6, repeat: Infinity } : { duration: 0.3 }}
+          animate={done ? { scale: [1, 1.04, 1] } : { scale: 1 }}
+          transition={{ duration: 0.5, ease: EASE }}
         >
           {done ? (
             <LottieAnimation asset="success-check" className="h-[min(300px,36dvh)] w-[min(300px,36dvh)]" fallback={<Art name="gift-green" size="min(300px, 36dvh)" eager noShadow />} />
