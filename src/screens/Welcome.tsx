@@ -6,9 +6,9 @@
  *   CTA pill 314×74 centred at ≈ 731 · «Присоединиться к игре» at ≈ 801
  * Motion: headline → illustration → CTA, ≤ 0.6 s total, no loops on the large raster.
  *
- * ASSET NOTE: the reference shows a polka-dot sack with a candy cane. That render was not in
- * the provided asset pack, so the composition uses the existing gift + cane renders in the same
- * position and scale. Drop `sack.webp` into src/assets/3d to swap it in (see artUrl('sack')).
+ * Illustration: polka-dot sack with candy cane (sack-v3.webp, cleaned by scripts/clean-cutout.mjs).
+ * Body left edge ≈ 46 px, cane ≈ 190–377 px; the right side of the sack bleeds off-screen like the
+ * reference (the source cutout has a clipped right edge). Gift + cane renders remain as a fallback.
  */
 import { useNavigate } from 'react-router'
 import { motion } from 'motion/react'
@@ -19,7 +19,7 @@ import { GlowStar } from '@/components/GlowStar'
 import { useDemo } from '@/data/demoStore'
 import { EASE } from '@/motion/tokens'
 
-const SACK = artUrl('sack-v3') // dedicated render not provided yet
+const SACK = artUrl('sack-v3')
 const GIFT = artUrl('gift')
 const CANE = artUrl('cane')
 
@@ -68,11 +68,18 @@ export function Welcome() {
         transition={{ duration: 0.5, ease: EASE, delay: 0.12 }}
         style={{ transformOrigin: '50% 100%' }}
       >
-        <GlowStar size={100} style={{ left: '7%', top: '10%' }} />
-        <GlowStar size={52} style={{ right: '5%', top: '35%' }} />
-        <GlowStar size={46} style={{ left: '-1%', top: '53%' }} />
+        <GlowStar size={100} style={{ left: '13.6%', top: '5%' }} />
+        <GlowStar size={52} style={{ right: '-3%', top: '27.5%' }} />
+        <GlowStar size={46} style={{ left: '6%', top: '43%' }} />
         {SACK ? (
-          <img src={SACK} alt="" className="absolute bottom-[-14%] left-1/2 w-[112%] max-w-none -translate-x-1/2 select-none" draggable={false} />
+          <img
+            src={SACK}
+            alt=""
+            draggable={false}
+            decoding="async"
+            fetchPriority="high"
+            className="absolute left-[11.8%] top-[2%] w-[92.3%] max-w-none select-none"
+          />
         ) : (
           <>
             <img

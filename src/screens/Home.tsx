@@ -147,7 +147,7 @@ function Featured({ room }: { room: Room }) {
           {/* Illustration area: soft ground + centred render */}
           <div className="relative mt-1 flex h-[min(233px,27.6dvh)] [@media(max-height:820px)]:h-[208px] items-end justify-center">
             <span aria-hidden className="absolute inset-x-[-10%] bottom-[-8%] h-[46%] rounded-[50%] bg-[radial-gradient(closest-side,rgba(255,236,214,.55),rgba(255,236,214,0))]" />
-            <Art name="house" size="min(226px, 26dvh)" eager />
+            <Art name="snow-globe" size="min(232px, 26.5dvh)" eager noShadow />
           </div>
         </Link>
 

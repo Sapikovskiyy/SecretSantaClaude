@@ -91,7 +91,7 @@ export function Invite() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.45, ease: EASE, delay: 0.05 }}
       >
-        <Art name="gift" size="min(164px, 19dvh)" eager />
+        <Art name="gift-green" size="min(168px, 19.5dvh)" eager />
       </motion.div>
 
       {/* Invitation card */}
