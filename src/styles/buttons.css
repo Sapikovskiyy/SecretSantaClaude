@@ -89,7 +89,7 @@
   /* sizes — all ≥ 44 px touch targets */
   .sbtn-sm { height: 44px; padding: 0 1.1rem; font-size: 15px; --sb-depth: 3px; }
   .sbtn-md { height: 52px; padding: 0 1.4rem; font-size: 16px; --sb-depth: 3px; }
-  .sbtn-lg { height: 58px; padding: 0 1.75rem; font-size: 17px; --sb-depth: 3px; }
+  .sbtn-lg { height: 61px; padding: 0 1.75rem; font-size: 17px; --sb-depth: 3px; }
   .sbtn-full { width: 100%; }
   /* Full-width CTAs pin the trailing icon to the right edge (references 02–04) */
   .sbtn-full .sbtn-trail { position: absolute; right: 1.4rem; }

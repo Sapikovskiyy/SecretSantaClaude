@@ -327,13 +327,16 @@ test('profile and 404', async ({ page }, info) => {
   await expect(page.getByText('Такой страницы нет')).toBeVisible()
 })
 
-test('home shows reveal hero and games list', async ({ page }) => {
+test('home shows nearest game, draw countdown and games list', async ({ page }) => {
   await enterApp(page)
-  await expect(page.getByText('Жеребьёвка прошла — откройте подарок')).toBeVisible()
-  await expect(page.getByRole('link', { name: /Семейный Новый год/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Новогодний обмен' })).toBeVisible()
+  await expect(page.getByText('12 участников')).toBeVisible()
+  await expect(page.getByText('Жеребьёвка через 3 дня')).toBeVisible()
+  await expect(page.getByRole('link', { name: /С друзьями/ })).toBeVisible()
   await expect(page.getByRole('navigation', { name: 'Основная навигация' }).getByRole('link')).toHaveCount(4)
-  await page.getByText('Жеребьёвка прошла — откройте подарок').click()
-  await expect(page).toHaveURL(/\/reveal$/)
+  // organizer of the featured game → the status button leads to the draw screen
+  await page.getByText('Жеребьёвка через 3 дня').click()
+  await expect(page).toHaveURL(/\/rooms\/r-newyear\/draw$/)
 })
 
 test('no horizontal overflow on key screens', async ({ page }) => {

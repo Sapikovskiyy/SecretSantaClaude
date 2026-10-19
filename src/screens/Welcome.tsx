@@ -46,7 +46,7 @@ export function Welcome() {
       />
 
       {/* Title + subtitle */}
-      <div className="relative z-10 px-6 pt-[62px] text-center">
+      <div className="relative z-10 px-6 pt-[50px] text-center">
         <motion.h1 className="t-welcome mx-auto text-snow" {...rise(0)}>
           Время
           <br />

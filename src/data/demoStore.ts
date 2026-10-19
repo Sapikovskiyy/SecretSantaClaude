@@ -44,10 +44,42 @@ function seedRooms(): Room[] {
   })
   return [
     {
+      // Featured game — mirrors design/references/04-home.jpeg
+      id: 'r-newyear',
+      name: 'Новогодний обмен',
+      description: 'Праздник для друзей и коллег',
+      budget: 3000,
+      date: isoInDays(9),
+      drawDate: isoInDays(3),
+      organizerId: ME,
+      members: [m(ME), ...DEMO_PEOPLE.map((p, i) => m(p.id, i % 3 !== 2))],
+      participantLimit: 15,
+      chatEnabled: true,
+      theme: 'pine',
+      exclusions: [],
+      stage: 'gathering',
+      inviteCode: 'NY26GO',
+      createdAt: now - 86_400_000 * 3,
+    },
+    {
+      id: 'r-withfriends',
+      name: 'С друзьями',
+      budget: 2000,
+      date: isoInDays(14),
+      organizerId: 'p-boris',
+      members: [m('p-boris'), m(ME), m('p-anya'), m('p-gleb', false), m('p-dasha'), m('p-kira', false)],
+      chatEnabled: true,
+      theme: 'ember',
+      exclusions: [],
+      stage: 'gathering',
+      inviteCode: 'FRND26',
+      createdAt: now - 86_400_000 * 2,
+    },
+    {
       id: 'r-family',
       name: 'Семейный Новый год',
       budget: 3000,
-      date: isoInDays(12),
+      date: isoInDays(18),
       organizerId: 'p-anya',
       members: [m('p-anya', true, 'choosing'), m(ME, true), m('p-vika'), m('p-boris', true, 'bought'), m('p-gleb', false)],
       chatEnabled: true,
@@ -376,8 +408,8 @@ export const useDemo = create<DemoState>()(
       }
     },
     {
-      // v2: new seed (past game) and chat delivery states — old demo data is discarded.
-      name: 'santomi-demo-v2',
+      // v3: seed mirrors the approved references — old demo data is discarded.
+      name: 'santomi-demo-v3',
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

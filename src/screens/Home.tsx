@@ -24,7 +24,8 @@ import { IS_DEMO } from '@/lib/mode'
 import { haptic } from '@/lib/telegram'
 import { EASE, PRESS } from '@/motion/tokens'
 
-const STAGE_ORDER = (r: Room) => (r.stage === 'drawn' && !r.revealSeen ? 0 : r.stage === 'drawn' ? 1 : r.stage === 'gathering' ? 2 : 3)
+/** Active games first, then by nearest exchange date (finished games last). */
+const byDate = (a: Room, b: Room) => Number(a.stage === 'exchanged') - Number(b.stage === 'exchanged') || a.date.localeCompare(b.date)
 
 /** Card surface per room theme — emerald is the reference default. */
 const CARD_BG: Record<Room['theme'], string> = {
@@ -34,11 +35,16 @@ const CARD_BG: Record<Room['theme'], string> = {
 }
 
 /** Illustration that reflects the game's stage (not a random decoration). */
-export const stageArt = (r: Room) => (r.stage === 'gathering' ? 'envelope' : r.stage === 'drawn' ? (r.revealSeen ? 'gift-star' : 'gift') : 'star')
+export const stageArt = (r: Room) => (r.stage === 'exchanged' ? 'star' : r.stage === 'drawn' && r.revealSeen ? 'gift-star' : 'gift')
 
 function status(room: Room, people: number): { title: string; action: string } {
   const limit = room.participantLimit ?? 30
   if (room.stage === 'gathering') {
+    if (room.drawDate) {
+      const d = daysUntil(room.drawDate)
+      if (d > 0) return { title: `Жеребьёвка через ${d} ${plural(d, 'день', 'дня', 'дней')}`, action: room.organizerId === ME ? `/rooms/${room.id}/draw` : `/rooms/${room.id}` }
+      if (d === 0) return { title: 'Жеребьёвка сегодня', action: room.organizerId === ME ? `/rooms/${room.id}/draw` : `/rooms/${room.id}` }
+    }
     if (room.organizerId === ME && people < 3) return { title: `Пригласите ещё ${3 - people} ${plural(3 - people, 'человека', 'человек', 'человек')}`, action: `/rooms/${room.id}/invite` }
     return { title: room.organizerId === ME ? `Готово к жеребьёвке: ${people} из ${limit}` : 'Ждём жеребьёвку', action: room.organizerId === ME ? `/rooms/${room.id}/draw` : `/rooms/${room.id}` }
   }
@@ -52,14 +58,14 @@ function status(room: Room, people: number): { title: string; action: string } {
 
 export function Home() {
   const rooms = useMyRooms()
-  const sorted = [...rooms].sort((a, b) => STAGE_ORDER(a) - STAGE_ORDER(b) || a.date.localeCompare(b.date))
+  const sorted = [...rooms].sort(byDate)
   const featured = sorted.find((r) => r.stage !== 'exchanged') ?? sorted[0]
   const others = sorted.filter((r) => r !== featured)
 
   return (
     <Screen withDock headless>
       {/* Header */}
-      <div className="flex items-center justify-between px-6 pt-[36px]">
+      <div className="flex items-center justify-between px-6 pt-[39px] [@media(max-height:820px)]:pt-6">
         <p className="t-wordmark flex items-start gap-1.5 text-snow">
           Santomi
           {IS_DEMO && <span className="mt-0.5 text-caption font-medium tracking-normal text-taupe-soft">демо</span>}
@@ -75,7 +81,7 @@ export function Home() {
 
       {/* My games */}
       {others.length > 0 && (
-        <section className="mt-7 px-4">
+        <section className="mt-[18px] px-4 [@media(max-height:820px)]:mt-3">
           <div className="flex items-end justify-between px-2">
             <h2 className="t-section text-snow">Мои игры</h2>
             {others.length > 0 && (
@@ -139,7 +145,7 @@ function Featured({ room }: { room: Room }) {
             </span>
           </div>
           {/* Illustration area: soft ground + centred render */}
-          <div className="relative mt-1 flex h-[min(232px,27dvh)] items-end justify-center">
+          <div className="relative mt-1 flex h-[min(233px,27.6dvh)] [@media(max-height:820px)]:h-[208px] items-end justify-center">
             <span aria-hidden className="absolute inset-x-[-10%] bottom-[-8%] h-[46%] rounded-[50%] bg-[radial-gradient(closest-side,rgba(255,236,214,.55),rgba(255,236,214,0))]" />
             <Art name="house" size="min(226px, 26dvh)" eager />
           </div>

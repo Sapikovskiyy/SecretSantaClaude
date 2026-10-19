@@ -88,7 +88,7 @@ export function CreateRoom() {
   return (
     <Screen back headless className="!pb-0">
       {/* Header: back circle + step indicator */}
-      <div className="relative mt-4 flex h-12 items-center px-[22px]">
+      <div className="relative mt-[34px] flex h-12 items-center px-[22px]">
         {!isTelegram && (
           <motion.button whileTap={PRESS} aria-label="Назад" onClick={back} className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
             <Icon name="back" size={22} />
@@ -129,11 +129,11 @@ export function CreateRoom() {
                 </>
               )}
             </h1>
-            <p className="t-lead mt-3 text-snow/80">{step === 0 ? 'Начнём с главного.' : 'Проверьте детали и выберите оформление.'}</p>
+            <p className="t-lead mt-1 text-snow/80">{step === 0 ? 'Начнём с главного.' : 'Проверьте детали и выберите оформление.'}</p>
           </div>
 
           {/* Cream form surface — flat rows, hairline dividers */}
-          <section className="mx-4 mt-5 rounded-[30px] bg-marzipan px-[22px] text-ink">
+          <section className="mx-4 mt-[9px] rounded-[30px] bg-marzipan px-[22px] text-ink">
             {step === 0 ? (
               <>
                 <Row label="Название игры" error={touched ? errors.name : undefined}>
@@ -217,19 +217,19 @@ export function CreateRoom() {
 
           {/* Settings on the dark background */}
           {step === 0 && (
-            <div className="mt-3 px-6">
-              <label className="flex h-12 items-center justify-between">
+            <div className="mt-1 px-6">
+              <label className="flex h-11 items-center justify-between">
                 <span className="text-body text-snow">Анонимный чат</span>
                 <Switch checked={chatEnabled} onChange={setChatEnabled} label="Анонимный чат" />
               </label>
-              <button onClick={() => setRules(true)} className="flex h-12 w-full items-center justify-between text-left">
+              <button onClick={() => setRules(true)} className="flex h-11 w-full items-center justify-between text-left">
                 <span className="text-body text-snow">Исключения и правила</span>
                 <Icon name="forward" size={20} className="text-snow/80" />
               </button>
             </div>
           )}
 
-          <div className="mt-auto px-[38px] pt-4" style={{ paddingBottom: 'calc(var(--sa-bottom) + 14px)' }}>
+          <div className="mt-auto px-[43px] pt-[7px]" style={{ paddingBottom: 'calc(var(--sa-bottom) + 29px)' }}>
             <SantomiButton fullWidth trailingIcon={step === 0 ? 'forward' : undefined} leadingIcon={step === 1 ? 'check' : undefined} onClick={next}>
               {step === 0 ? 'Продолжить' : 'Создать игру'}
             </SantomiButton>
@@ -267,7 +267,7 @@ const valueCls = 'w-full bg-transparent text-button leading-snug text-ink outlin
 
 function Row({ label, children, trailing, error, last }: { label: string; children: ReactNode; trailing?: ReactNode; error?: string; last?: boolean }) {
   return (
-    <div className={`relative flex items-center gap-3 py-[13px] ${last ? '' : 'border-b border-ink/10'}`}>
+    <div className={`relative flex items-center gap-3 py-[15px] [@media(max-height:820px)]:py-[12px] ${last ? '' : 'border-b border-ink/10'}`}>
       <label className="relative min-w-0 flex-1">
         <span className={`block text-secondary transition-colors duration-150 ${error ? 'text-ember' : 'text-ink-soft'}`}>{label}</span>
         <span className="relative mt-1 block">{children}</span>

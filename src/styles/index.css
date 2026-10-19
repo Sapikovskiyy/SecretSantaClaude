@@ -171,21 +171,21 @@ body {
   v3 roles measured from design/references at 390 px (ref px × 0.5485).
   Scale with viewport between 360 and 430 px; medium weights like the references.
 */
-.t-welcome { /* «Время Тайного Санты!» — ≈38 px, centred */
+.t-welcome { /* «Время Тайного Санты!» — ≈40 px, centred */
   font-weight: 500;
-  font-size: clamp(2.125rem, 9.8vw, 2.5rem);
+  font-size: clamp(2.25rem, 10.26vw, 2.625rem);
   line-height: 1.12;
   letter-spacing: -0.022em;
 }
-.t-page { /* «Создадим игру!», «Пригласите друзей» — ≈42 px */
+.t-page { /* «Создадим игру!», «Пригласите друзей» — ≈38 px, airy leading (pixel audit) */
   font-weight: 500;
-  font-size: clamp(2.25rem, 10.8vw, 2.75rem);
-  line-height: 1.1;
+  font-size: clamp(2.125rem, 9.75vw, 2.5rem);
+  line-height: 1.28;
   letter-spacing: -0.026em;
 }
 .t-wordmark { /* «Santomi» on Home — ≈34 px */
   font-weight: 600;
-  font-size: clamp(1.875rem, 8.7vw, 2.25rem);
+  font-size: clamp(1.75rem, 7.95vw, 2.125rem);
   line-height: 1;
   letter-spacing: -0.03em;
 }

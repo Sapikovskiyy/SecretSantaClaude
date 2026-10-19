@@ -12,6 +12,7 @@ export const DEMO_PEOPLE: Person[] = [
   { id: 'p-kira', name: 'Кира', tint: '#5BA08A', isDemo: true },
   { id: 'p-lev', name: 'Лев', tint: '#B5523B', isDemo: true },
   { id: 'p-mila', name: 'Мила', tint: '#8E7CC3', isDemo: true },
+  { id: 'p-nika', name: 'Ника', tint: '#C26A4A', isDemo: true },
 ]
 
 const w = (title: string, category: InterestId, price: number, description?: string): WishItem => ({

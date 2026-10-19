@@ -53,7 +53,7 @@ export function Invite() {
   return (
     <Screen back={`/rooms/${room.id}`} headless className="!pb-0">
       {/* Header row */}
-      <div className="mt-4 flex h-12 items-center justify-between px-[22px]">
+      <div className="mt-[28px] flex h-12 items-center justify-between px-[22px]">
         {!isTelegram ? (
           <motion.button whileTap={PRESS} aria-label="Назад" onClick={() => navigate(`/rooms/${room.id}`)} className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
             <Icon name="back" size={22} />
@@ -81,30 +81,30 @@ export function Invite() {
           <br />
           друзей
         </h1>
-        <p className="t-lead mt-3 text-snow/75">Вместе праздник интереснее</p>
+        <p className="t-lead text-snow/75">Вместе праздник интереснее</p>
       </div>
 
       {/* Gift */}
       <motion.div
-        className="relative mx-auto mt-1 flex h-[150px] w-full items-center justify-center [@media(max-height:820px)]:h-[128px]"
+        className="relative mx-auto mt-1 flex h-[187px] w-full items-center justify-center [@media(max-height:820px)]:h-[130px]"
         initial={{ opacity: 0, y: 10, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.45, ease: EASE, delay: 0.05 }}
       >
-        <Art name="gift" size={150} eager />
+        <Art name="gift" size="min(164px, 19dvh)" eager />
       </motion.div>
 
       {/* Invitation card */}
-      <section className="mx-4 mt-1 rounded-[30px] bg-marzipan px-[22px] pb-4 pt-5 text-ink">
+      <section className="mx-4 mt-1 rounded-[30px] bg-marzipan px-[22px] pb-[17px] pt-[18px] text-ink">
         <h2 className="text-section">{room.name}</h2>
         <p className="mt-1 text-callout text-ink-soft">Бюджет до {formatRub(room.budget)}</p>
         <p className="text-callout text-ink-soft">{longDate(room.date)}</p>
-        <div className="my-4 h-px bg-ink/10" />
+        <div className="my-3 h-px bg-ink/10" />
         <button onClick={copy} className="flex h-[50px] w-full items-center gap-3 rounded-[16px] bg-field px-4 text-left" aria-label="Скопировать ссылку-приглашение">
           <span className="min-w-0 flex-1 truncate text-callout text-ink">{link.replace(/^https?:\/\//, '')}</span>
           <Icon name={copied ? 'check' : 'copy'} size={20} className={copied ? 'text-pine' : 'text-ink'} />
         </button>
-        <button onClick={copy} className="mt-2 flex h-10 items-center gap-2.5 text-callout text-ink/75">
+        <button onClick={copy} className="mt-1 flex h-9 items-center gap-2.5 text-callout text-ink/75">
           <Icon name="copy" size={18} />
           {copied ? 'Ссылка скопирована' : 'Скопировать ссылку'}
         </button>
@@ -154,9 +154,10 @@ export function Invite() {
         </div>
       </div>
 
-      <div className="mt-auto px-[22px] pt-4" style={{ paddingBottom: 'calc(var(--sa-bottom) + 4px)' }}>
+      <div className="mt-auto px-[25px] pt-4" style={{ paddingBottom: 'calc(var(--sa-bottom) + 2px)' }}>
         <SantomiButton
           fullWidth
+          className="!h-[52px]"
           trailingIcon="send"
           disabled={full || room.stage !== 'gathering'}
           onClick={async () => {

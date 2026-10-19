@@ -44,7 +44,9 @@ export interface Room {
   name: string
   description?: string
   budget: number
-  date: string // ISO date
+  date: string // ISO date (gift exchange)
+  /** Optional planned draw date (shown as «Жеребьёвка через N дней»). */
+  drawDate?: string
   organizerId: ID
   members: Member[]
   participantLimit?: number

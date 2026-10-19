@@ -169,7 +169,7 @@ export function SwipeConfirm({
       </motion.div>
       <motion.span
         style={{ opacity: labelOpacity, paddingLeft: hero ? KNOB + PAD : 48 }}
-        className={`pointer-events-none absolute inset-0 flex items-center justify-center gap-3 ${hero ? 'text-button font-medium' : 'text-body'}`}
+        className={`pointer-events-none absolute inset-0 flex items-center justify-center gap-3 ${hero ? 'text-card font-normal' : 'text-body'}`}
       >
         {label}
         {!hero && <Chevrons className="opacity-60" />}
