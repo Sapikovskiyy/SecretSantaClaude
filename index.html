@@ -12,7 +12,23 @@
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <title>Santomi</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!--
+      Telegram SDK: requested only for a Telegram launch (launch params / native proxy / Telegram Web
+      iframe), async so it never blocks first paint. main.tsx binds it before the first render.
+      Keep the detection in sync with launchedInTelegram() in src/lib/telegram.ts.
+    -->
+    <script>
+      ;(function () {
+        var t = /tgWebApp/.test(location.hash) || 'TelegramWebviewProxy' in window || window.parent !== window
+        try { t = t || !!sessionStorage.getItem('__telegram__initParams') } catch (e) {}
+        if (!t) return
+        var s = document.createElement('script')
+        s.id = 'tg-sdk'
+        s.async = true
+        s.src = 'https://telegram.org/js/telegram-web-app.js'
+        document.head.appendChild(s)
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

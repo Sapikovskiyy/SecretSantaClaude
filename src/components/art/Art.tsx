@@ -357,6 +357,15 @@ const RENDERS: Record<string, string> = Object.fromEntries(
   ),
 )
 
+/** 256 px thumbnails (scripts/make-small-renders.mjs) for small numeric sizes. */
+const SMALL: Record<string, string> = Object.fromEntries(
+  Object.entries(import.meta.glob('../../assets/3d/sm/*.webp', { eager: true, import: 'default' }) as Record<string, string>).map(
+    ([path, url]) => [path.split('/').pop()!.replace('.webp', ''), url],
+  ),
+)
+/** ≤ 85 css px fits a 256 px image even at DPR 3. */
+const SMALL_MAX = 85
+
 /** Old vector keys → 3D render keys. */
 const ALIAS: Record<string, string> = {
   teahouse: 'house',
@@ -375,7 +384,7 @@ export function hasRender(name: string) {
 
 export function Art({ name, size = 160, className, noShadow, eager }: Props & { eager?: boolean }) {
   const key = ALIAS[name] ?? name
-  const url = RENDERS[key]
+  const url = (typeof size === 'number' && size <= SMALL_MAX && SMALL[key]) || RENDERS[key]
   if (url) {
     return (
       <span

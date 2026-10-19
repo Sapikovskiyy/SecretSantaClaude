@@ -1,5 +1,5 @@
 // Prepares the Welcome sack render (CEO asset, transparent PNG/WebP) as two aligned layers:
-//   sack-back.webp  — the whole sack
+//   sack-back.webp  — what shows through/around the front layer (inside of the opening)
 //   sack-front.webp — only what lies in front of the opening (front lip, rope, body)
 // The candy cane is rendered between them, so it stands *inside* the sack.
 // Both layers keep the same canvas (no trim) so they overlay pixel-perfectly.
@@ -47,5 +47,9 @@ const out = async (buf, name) => {
     .toFile(dest)
   console.log(`${dest} (${Math.round(statSync(dest).size / 1024)} KB)`)
 }
-await out(data, 'sack-back')
+// The back layer is only visible where the front layer is not fully opaque (the inside of the
+// opening and soft edges), so everything the front covers is cleared — ≈ half the bytes.
+const back = Buffer.from(data)
+for (let i = 3; i < back.length; i += 4) if (front[i] >= 250) back[i - 3] = back[i - 2] = back[i - 1] = back[i] = 0
+await out(back, 'sack-back')
 await out(front, 'sack-front')

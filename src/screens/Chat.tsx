@@ -163,7 +163,7 @@ export function Chat() {
       <div className="sticky bottom-0 z-20 bg-[linear-gradient(to_top,var(--color-bark)_85%,transparent)] px-4 pt-6" style={{ paddingBottom: 'calc(var(--sa-bottom) + 12px)' }}>
         {messages.length < 4 ? (
           <div className="mb-3 rounded-[22px] bg-truffle/70 p-3">
-            <p className="mb-2 px-1 text-footnote font-bold text-snow/80">{toRecipient ? 'Попробуйте спросить' : 'Быстрые ответы'}</p>
+            <p className="mb-2 px-1 text-footnote font-semibold text-snow/80">{toRecipient ? 'Попробуйте спросить' : 'Быстрые ответы'}</p>
             <div className="grid grid-cols-2 gap-2">
               {suggestions.map((s) => (
                 <SuggestionCard key={s.text} s={s} onPick={() => send(s.text)} />

@@ -17,11 +17,11 @@
   --text-hero: 2.625rem;          /* 42 */
   --text-hero--line-height: 1.08;
   --text-hero--letter-spacing: -0.025em;
-  --text-hero--font-weight: 700;
+  --text-hero--font-weight: 600;
   --text-title: 2rem;             /* 32 */
   --text-title--line-height: 1.15;
   --text-title--letter-spacing: -0.02em;
-  --text-title--font-weight: 700;
+  --text-title--font-weight: 600;
   --text-section: 1.5rem;         /* 24 */
   --text-section--line-height: 1.2;
   --text-section--letter-spacing: -0.015em;
@@ -124,7 +124,7 @@ body {
 @layer components {
 /* Welcome / reveal / Santa+ — 40–44 px */
 .type-hero {
-  font-weight: 700;
+  font-weight: 600; /* Inter ships 400–600 only (v3 uses medium weights) */
   font-size: clamp(2.5rem, 10.6vw, 2.75rem);
   line-height: 1.08;
   letter-spacing: -0.028em;
@@ -132,7 +132,7 @@ body {
 }
 /* Expressive questions («Какие у вас интересы?») — 34–38 px */
 .type-display {
-  font-weight: 700;
+  font-weight: 600; /* Inter ships 400–600 only (v3 uses medium weights) */
   font-size: clamp(2.125rem, 9.2vw, 2.375rem);
   line-height: 1.1;
   letter-spacing: -0.024em;
@@ -140,7 +140,7 @@ body {
 }
 /* Large screen title — 28–32 px */
 .type-title {
-  font-weight: 700;
+  font-weight: 600; /* Inter ships 400–600 only (v3 uses medium weights) */
   font-size: clamp(1.75rem, 7.8vw, 2rem);
   line-height: 1.15;
   letter-spacing: -0.02em;

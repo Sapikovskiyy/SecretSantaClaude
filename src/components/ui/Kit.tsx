@@ -156,6 +156,7 @@ export function Sheet({
           >
             <div
               aria-hidden
+              data-sheet-handle
               onPointerDown={(e) => drag.start(e)}
               className="-mx-5 -mt-3 mb-1 flex h-9 cursor-grab touch-none items-center justify-center active:cursor-grabbing"
             >

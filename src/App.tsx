@@ -1,26 +1,12 @@
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router'
 import { useDemo } from './data/demoStore'
 import { Dock, Toasts } from './components/ui/Kit'
 import { startParam } from './lib/telegram'
 import { Welcome } from './screens/Welcome'
 import { Home } from './screens/Home'
-import { CreateRoom } from './screens/CreateRoom'
-import { RoomDashboard } from './screens/RoomDashboard'
-import { Invite } from './screens/Invite'
-import { Join } from './screens/Join'
-import { Wishlist } from './screens/Wishlist'
-import { Interests } from './screens/Interests'
-import { Reveal } from './screens/Reveal'
-import { Chat } from './screens/Chat'
-import { RecipientWishlist } from './screens/RecipientWishlist'
-import { GiftAI } from './screens/GiftAI'
-import { Profile } from './screens/Profile'
-import { Chats } from './screens/Chats'
-import { Premium } from './screens/Premium'
-import { Participants } from './screens/Participants'
-import { Draw } from './screens/Draw'
 import { NotFound } from './screens/NotFound'
+import { CreateRoom, RoomDashboard, Invite, Join, Wishlist, Interests, Reveal, Chat, RecipientWishlist, GiftAI, Profile, Chats, Premium, Participants, Draw, prefetchScreens } from './lazyScreens'
 import { Offline } from './components/Offline'
 import { ServerNotConnected } from './screens/ServerNotConnected'
 import { IS_DEMO } from './lib/mode'
@@ -44,6 +30,8 @@ export function App() {
 
   const showDock = DOCK_ROUTES.includes(location.pathname)
 
+  useEffect(() => prefetchScreens(), [])
+
   // Production builds never fall back to demo data.
   if (!IS_DEMO) return <ServerNotConnected />
 
@@ -52,6 +40,8 @@ export function App() {
       <Offline />
       <Toasts />
       {/* No exit animations: the next screen appears immediately (≈200 ms enter), never via a dark gap. */}
+      {/* fallback is empty: chunks are prefetched on idle, the body is already the app's colour */}
+      <Suspense fallback={null}>
       <Routes location={location} key={location.pathname}>
           <Route path="/" element={onboarded ? <Navigate to="/home" replace /> : <Welcome />} />
           <Route path="/welcome" element={<Welcome />} />
@@ -74,6 +64,7 @@ export function App() {
           <Route path="/premium" element={<Premium />} />
           <Route path="*" element={<NotFound />} />
       </Routes>
+      </Suspense>
       {showDock && <Dock />}
     </>
   )

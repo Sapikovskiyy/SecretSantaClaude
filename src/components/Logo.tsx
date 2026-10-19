@@ -5,7 +5,7 @@ export function Logo({ className = '', compact }: { className?: string; compact?
   return (
     <span className={`inline-flex items-center gap-2 ${className}`} aria-label="Santomi">
       <Art name="gift" size={compact ? 26 : 32} noShadow eager />
-      <span className="text-card font-bold leading-none tracking-[-0.02em]">Santomi</span>
+      <span className="text-card font-semibold leading-none tracking-[-0.02em]">Santomi</span>
     </span>
   )
 }

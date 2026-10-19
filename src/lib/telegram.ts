@@ -44,10 +44,33 @@ declare global {
   }
 }
 
-export const tg: TgWebApp | undefined = typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined
-
+/*
+ * The SDK script loads async (index.html) so it never blocks first paint outside Telegram.
+ * These are live bindings: main.tsx calls connectTelegram() once the SDK is available
+ * (inside Telegram, before the first render), and every import sees the updated values.
+ */
+export let tg: TgWebApp | undefined
 /** True only when launched from Telegram (initData present). */
-export const isTelegram = Boolean(tg && tg.initData)
+export let isTelegram = false
+
+/** Likely a Telegram launch: launch params in the URL/session, the native proxy, or Telegram Web's iframe. */
+export function launchedInTelegram(): boolean {
+  if (typeof window === 'undefined') return false
+  if (/tgWebApp/.test(window.location.hash) || 'TelegramWebviewProxy' in window) return true
+  try {
+    if (sessionStorage.getItem('__telegram__initParams')) return true
+  } catch {
+    /* storage blocked */
+  }
+  return window.parent !== window
+}
+
+/** Binds the SDK object (call after the SDK script has loaded, or immediately if it is absent). */
+export function connectTelegram() {
+  tg = typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined
+  isTelegram = Boolean(tg && tg.initData)
+  initialStartParam = isTelegram ? tg?.initDataUnsafe.start_param : browserStartParam()
+}
 
 const atLeast = (v: string) => Boolean(tg?.isVersionAtLeast?.(v))
 
@@ -68,10 +91,9 @@ export function tgUserName(): string | undefined {
 }
 
 // Captured once at load: routing may rewrite the URL before React effects run.
-const initialStartParam: string | undefined = isTelegram
-  ? tg?.initDataUnsafe.start_param
-  : // Browser fallback: ?startapp=CODE also works for testing
-    (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('startapp') : null) ?? undefined
+// Browser fallback: ?startapp=CODE also works for testing
+const browserStartParam = () => (typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('startapp') : null) ?? undefined
+let initialStartParam: string | undefined = browserStartParam()
 
 export function startParam(): string | undefined {
   return initialStartParam

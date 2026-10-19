@@ -108,11 +108,12 @@ test('sheet: inputs are editable, drag from the handle closes it', async ({ page
   await expect(sheet).toBeVisible()
   await input.fill('Плед')
   await expect(input).toHaveValue('Плед')
-  // the handle closes it
-  const top = (await sheet.locator('div').nth(1).boundingBox())!
-  await page.mouse.move(top.x + top.width / 2, top.y + 14)
+  // the handle closes it (wait for the open spring to settle first)
+  await page.waitForTimeout(500)
+  const top = (await sheet.locator('[data-sheet-handle]').boundingBox())!
+  await page.mouse.move(top.x + top.width / 2, top.y + top.height / 2)
   await page.mouse.down()
-  await page.mouse.move(top.x + top.width / 2, top.y + 300, { steps: 8 })
+  for (let dy = 20; dy <= 320; dy += 20) await page.mouse.move(top.x + top.width / 2, top.y + top.height / 2 + dy)
   await page.mouse.up()
   await expect(sheet).toBeHidden()
 })

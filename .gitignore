@@ -18,3 +18,4 @@ supabase/.temp/
 supabase/.branches/
 dist-e2e-*/
 test-results-*/
+dist-opt-*/
