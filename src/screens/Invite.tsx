@@ -66,22 +66,22 @@ export function Invite() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.25, ease: EASE, delay: 0.15 }}
-            className="flex h-[38px] items-center gap-2 rounded-full border border-[#2c8f5f]/60 bg-[#0f3b28] px-4 text-callout text-snow"
+            className="flex h-[38px] items-center gap-[10px] rounded-full border border-[#2c8f5f]/50 bg-[rgba(14,66,42,.62)] pl-[14px] pr-[16px] text-secondary text-snow/90 shadow-[inset_0_1px_0_rgba(255,255,255,.05)]"
             role="status"
           >
-            <Icon name="check" size={18} strokeWidth={2.6} className="text-[#3ddc8a]" />
+            <Icon name="check" size={20} strokeWidth={2.6} className="text-[#2fd17f]" />
             Игра создана
           </motion.span>
         )}
       </div>
 
-      <div className="px-6 pt-[22px] [@media(max-height:820px)]:pt-3">
-        <h1 className="t-page text-snow">
+      <div className="px-[31px] pt-[21px] [@media(max-height:820px)]:pt-3">
+        <h1 className="t-page-tight text-snow">
           Пригласите
           <br />
           друзей
         </h1>
-        <p className="t-lead text-snow/75">Вместе праздник интереснее</p>
+        <p className="t-lead mt-[11px] text-snow/75">Вместе праздник интереснее</p>
       </div>
 
       {/* Gift */}
@@ -91,27 +91,27 @@ export function Invite() {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.45, ease: EASE, delay: 0.05 }}
       >
-        <Art name="gift-green" size="min(168px, 19.5dvh)" eager />
+        <Art name="gift-green" size="min(168px, calc(100dvh - 680px))" eager />
       </motion.div>
 
       {/* Invitation card */}
-      <section className="mx-4 mt-1 rounded-[30px] bg-marzipan px-[22px] pb-[17px] pt-[18px] text-ink">
-        <h2 className="text-section">{room.name}</h2>
-        <p className="mt-1 text-callout text-ink-soft">Бюджет до {formatRub(room.budget)}</p>
-        <p className="text-callout text-ink-soft">{longDate(room.date)}</p>
-        <div className="my-3 h-px bg-ink/10" />
-        <button onClick={copy} className="flex h-[50px] w-full items-center gap-3 rounded-[16px] bg-field px-4 text-left" aria-label="Скопировать ссылку-приглашение">
+      <section className="mx-4 mt-1 rounded-[30px] bg-[linear-gradient(180deg,#ffe9d6,#fde3cb)] px-[24px] pb-[10px] pt-[25px] text-ink shadow-[inset_0_1px_0_rgba(255,255,255,.55)]">
+        <h2 className="t-section">{room.name}</h2>
+        <p className="mt-[7px] text-callout leading-[20px] text-ink/70">Бюджет до {formatRub(room.budget)}</p>
+        <p className="text-callout leading-[20px] text-ink/70">{longDate(room.date)}</p>
+        <div className="mb-[13px] mt-[14px] h-px bg-ink/10" />
+        <button onClick={copy} className="flex h-[49px] w-full items-center gap-3 rounded-[15px] bg-[#f9dcc4] pl-[17px] pr-[14px] text-left" aria-label="Скопировать ссылку-приглашение">
           <span className="min-w-0 flex-1 truncate text-callout text-ink">{link.replace(/^https?:\/\//, '')}</span>
-          <Icon name={copied ? 'check' : 'copy'} size={20} className={copied ? 'text-pine' : 'text-ink'} />
+          <Icon name={copied ? 'check' : 'copy'} size={22} strokeWidth={1.8} className={copied ? 'text-pine' : 'text-ink'} />
         </button>
-        <button onClick={copy} className="mt-1 flex h-9 items-center gap-2.5 text-callout text-ink/75">
-          <Icon name="copy" size={18} />
+        <button onClick={copy} className="mt-[2px] flex h-10 items-center gap-[13px] pl-1 text-callout text-ink/70">
+          <Icon name="copy" size={20} strokeWidth={1.7} />
           {copied ? 'Ссылка скопирована' : 'Скопировать ссылку'}
         </button>
       </section>
 
       {/* Participants */}
-      <div className="mt-4 flex items-center gap-3 px-6">
+      <div className="mt-[18px] flex items-center gap-[17px] px-[27px]">
         <div className="flex items-center">
           <AnimatePresence initial={false}>
             {people.slice(0, 4).map((p, i) => (
@@ -121,14 +121,14 @@ export function Invite() {
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: DUR.layout, ease: EASE }}
-                style={{ marginLeft: i ? -14 : 0 }}
-                className="rounded-full ring-[3px] ring-marzipan"
+                style={{ marginLeft: i ? -9 : 0 }}
+                className="rounded-full ring-2 ring-[#efe2d8]"
               >
-                <Avatar person={p} size={46} />
+                <Avatar person={p} size={50} />
               </motion.span>
             ))}
           </AnimatePresence>
-          {IS_DEMO && room.stage === 'gathering' && !full && (
+          {IS_DEMO && room.stage === 'gathering' && !full && people.length < 4 && (
             <motion.button
               whileTap={PRESS}
               aria-label="Добавить тестового участника"
@@ -139,7 +139,7 @@ export function Invite() {
                   toast(`${p.name} присоединяется (демо)`)
                 } else toast('Больше нельзя добавить участников', 'error')
               }}
-              style={{ marginLeft: people.length ? -14 : 0 }}
+              style={{ marginLeft: people.length ? -9 : 0 }}
               className="flex h-[50px] w-[50px] items-center justify-center rounded-full border-2 border-dashed border-snow/35 bg-cocoa text-snow/70"
             >
               <Icon name="plus" size={20} />
@@ -147,17 +147,17 @@ export function Invite() {
           )}
         </div>
         <div className="min-w-0">
-          <p className="whitespace-nowrap text-button text-snow">
+          <p className="whitespace-nowrap text-callout text-snow">
             {people.length} из {limit} {plural(limit, 'участника', 'участников', 'участников')}
           </p>
-          <p className="text-secondary text-taupe-soft">{full ? 'Мест больше нет' : `Свободно ${free} ${plural(free, 'место', 'места', 'мест')}`}</p>
+          <p className="mt-[2px] text-caption text-taupe-soft">{full ? 'Мест больше нет' : `Свободно ${free} ${plural(free, 'место', 'места', 'мест')}`}</p>
         </div>
       </div>
 
-      <div className="mt-auto px-[25px] pt-4" style={{ paddingBottom: 'calc(var(--sa-bottom) + 2px)' }}>
+      <div className="mt-auto px-[24px] pt-4" style={{ paddingBottom: 'calc(var(--sa-bottom) + 10px)' }}>
         <SantomiButton
           fullWidth
-          className="!h-[52px]"
+          className="sbtn-fill-icon !h-[49px]"
           trailingIcon="send"
           disabled={full || room.stage !== 'gathering'}
           onClick={async () => {
@@ -167,7 +167,7 @@ export function Invite() {
         >
           Отправить в Telegram
         </SantomiButton>
-        <button onClick={() => navigate(`/rooms/${room.id}`)} className="mx-auto mt-2 flex h-11 items-center px-4 text-body text-snow/90">
+        <button onClick={() => navigate(`/rooms/${room.id}`)} className="mx-auto mt-[5px] flex h-9 items-center px-4 text-secondary text-snow/90">
           Перейти в комнату
         </button>
       </div>

@@ -253,8 +253,8 @@ export function Dock() {
   }, [])
   return (
     <nav
-      className={`fixed inset-x-4 z-40 mx-auto flex h-[66px] max-w-[448px] items-center justify-around rounded-[34px] bg-nav px-2 ring-1 ring-white/[0.06] ${armed ? '' : 'pointer-events-none'}`}
-      style={{ bottom: 'calc(var(--sa-bottom) + 10px)' }}
+      className={`fixed inset-x-4 z-40 mx-auto flex h-[65px] max-w-[448px] items-center justify-between rounded-[33px] bg-[#30221b] px-[21px] shadow-[0_12px_30px_-10px_rgba(0,0,0,.55),inset_0_1px_0_rgba(255,255,255,.05)] ring-1 ring-white/[0.06] ${armed ? '' : 'pointer-events-none'}`}
+      style={{ bottom: 'calc(var(--sa-bottom) + 16px)' }}
       aria-label="Основная навигация"
     >
       {dockItems.map((it) => (
@@ -263,7 +263,7 @@ export function Dock() {
           to={it.to}
           aria-label={it.label}
           onClick={() => haptic.select()}
-          className={({ isActive }) => `relative flex h-[52px] w-[52px] items-center justify-center rounded-full transition-colors duration-150 ${isActive ? 'text-ink' : 'text-snow/80'}`}
+          className={({ isActive }) => `relative flex h-[51px] w-[51px] items-center justify-center rounded-full transition-colors duration-150 ${isActive ? 'text-ink' : 'text-snow/85'}`}
         >
           {({ isActive }) => (
             <>
@@ -275,7 +275,9 @@ export function Dock() {
                   aria-hidden
                 />
               )}
-              <Icon name={it.icon} size={28} strokeWidth={1.6} className="relative" />
+              <motion.span className="relative flex" whileTap={{ scale: 0.86 }} transition={{ type: 'spring', stiffness: 700, damping: 30 }}>
+                <Icon name={it.icon} size={27} strokeWidth={1.7} />
+              </motion.span>
             </>
           )}
         </NavLink>

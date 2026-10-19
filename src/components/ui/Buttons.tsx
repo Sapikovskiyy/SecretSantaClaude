@@ -129,7 +129,7 @@ export function SwipeConfirm({
     taupe: 'bg-taupe text-snow',
     ember: 'bg-ember-deep/70 text-snow backdrop-blur-xl',
     // Dark translucent pill over the welcome illustration — no live blur (cheap on WebView).
-    glass: 'bg-[rgba(36,15,10,0.74)] text-snow ring-1 ring-white/[0.07]',
+    glass: 'bg-[rgba(38,14,9,0.62)] text-snow ring-1 ring-white/[0.08] backdrop-blur-[12px] shadow-[inset_0_1px_0_rgba(255,255,255,.07),0_10px_28px_rgba(40,6,2,.35)]',
   }[tone]
 
   return (
@@ -168,7 +168,7 @@ export function SwipeConfirm({
         )}
       </motion.div>
       <motion.span
-        style={{ opacity: labelOpacity, paddingLeft: hero ? KNOB + PAD : 48 }}
+        style={{ opacity: labelOpacity, paddingLeft: hero ? Math.round(KNOB * 0.72) : 48 }}
         className={`pointer-events-none absolute inset-0 flex items-center justify-center gap-3 ${hero ? 'text-card font-normal' : 'text-body'}`}
       >
         {label}

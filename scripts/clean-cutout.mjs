@@ -19,21 +19,27 @@ const inCircle = (x, y, cx, cy, r) => (x - cx) ** 2 + (y - cy) ** 2 <= r * r
 const inEllipse = (x, y, cx, cy, rx, ry) => ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 <= 1
 const MASKS = {
   'sack-v3': (x, y) =>
-    // candy cane: hook (outer ellipse minus hole, upper half) + two legs
+    // candy cane: hook (outer ellipse minus hole, upper half) + two legs; leftover glow is colour-keyed
     (y <= 112 && inEllipse(x, y, 360, 108, 75, 68) && !inEllipse(x, y, 358, 114, 33, 32)) ||
+    (y > 104 && y <= 176 && x >= 384 && x <= 433) ||
     (y > 108 && y <= 236 && x >= 285 - (y - 112) * 0.12 && x <= 327 - (y - 112) * 0.1) ||
-    (y > 104 && y <= 165 && x >= 384 && x <= 432) ||
-    inEllipse(x, y, 290, 219, 110, 30) || // frill
-    inEllipse(x, y, 285, 268, 84, 27) || // rope
+    inEllipse(x, y, 290, 218, 112, 35) || // frill (glow between the lips is colour-keyed below)
+    inEllipse(x, y, 284, 268, 80, 24) || // rope
     (inEllipse(x, y, 300, 424, 159, 139) && x <= 459), // sack body
   'snow-globe': (x, y) =>
     inCircle(x, y, 290, 258, 218) || // glass dome
     (y >= 372 && Math.abs(x - 290) <= 220 + Math.min(1, Math.max(0, (y - 372) / 70)) * 22), // flared base
 }
 // Red/orange background glow left at the outer edges of an object (not the object itself).
-const EDGE_GLOW = { 'snow-globe': (x, y) => y >= 330 && Math.abs(x - 290) > 185 }
+const EDGE_GLOW = {
+  'snow-globe': (x, y) => y >= 330 && Math.abs(x - 290) > 185,
+}
+// Orange background glow (green ≫ blue) — object colours are red (g≈b), cream/white or gold.
+const isOrangeGlow = (r, g, b) => g > 2.4 * b + 6 && g > 0.17 * r && !(r > 225 && g > 200)
+const KEY_GLOW = { 'sack-v3': (x, y) => y < 206 }
 const mask = MASKS[key]
 const glow = EDGE_GLOW[key]
+const keyGlow = KEY_GLOW[key]
 if (mask) {
   const k = 600 / w
   for (let p = 0; p < w * h; p++) {
@@ -41,6 +47,7 @@ if (mask) {
     const d = k / 2
     const cover = (mask(x, y) + mask(x + d, y) + mask(x, y + d) + mask(x + d, y + d)) / 4
     if (cover < 1) data[i + 3] = Math.round(data[i + 3] * cover)
+    if (cover > 0 && keyGlow && keyGlow(x, y) && isOrangeGlow(data[i], data[i + 1], data[i + 2])) data[i + 3] = 0
     if (cover > 0 && glow && glow(x, y) && data[i] > data[i + 1] + 55 && data[i] > data[i + 2] + 45) data[i + 3] = 0
   }
 }

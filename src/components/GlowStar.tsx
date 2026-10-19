@@ -1,20 +1,25 @@
 /**
- * Soft glowing star from reference 01 (cream body, warm halo). Static SVG + one radial
- * gradient — no blur filters, no animation, cheap to composite.
+ * Soft glowing star from reference 01 (cream body, warm amber halo). Static SVG + one radial
+ * gradient + one static drop-shadow; only the halo opacity breathes (compositor-only).
  */
-export function GlowStar({ size, className = '', style }: { size: number; className?: string; style?: React.CSSProperties }) {
+export function GlowStar({ size, className = '', style, delay = 0 }: { size: number; className?: string; style?: React.CSSProperties; delay?: number }) {
   return (
     <span aria-hidden className={`pointer-events-none absolute ${className}`} style={{ width: size, height: size, ...style }}>
       <span
-        className="absolute rounded-full"
-        style={{ inset: -size * 0.55, background: 'radial-gradient(closest-side, rgba(255,226,190,.8), rgba(255,170,120,.3) 50%, transparent)' }}
+        className="glow-breathe absolute rounded-full"
+        style={{
+          animationDelay: `${delay}s`,
+          inset: -size * 0.7,
+          background:
+            'radial-gradient(closest-side, rgba(255,222,178,.95) 0%, rgba(255,164,92,.62) 30%, rgba(238,98,44,.26) 60%, rgba(210,60,30,0) 100%)',
+        }}
       />
-      <svg viewBox="0 0 100 100" width={size} height={size} className="relative">
+      <svg viewBox="0 0 100 100" width={size} height={size} className="relative" style={{ filter: `drop-shadow(0 0 ${Math.round(size * 0.07)}px rgba(255,214,160,.95))` }}>
         <defs>
           <radialGradient id="gs-fill" cx="40%" cy="35%" r="70%">
-            <stop offset="0" stopColor="#fffdf8" />
-            <stop offset="0.7" stopColor="#ffeed8" />
-            <stop offset="1" stopColor="#f6d2ad" />
+            <stop offset="0" stopColor="#ffffff" />
+            <stop offset="0.65" stopColor="#fff5e8" />
+            <stop offset="1" stopColor="#ffe0bd" />
           </radialGradient>
         </defs>
         <path

@@ -40,8 +40,14 @@ export function Welcome() {
         aria-hidden
         className="pointer-events-none absolute inset-0"
         style={{
-          background:
-            'radial-gradient(150% 78% at 50% 78%, rgba(206,48,28,.96) 0%, rgba(168,36,20,.86) 34%, rgba(104,26,16,.6) 58%, rgba(52,24,18,.15) 80%, rgba(40,29,25,0) 92%)',
+          background: [
+            // warm amber bloom behind the big star (reference: #922f1a at 20,300)
+            'radial-gradient(34% 22% at 16% 41%, rgba(236,104,46,.62) 0%, rgba(200,66,30,.28) 55%, rgba(160,40,20,0) 100%)',
+            // deep festive red rising from the bottom (reference: #79–7e red, darker toward the edge)
+            'radial-gradient(140% 74% at 50% 80%, rgba(178,34,18,.95) 0%, rgba(134,20,11,.94) 36%, rgba(92,16,9,.78) 58%, rgba(60,22,14,.3) 78%, rgba(50,25,18,0) 92%)',
+            // warm chocolate top (reference #321912)
+            'linear-gradient(#321912, #2e1711)',
+          ].join(','),
         }}
       />
 
@@ -52,7 +58,7 @@ export function Welcome() {
           <br />
           Тайного Санты!
         </motion.h1>
-        <motion.p className="t-lead mx-auto mt-4 max-w-[30ch] text-snow/85" {...rise(0.08)}>
+        <motion.p className="mx-auto mt-3 max-w-[30ch] text-callout leading-[22px] text-snow/85" {...rise(0.08)}>
           Дарите радость и сохраняйте
           <br />
           интригу до самого праздника
@@ -68,9 +74,10 @@ export function Welcome() {
         transition={{ duration: 0.5, ease: EASE, delay: 0.12 }}
         style={{ transformOrigin: '50% 100%' }}
       >
-        <GlowStar size={100} style={{ left: '13.6%', top: '5%' }} />
-        <GlowStar size={52} style={{ right: '-3%', top: '27.5%' }} />
-        <GlowStar size={46} style={{ left: '6%', top: '43%' }} />
+        {/* positions measured from the reference overlay (centres 72/343, 350/446, 22/518 at 390×844) */}
+        <GlowStar size={108} style={{ left: '4.6%', top: '4.7%' }} />
+        <GlowStar size={66} delay={1.6} style={{ right: '1.8%', top: '26%' }} />
+        <GlowStar size={62} delay={3.1} style={{ left: '-2.3%', top: '38.7%' }} />
         {SACK ? (
           <img
             src={SACK}
@@ -78,7 +85,7 @@ export function Welcome() {
             draggable={false}
             decoding="async"
             fetchPriority="high"
-            className="absolute left-[11.8%] top-[2%] w-[92.3%] max-w-none select-none"
+            className="absolute left-[-0.5%] top-[-3%] w-[98%] max-w-none select-none"
           />
         ) : (
           <>
@@ -102,7 +109,7 @@ export function Welcome() {
       </motion.div>
 
       {/* CTA */}
-      <motion.div className="relative z-10 mt-auto px-[38px]" {...rise(0.25)} style={{ paddingBottom: 'calc(var(--sa-bottom) + 18px)' }}>
+      <motion.div className="relative z-10 mt-auto px-[38px]" {...rise(0.25)} style={{ paddingBottom: 'calc(var(--sa-bottom) + 21px)' }}>
         <SwipeConfirm
           hero
           tone="glass"
@@ -117,7 +124,7 @@ export function Welcome() {
             complete()
             navigate('/join')
           }}
-          className="mx-auto mt-3 flex h-11 items-center px-4 text-body text-snow/90"
+          className="mx-auto mt-2 flex h-11 items-center px-4 text-body text-snow/90"
         >
           Присоединиться к игре
         </button>

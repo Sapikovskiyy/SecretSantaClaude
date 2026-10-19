@@ -47,7 +47,7 @@
   --text-numeral--font-weight: 600;
 
   /* v3 palette — sampled from design/references (approved 5 images) */
-  --color-cocoa: #281d19;        /* app background (--santomi-bg) */
+  --color-cocoa: #2d1d16;        /* app background — sampled from refs (#2b1b13…#312018) */
   --color-bark: #211715;         /* deepest chocolate (--santomi-bg-deep) */
   --color-truffle: #392a25;      /* raised dark surface (--santomi-surface) */
   --color-truffle-soft: #4a3830; /* dark controls on dark */
@@ -173,7 +173,7 @@ body {
 */
 .t-welcome { /* «Время Тайного Санты!» — ≈40 px, centred */
   font-weight: 500;
-  font-size: clamp(2.25rem, 10.26vw, 2.625rem);
+  font-size: clamp(2.125rem, 9.85vw, 2.5rem);
   line-height: 1.12;
   letter-spacing: -0.022em;
 }
@@ -181,6 +181,12 @@ body {
   font-weight: 500;
   font-size: clamp(2.125rem, 9.75vw, 2.5rem);
   line-height: 1.28;
+  letter-spacing: -0.026em;
+}
+.t-page-tight { /* «Пригласите друзей» — ≈40 px, tight leading (reference 03 pitch ≈42 px) */
+  font-weight: 500;
+  font-size: clamp(2.25rem, 10.3vw, 2.625rem);
+  line-height: 1.06;
   letter-spacing: -0.026em;
 }
 .t-wordmark { /* «Santomi» on Home — ≈34 px */
@@ -240,6 +246,13 @@ body {
 .float-a { animation: float-a 8s var(--ease-soft) infinite; }
 .float-b { animation: float-b 9s var(--ease-soft) infinite; }
 .breathe { animation: breathe 7.5s ease-in-out infinite; }
+
+/* Star halo: slow opacity-only glow (compositor-friendly, disabled by reduced motion) */
+@keyframes glow-breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.72; }
+}
+.glow-breathe { animation: glow-breathe 4.8s ease-in-out infinite; will-change: opacity; }
 
 @keyframes chevrons {
   0%, 100% { opacity: 0.35; }

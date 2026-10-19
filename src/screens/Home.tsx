@@ -5,9 +5,7 @@
  * translucent arrow, centred 3D illustration and an overlapping cream status panel with a
  * black arrow; «Мои игры» ≈26 px + «Все»; compact cream game rows; bottom navigation.
  * All content is real store data; nothing is hard-coded.
- *
- * ASSET NOTE: the reference uses a snow-globe render; until it exists the gingerbread house
- * render (same art direction) is used.
+ * Featured card bottom: hills + cream snow ground behind the snow-globe render (CEO asset).
  */
 import { Link, useNavigate } from 'react-router'
 import { motion } from 'motion/react'
@@ -29,7 +27,7 @@ const byDate = (a: Room, b: Room) => Number(a.stage === 'exchanged') - Number(b.
 
 /** Card surface per room theme — emerald is the reference default. */
 const CARD_BG: Record<Room['theme'], string> = {
-  pine: 'radial-gradient(120% 80% at 30% 0%, #0e8152 0%, #006b43 45%, #05502f 100%)',
+  pine: 'radial-gradient(110% 70% at 75% 12%, #08744a 0%, #04603a 45%, #034e2d 100%)',
   ember: 'radial-gradient(120% 80% at 30% 0%, #e2492c 0%, #b72d1a 50%, #7c1c10 100%)',
   cocoa: 'radial-gradient(120% 80% at 30% 0%, #5a4038 0%, #3a2b25 55%, #281d19 100%)',
 }
@@ -66,13 +64,13 @@ export function Home() {
     <Screen withDock headless>
       {/* Header */}
       <div className="flex items-center justify-between px-6 pt-[39px] [@media(max-height:820px)]:pt-6">
-        <p className="t-wordmark flex items-start gap-1.5 text-snow">
+        <p className="t-wordmark flex items-start gap-1.5 font-medium text-snow">
           Santomi
           {IS_DEMO && <span className="mt-0.5 text-caption font-medium tracking-normal text-taupe-soft">демо</span>}
         </p>
         <motion.div whileTap={PRESS}>
-          <Link to="/rooms/new" aria-label="Создать игру" className="flex h-[47px] w-[47px] items-center justify-center rounded-full border-[1.5px] border-snow/70 text-snow">
-            <Icon name="plus" size={24} strokeWidth={1.8} />
+          <Link to="/rooms/new" aria-label="Создать игру" className="flex h-[46px] w-[46px] translate-y-[3px] items-center justify-center rounded-full border-[1.25px] border-[#e2c7b4]/85 text-snow">
+            <Icon name="plus" size={26} strokeWidth={1.5} />
           </Link>
         </motion.div>
       </div>
@@ -107,63 +105,72 @@ function Featured({ room }: { room: Room }) {
   const st = status(room, people.length)
   return (
     <>
-      {/* Participants of the featured game */}
-      <div className="mt-[18px] flex items-center gap-3 px-6">
+      {/* Participants of the featured game — 38 px avatars, overlap 9, count at +17 px */}
+      <div className="mt-[13px] flex items-center gap-4 px-[25px]">
         <div className="flex items-center">
           {people.slice(0, 3).map((p, i) => (
-            <span key={p.id} style={{ marginLeft: i ? -10 : 0 }} className="rounded-full ring-2 ring-cocoa">
-              <Avatar person={p} size={34} />
+            <span key={p.id} style={{ marginLeft: i ? -9 : 0 }} className="rounded-full ring-[1.5px] ring-[#efe3da]/80">
+              <Avatar person={p} size={38} />
             </span>
           ))}
           {people.length > 3 && (
-            <span style={{ marginLeft: -10 }} className="flex h-[34px] min-w-[34px] items-center justify-center rounded-full bg-[#8a7a72] px-1 text-footnote font-semibold text-snow ring-2 ring-cocoa">
+            <span
+              style={{ marginLeft: -9 }}
+              className="flex h-[38px] min-w-[38px] items-center justify-center rounded-full bg-[#857469] px-1 text-footnote text-snow ring-[1.5px] ring-[#efe3da]/80"
+            >
               +{people.length - 3}
             </span>
           )}
         </div>
-        <span className="text-callout text-taupe-soft">
+        <span className="text-body text-taupe-soft">
           {people.length} {plural(people.length, 'участник', 'участника', 'участников')}
         </span>
       </div>
 
-      {/* Featured game card */}
+      {/* Featured game card: emerald top, snowy ground with hills at the bottom (reference 04) */}
       <motion.article
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.32, ease: EASE }}
-        className="relative mx-4 mt-4 overflow-hidden rounded-[33px] pb-[10px]"
+        className="relative mx-4 mt-[18px] overflow-hidden rounded-[33px] pb-[9px] shadow-[0_18px_40px_-18px_rgba(0,0,0,.6)]"
         style={{ background: CARD_BG[room.theme] }}
       >
-        <Link to={`/rooms/${room.id}`} className="block px-[22px] pt-6" aria-label={`Открыть игру ${room.name}`}>
+        {/* Landscape: two soft hills + cream snow ground (static, behind the illustration) */}
+        <span aria-hidden className="absolute left-[-9%] top-[252px] h-[130px] w-[44%] rounded-[50%] bg-[linear-gradient(180deg,#dcb987,#c6a473_60%)] [@media(max-height:820px)]:top-[228px]" />
+        <span aria-hidden className="absolute right-[-12%] top-[236px] h-[150px] w-[48%] rounded-[50%] bg-[linear-gradient(180deg,#a7b187,#8a9872_60%)] [@media(max-height:820px)]:top-[212px]" />
+        <span aria-hidden className="absolute inset-x-0 bottom-0 top-[70%] bg-[linear-gradient(180deg,#e7c597_0%,#f3cca5_22%,#f6d0aa_100%)]" />
+
+        <Link to={`/rooms/${room.id}`} className="relative block pl-[32px] pr-[25px] pt-[29px]" aria-label={`Открыть игру ${room.name}`}>
           <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
+            <div className="min-w-0 pt-[3px]">
               <h1 className="t-hero-card line-clamp-2 text-snow">{room.name}</h1>
-              <p className="mt-2 text-button font-normal text-snow/85">Бюджет до {formatRub(room.budget)}</p>
+              <p className="mt-[9px] text-body text-snow/90">Бюджет до {formatRub(room.budget)}</p>
             </div>
-            <span className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-white/15 text-snow">
-              <Icon name="forward" size={22} strokeWidth={2} />
+            <span className="flex h-[51px] w-[51px] shrink-0 items-center justify-center rounded-full bg-white/[0.13] text-snow ring-1 ring-white/[0.06]">
+              <Icon name="forward" size={22} strokeWidth={1.8} />
             </span>
           </div>
-          {/* Illustration area: soft ground + centred render */}
-          <div className="relative mt-1 flex h-[min(233px,27.6dvh)] [@media(max-height:820px)]:h-[208px] items-end justify-center">
-            <span aria-hidden className="absolute inset-x-[-10%] bottom-[-8%] h-[46%] rounded-[50%] bg-[radial-gradient(closest-side,rgba(255,236,214,.55),rgba(255,236,214,0))]" />
-            <Art name="snow-globe" size="min(232px, 26.5dvh)" eager noShadow />
+          {/* Illustration stage: the globe sinks behind the status panel like in the reference */}
+          <div style={{ clipPath: "inset(-200px 0 -80px 0)" }} className="relative -ml-[32px] -mr-[25px] h-[185px] [@media(max-height:820px)]:h-[160px]">
+            <span className="absolute left-1/2 top-[-4px] -translate-x-1/2">
+              <Art name="snow-globe" size="min(240px, 28.5dvh)" eager noShadow />
+            </span>
           </div>
         </Link>
 
-        {/* Overlapping cream status panel */}
+        {/* Cream status panel */}
         <motion.button
-          whileTap={{ scale: 0.98 }}
+          whileTap={{ scale: 0.985 }}
           onClick={() => {
             haptic.press()
             navigate(st.action)
           }}
-          className="relative mx-[10px] -mt-6 flex w-[calc(100%-20px)] items-center gap-4 rounded-[28px] bg-marzipan py-3 pl-5 pr-3 text-left text-ink"
+          className="relative mx-[11px] flex h-[88px] w-[calc(100%-22px)] items-center gap-[25px] rounded-[27px] bg-[linear-gradient(180deg,#fde3c6,#fbd8b5)] pl-[27px] pr-[11px] text-left text-ink shadow-[0_-6px_18px_-8px_rgba(80,40,10,.35),inset_0_1px_0_rgba(255,255,255,.55)]"
         >
-          <CalendarMark size={38} />
-          <span className="min-w-0 flex-1 text-button font-normal leading-snug">{st.title}</span>
-          <span className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full bg-ink text-snow">
-            <Icon name="arrowRight" size={22} strokeWidth={2} />
+          <CalendarMark size={31} variant="outline" />
+          <span className="min-w-0 max-w-[160px] flex-1 text-button font-normal leading-[23px]">{st.title}</span>
+          <span className="ml-auto flex h-[57px] w-[57px] shrink-0 items-center justify-center rounded-full bg-ink text-snow shadow-[0_6px_14px_-6px_rgba(0,0,0,.6)]">
+            <Icon name="arrowRight" size={24} strokeWidth={1.8} />
           </span>
         </motion.button>
       </motion.article>
@@ -201,19 +208,19 @@ function GameRow({ room, index }: { room: Room; index: number }) {
   return (
     <motion.li initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: EASE, delay: 0.08 + index * 0.05 }}>
       <motion.div whileTap={PRESS}>
-        <Link to={`/rooms/${room.id}`} className="flex items-center gap-4 rounded-[28px] bg-marzipan py-3.5 pl-3.5 pr-4 text-ink">
-          <span className="flex h-[66px] w-[66px] shrink-0 items-center justify-center rounded-[20px] bg-[#f6d3ba]">
-            <Art name={stageArt(room)} size={54} noShadow />
+        <Link to={`/rooms/${room.id}`} className="flex h-[100px] items-center gap-5 rounded-[28px] bg-[linear-gradient(180deg,#ffe8d2,#fde2c8)] pl-[21px] pr-[26px] text-ink shadow-[inset_0_1px_0_rgba(255,255,255,.5)]">
+          <span className="flex h-[59px] w-[59px] shrink-0 items-center justify-center rounded-[18px] bg-[#f9d9bf] shadow-[inset_0_1px_2px_rgba(120,60,20,.08)]">
+            <Art name={stageArt(room)} size={44} noShadow />
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-button font-semibold">{room.name}</span>
+            <span className="block truncate text-button font-medium">{room.name}</span>
             <span className="block text-callout text-ink-soft">До {formatRub(room.budget)}</span>
             <span className="block text-secondary text-ink-soft">
               {people} {plural(people, 'участник', 'участника', 'участников')}
               {room.stage === 'exchanged' ? ', завершена' : ''}
             </span>
           </span>
-          <Icon name="forward" size={22} className="shrink-0 text-ink" />
+          <Icon name="forward" size={22} strokeWidth={1.8} className="shrink-0 text-ink" />
         </Link>
       </motion.div>
     </motion.li>

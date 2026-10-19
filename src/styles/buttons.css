@@ -15,7 +15,7 @@
     justify-content: center;
     gap: 0.6rem;
     border-radius: 999px;
-    font-weight: 500;
+    font-weight: 450; /* references: light-medium labels */
     line-height: 1.2;
     letter-spacing: -0.005em;
     white-space: nowrap;
@@ -95,14 +95,21 @@
   .sbtn-full .sbtn-trail { position: absolute; right: 1.4rem; }
 
   /* variants */
+  /* filled trailing glyph (reference 03: solid paper plane) */
+  .sbtn-fill-icon .sbtn-trail {
+    fill: currentColor;
+  }
+
   .sbtn-primary {
-    /* v3: subtle red like the references — mostly flat, lighter top, refined rim */
-    --sb-bg: linear-gradient(180deg, #f2533a 0%, #e03d27 52%, #c9301e 100%);
+    /* v3 (sampled from references 02/03): orange-red top #ee4620 → deep red #dc2016,
+       shallow edge, no coloured glow under the button */
+    --sb-depth: 1.5px;
+    --sb-bg: linear-gradient(180deg, #f04b22 0%, #e73a1c 48%, #dc2016 100%);
     --sb-fg: #fff8f1;
-    --sb-edge: #9b2415;
-    --sb-shadow: rgba(201, 48, 30, 0.55);
-    --sb-rim: rgba(255, 200, 180, 0.55);
-    --sb-gloss: 0.16;
+    --sb-edge: #b81c12;
+    --sb-shadow: rgba(60, 10, 4, 0.45);
+    --sb-rim: rgba(255, 178, 140, 0.5);
+    --sb-gloss: 0.1;
   }
   .sbtn-success {
     --sb-bg: linear-gradient(155deg, #35b77a 0%, #08784c 48%, #06442f 100%);

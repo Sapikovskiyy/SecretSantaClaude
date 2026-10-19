@@ -171,7 +171,7 @@ export function CreateRoom() {
                     />
                   )}
                 </Row>
-                <Row label="Дата обмена" error={touched ? errors.date : undefined} trailing={<CalendarMark />}>
+                <Row label="Дата обмена" error={touched ? errors.date : undefined} trailing={<CalendarMark size={27} variant="outline" />}>
                   {/* Visible formatted value; the native picker sits on top, transparent */}
                   <span className={`${valueCls} pointer-events-none block`}>{longDate(date)}</span>
                   <input type="date" aria-label="Дата обмена" min={today()} value={date} onChange={(e) => e.target.value && setDate(e.target.value)} className="absolute inset-0 opacity-0" />
