@@ -46,7 +46,7 @@ export function AvatarStack({ people, max = 4, size = 34 }: { people: Person[]; 
       ))}
       {rest > 0 && (
         <span
-          className="inline-flex items-center justify-center rounded-full bg-taupe text-caption font-medium text-snow ring-[3px] ring-cocoa"
+          className="inline-flex items-center justify-center rounded-full bg-[#6f6056] text-caption font-medium text-snow ring-[3px] ring-cocoa"
           style={{ width: size, height: size, marginLeft: -size * 0.32 }}
         >
           +{rest}

@@ -58,7 +58,7 @@ export function Join() {
         <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
           <Art name="envelope" size={160} />
           <h1 className="type-title mt-4">Приглашение не найдено</h1>
-          <p className="mt-3 max-w-[30ch] text-callout text-snow/65">
+          <p className="mt-3 max-w-[30ch] text-callout text-snow/80">
             Проверьте код «{paramCode.toUpperCase()}» или попросите организатора прислать новую ссылку
           </p>
           <div className="mt-6 flex gap-2">
@@ -94,7 +94,7 @@ export function Join() {
       <div className="mx-5 flex items-center gap-3 rounded-full bg-white/12 p-2 pr-5 backdrop-blur-md">
         <AvatarStack people={people} max={3} size={40} />
         <div className="min-w-0 flex-1">
-          <p className="text-caption text-snow/65">
+          <p className="text-caption text-snow/80">
             {people.length} {plural(people.length, 'участник', 'участника', 'участников')}
           </p>
           <p className="truncate text-callout font-medium">{room.name}</p>
@@ -112,11 +112,11 @@ export function Join() {
 
       <div className="mx-5 rounded-[36px] bg-marzipan p-5 text-ink">
         <div className="flex justify-between text-callout">
-          <span className="text-ink/60">Обмен</span>
+          <span className="text-ink/75">Обмен</span>
           <span className="font-medium">{formatDate(room.date)}</span>
         </div>
         <div className="mt-2 flex justify-between text-callout">
-          <span className="text-ink/60">Бюджет</span>
+          <span className="text-ink/75">Бюджет</span>
           <span className="font-medium">до {formatRub(room.budget)}</span>
         </div>
         {room.description && <p className="mt-3 text-secondary text-ink/70">{room.description}</p>}

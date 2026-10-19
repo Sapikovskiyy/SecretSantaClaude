@@ -100,7 +100,7 @@ export function Invite() {
         <p className="mt-[7px] text-callout leading-[20px] text-ink/70">Бюджет до {formatRub(room.budget)}</p>
         <p className="text-callout leading-[20px] text-ink/70">{longDate(room.date)}</p>
         <div className="mb-[13px] mt-[14px] h-px bg-ink/10" />
-        <button onClick={copy} className="flex h-[49px] w-full items-center gap-3 rounded-[15px] bg-[#f9dcc4] pl-[17px] pr-[14px] text-left" aria-label="Скопировать ссылку-приглашение">
+        <button onClick={copy} className="flex h-[49px] w-full items-center gap-3 rounded-[15px] bg-[#f9dcc4] pl-[17px] pr-[14px] text-left" aria-label={`${link.replace(/^https?:\/\//, '')} — скопировать ссылку-приглашение`}>
           <span className="min-w-0 flex-1 truncate text-callout text-ink">{link.replace(/^https?:\/\//, '')}</span>
           <Icon name={copied ? 'check' : 'copy'} size={22} strokeWidth={1.8} className={copied ? 'text-pine' : 'text-ink'} />
         </button>
@@ -124,7 +124,7 @@ export function Invite() {
                 style={{ marginLeft: i ? -9 : 0 }}
                 className="rounded-full ring-2 ring-[#efe2d8]"
               >
-                <Avatar person={p} size={50} />
+                <Avatar person={p} size={typeof window !== "undefined" && window.innerWidth < 380 ? 44 : 50} />
               </motion.span>
             ))}
           </AnimatePresence>

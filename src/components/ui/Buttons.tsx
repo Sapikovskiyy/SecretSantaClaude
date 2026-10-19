@@ -126,7 +126,7 @@ export function SwipeConfirm({
 
   const bg = {
     dark: 'bg-truffle/75 text-snow backdrop-blur-xl ring-1 ring-white/5',
-    taupe: 'bg-taupe text-snow',
+    taupe: 'bg-[#6f6056] text-snow',
     ember: 'bg-ember-deep/70 text-snow backdrop-blur-xl',
     // Dark translucent pill over the welcome illustration — no live blur (cheap on WebView).
     glass: 'bg-[rgba(38,14,9,0.62)] text-snow ring-1 ring-white/[0.08] backdrop-blur-[12px] shadow-[inset_0_1px_0_rgba(255,255,255,.07),0_10px_28px_rgba(40,6,2,.35)]',

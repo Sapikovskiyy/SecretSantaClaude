@@ -8,9 +8,13 @@ import '@fontsource/inter/400.css'
 import '@fontsource/inter/500.css'
 import '@fontsource/inter/600.css'
 import './styles/index.css'
-import { App } from './App'
-import { connectTelegram, initTelegram, launchedInTelegram, tgUserName } from './lib/telegram'
-import { useDemo } from './data/demoStore'
+import { lazy, Suspense } from 'react'
+import { connectTelegram, initTelegram, launchedInTelegram } from './lib/telegram'
+import { IS_DEMO } from './lib/mode'
+import { ServerNotConnected } from './screens/ServerNotConnected'
+
+// The demo app (local store + seed data) is a separate chunk: production builds never ship it.
+const App = IS_DEMO ? lazy(() => import('./App').then((m) => ({ default: m.App }))) : () => null
 
 /** Inside Telegram the SDK must be bound before the first render; elsewhere we never wait for it. */
 function whenSdkReady(): Promise<void> {
@@ -30,15 +34,18 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
 whenSdkReady().then(() => {
   connectTelegram()
   initTelegram()
-  // Demo profile name was created before the SDK was bound.
-  const name = tgUserName()
-  if (name && useDemo.getState().me.name === 'Вы') useDemo.setState((s) => ({ me: { ...s.me, name } }))
 
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
       <MotionConfig reducedMotion="user">
         <BrowserRouter>
-          <App />
+          {IS_DEMO ? (
+            <Suspense fallback={null}>
+              <App />
+            </Suspense>
+          ) : (
+            <ServerNotConnected />
+          )}
         </BrowserRouter>
       </MotionConfig>
     </StrictMode>,

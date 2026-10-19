@@ -73,7 +73,7 @@ export function Profile() {
         style={{ background: 'linear-gradient(160deg, #6a4a3a 0%, #4a3328 45%, #382720 100%)' }}
       >
         <span aria-hidden className="pointer-events-none absolute -right-10 -top-14 h-40 w-40 rounded-full bg-[radial-gradient(closest-side,rgba(255,214,160,.22),transparent)]" />
-        <button onClick={() => navigate('/premium')} className="relative flex w-full items-center gap-3 text-left">
+        <button onClick={() => navigate('/premium')} className="relative -my-1.5 flex min-h-11 w-full items-center gap-3 text-left">
           <Icon name="crown" size={30} strokeWidth={1.9} className="shrink-0 text-gold" />
           <span className="min-w-0 flex-1 text-card font-medium text-snow">Перейти на Santa+</span>
           <Icon name="forward" size={20} className="shrink-0 text-snow/80" />

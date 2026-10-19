@@ -94,7 +94,7 @@ export function CreateRoom() {
             <Icon name="back" size={22} />
           </motion.button>
         )}
-        <div className="absolute inset-x-0 top-0 flex flex-col items-center gap-2 pt-1" aria-label={`Шаг ${step + 1} из 2`}>
+        <div className="absolute inset-x-0 top-0 flex flex-col items-center gap-2 pt-1" role="img" aria-label={`Шаг ${step + 1} из 2`}>
           <div className="flex gap-2">
             {[0, 1].map((i) => (
               <motion.span key={i} className="h-2 w-2 rounded-full" animate={{ backgroundColor: i === step ? '#ef4930' : '#6e5d55' }} transition={tween(DUR.chip)} />

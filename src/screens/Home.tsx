@@ -116,7 +116,7 @@ function Featured({ room }: { room: Room }) {
           {people.length > 3 && (
             <span
               style={{ marginLeft: -9 }}
-              className="flex h-[38px] min-w-[38px] items-center justify-center rounded-full bg-[#857469] px-1 text-footnote text-snow ring-[1.5px] ring-[#efe3da]/80"
+              className="flex h-[38px] min-w-[38px] items-center justify-center rounded-full bg-[#6f6056] px-1 text-footnote text-snow ring-[1.5px] ring-[#efe3da]/80"
             >
               +{people.length - 3}
             </span>
@@ -140,7 +140,7 @@ function Featured({ room }: { room: Room }) {
         <span aria-hidden className="absolute right-[-12%] top-[236px] h-[150px] w-[48%] rounded-[50%] bg-[linear-gradient(180deg,#a7b187,#8a9872_60%)] [@media(max-height:820px)]:top-[212px]" />
         <span aria-hidden className="absolute inset-x-0 bottom-0 top-[70%] bg-[linear-gradient(180deg,#e7c597_0%,#f3cca5_22%,#f6d0aa_100%)]" />
 
-        <Link to={`/rooms/${room.id}`} className="relative block pl-[32px] pr-[25px] pt-[29px]" aria-label={`Открыть игру ${room.name}`}>
+        <Link to={`/rooms/${room.id}`} className="relative block pl-[32px] pr-[25px] pt-[29px]">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 pt-[3px]">
               <h1 className="t-hero-card line-clamp-2 text-snow">{room.name}</h1>

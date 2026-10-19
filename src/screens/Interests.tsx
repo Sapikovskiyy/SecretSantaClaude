@@ -59,7 +59,7 @@ export function Interests() {
         ) : (
           <span className="w-12" />
         )}
-        <div className="absolute inset-x-0 top-0 flex flex-col items-center gap-2 pt-1" aria-label={`Шаг ${STEP} из ${STEPS}`}>
+        <div className="absolute inset-x-0 top-0 flex flex-col items-center gap-2 pt-1" role="img" aria-label={`Шаг ${STEP} из ${STEPS}`}>
           <div className="flex items-center gap-2">
             {Array.from({ length: STEPS }, (_, i) => (
               <span key={i} className={`h-2 rounded-full ${i + 1 === STEP ? 'w-2 bg-ember-bright' : i + 1 < STEP ? 'w-2 bg-snow/80' : 'w-2 bg-[#6e5d55]'}`} />
@@ -125,7 +125,7 @@ function InterestTile({ item, tall, selected, onToggle }: { item: InterestMeta; 
       <span className="absolute inset-x-[10%] top-[9%] flex aspect-square items-center justify-center">
         <Art name={item.art} size="100%" noShadow />
       </span>
-      <span className="absolute inset-x-2 bottom-[14px] truncate text-center text-body font-medium text-snow">{item.title}</span>
+      <span className="absolute inset-x-1.5 bottom-[14px] truncate text-center text-callout font-medium text-snow">{item.title}</span>
 
       <AnimatePresence>
         {selected && (

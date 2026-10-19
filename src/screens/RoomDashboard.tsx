@@ -112,7 +112,7 @@ export function RoomDashboard() {
       <div aria-hidden className="relative z-0 mx-auto mt-2 flex h-[206px] w-full items-end justify-center [@media(max-height:820px)]:h-[176px]">
         <GlowStar size={44} style={{ left: '9%', top: '46%' }} />
         <GlowStar size={40} delay={2} style={{ right: '10%', top: '38%' }} />
-        <Art name="snow-globe" size="min(214px, 25dvh)" eager noShadow />
+        <Art name="snow-globe" size="min(214px, 22dvh)" eager noShadow />
       </div>
 
       {/* Cream panel */}
@@ -149,7 +149,6 @@ export function RoomDashboard() {
           {...rise(1)}
           whileTap={{ scale: 0.985 }}
           onClick={() => navigate(room.stage === 'gathering' ? `/rooms/${room.id}/invite` : `/rooms/${room.id}/participants`)}
-          aria-label={room.stage === 'gathering' ? 'Пригласить участников' : 'Все участники'}
           className="mt-3 flex h-[62px] w-full items-center rounded-[22px] pl-2 pr-3 text-left"
         >
           <span className="flex items-center">
@@ -164,6 +163,7 @@ export function RoomDashboard() {
               </span>
             )}
           </span>
+          <span className="sr-only">{room.stage === 'gathering' ? 'Пригласить участников' : 'Все участники'}</span>
           <span className="ml-auto flex h-11 w-11 items-center justify-center rounded-full bg-ink/[0.07] text-ink/80">
             <Icon name="forward" size={20} strokeWidth={1.8} />
           </span>

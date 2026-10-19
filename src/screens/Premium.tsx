@@ -73,7 +73,7 @@ export function Premium() {
 
         {/* Price */}
         <motion.div {...cardIn(4)} className="relative mt-4 rounded-[24px] bg-snow p-4 pt-5">
-          <span className="absolute -top-3 left-4 rounded-full bg-ember px-3 py-1 text-caption font-semibold text-snow">Выгодно</span>
+          <span className="absolute -top-3 left-4 rounded-full bg-[#c42c1b] px-3 py-1 text-caption font-semibold text-snow">Выгодно</span>
           <div className="flex items-end justify-between gap-3">
             <div>
               <p className="flex items-baseline gap-1.5">

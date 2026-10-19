@@ -296,12 +296,12 @@ function IdeasList({ ideas, onMove, onRemove }: { ideas: GiftIdea[]; onMove: (i:
   )
 }
 
-function HintRow({ icon, title, label, value, onClick }: { icon: IconName; title: string; label: string; value: string; onClick: () => void }) {
+function HintRow({ icon, label, value, onClick }: { icon: IconName; title?: string; label: string; value: string; onClick: () => void }) {
   return (
-    <button aria-label={label} onClick={onClick} className="flex min-h-[64px] w-full items-center gap-4 px-5 py-3 text-left">
+    <button onClick={onClick} className="flex min-h-[64px] w-full items-center gap-4 px-5 py-3 text-left">
       <Icon name={icon} size={20} className="shrink-0 text-gold" />
       <span className="min-w-0 flex-1">
-        <span className="block text-body text-snow">{title}</span>
+        <span className="block text-body text-snow">{label}</span>
         <span className="block truncate text-footnote text-snow/55">{value}</span>
       </span>
       <Icon name="forward" size={18} className="shrink-0 text-snow/60" />

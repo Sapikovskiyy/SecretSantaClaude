@@ -68,7 +68,7 @@
   --color-snow: #fff8f1;         /* (--santomi-white) */
   --color-gold: #c99b61;         /* (--santomi-gold) */
   --color-ink: #281d19;          /* text on cream */
-  --color-ink-soft: #85746a;     /* secondary text on cream */
+  --color-ink-soft: #6f6056;     /* secondary text on cream — ≥ 4.5:1 on #ffe4ce (WCAG AA) */
   --color-telegram: #2a8ce8;     /* only for the "Отправить в Telegram" action */
 
   --radius-pill: 999px;

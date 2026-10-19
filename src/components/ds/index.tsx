@@ -170,7 +170,7 @@ export function StatusPill({ tone, children }: { tone: 'green' | 'gold' | 'red' 
   const t = {
     green: 'bg-pine text-snow',
     gold: 'bg-gold/90 text-ink',
-    red: 'bg-ember/12 text-ember',
+    red: 'bg-ember/12 text-ember-deep',
     muted: 'bg-ink/8 text-ink/70',
   }[tone]
   return <span className={`inline-flex h-7 items-center gap-1.5 rounded-full px-3 text-caption font-semibold ${t}`}>{children}</span>

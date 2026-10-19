@@ -2,18 +2,21 @@ import { Suspense, useEffect, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router'
 import { useDemo } from './data/demoStore'
 import { Dock, Toasts } from './components/ui/Kit'
-import { startParam } from './lib/telegram'
+import { startParam, tgUserName } from './lib/telegram'
 import { Welcome } from './screens/Welcome'
 import { Home } from './screens/Home'
 import { NotFound } from './screens/NotFound'
 import { CreateRoom, RoomDashboard, Invite, Join, Wishlist, Interests, Reveal, Chat, RecipientWishlist, GiftAI, Profile, Chats, Premium, Participants, Draw, prefetchScreens } from './lazyScreens'
 import { Offline } from './components/Offline'
-import { ServerNotConnected } from './screens/ServerNotConnected'
-import { IS_DEMO } from './lib/mode'
 
 // The wishlist editor is a full-screen sheet flow (handoff 08), so it has no dock.
 const DOCK_ROUTES = ['/home', '/chats', '/ai', '/profile']
 
+// The demo profile is created when the store module loads; use the Telegram name once the SDK is bound.
+const tgName = tgUserName()
+if (tgName && useDemo.getState().me.name === 'Вы') useDemo.setState((s) => ({ me: { ...s.me, name: tgName } }))
+
+/** Demo app (Demo Mode only — main.tsx never loads this chunk in production builds). */
 export function App() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -31,9 +34,6 @@ export function App() {
   const showDock = DOCK_ROUTES.includes(location.pathname)
 
   useEffect(() => prefetchScreens(), [])
-
-  // Production builds never fall back to demo data.
-  if (!IS_DEMO) return <ServerNotConnected />
 
   return (
     <>

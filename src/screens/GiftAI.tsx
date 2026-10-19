@@ -236,8 +236,8 @@ export function GiftAI() {
         <p className="text-caption text-snow/55">
           Бесплатно осталось: {left} из {FREE_AI_GENERATIONS}
         </p>
-        <button onClick={() => setSavedOpen(true)} aria-label={`Сохранённые идеи (${savedIdeas.length})`} className="flex h-9 items-center gap-1.5 rounded-full px-2 text-caption font-medium text-snow/75">
-          <Icon name="heart" size={15} className={savedIdeas.length ? 'text-ember-bright' : ''} /> Сохранённые · {savedIdeas.length}
+        <button onClick={() => setSavedOpen(true)} className="flex h-9 items-center gap-1.5 rounded-full px-2 text-caption font-medium text-snow/75">
+          <Icon name="heart" size={15} className={savedIdeas.length ? 'text-ember-bright' : ''} /> Сохранённые идеи ({savedIdeas.length})
         </button>
       </div>
 
