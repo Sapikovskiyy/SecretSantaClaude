@@ -20,9 +20,10 @@ import { haptic, isTelegram } from '@/lib/telegram'
 import { toast } from '@/data/uiStore'
 import { DUR, EASE, PRESS, tween } from '@/motion/tokens'
 
-// Two rows that scroll together: alternate the catalogue so each row mixes categories.
-const ROW_A = INTERESTS.filter((_, i) => i % 2 === 0)
-const ROW_B = INTERESTS.filter((_, i) => i % 2 === 1)
+// Two rows that scroll together: first half on top (Стиль, Игры, Кофе…), second below (Книги, Техника, Путешествия…).
+const HALF = Math.ceil(INTERESTS.length / 2)
+const ROW_A = INTERESTS.slice(0, HALF)
+const ROW_B = INTERESTS.slice(HALF)
 const STEP = 3
 const STEPS = 4
 
@@ -64,18 +65,17 @@ export function Interests() {
               <span key={i} className={`h-2 rounded-full ${i + 1 === STEP ? 'w-2 bg-ember-bright' : i + 1 < STEP ? 'w-2 bg-snow/80' : 'w-2 bg-[#6e5d55]'}`} />
             ))}
           </div>
-          <span className="text-footnote text-taupe-soft">
-            Шаг {STEP} из {STEPS}
-          </span>
         </div>
-        <button onClick={() => navigate('/wishlist')} className="relative z-10 h-11 whitespace-nowrap px-1 text-secondary text-snow/75">
-          Пропустить
-        </button>
+        <span className="w-12" />
       </div>
 
       <div className="relative px-6 pt-[30px] [@media(max-height:820px)]:pt-4">
-        <h1 className="t-page-tight max-w-[11ch] text-snow">Какие у вас интересы?</h1>
-        <p className="t-lead mt-3 max-w-[30ch] text-snow/80">Выберите интересы, чтобы получать более подходящие идеи подарков.</p>
+        <h1 className="t-page-tight text-snow">
+          Какой подарок
+          <br />
+          вы хотите?
+        </h1>
+        <p className="mt-3 max-w-[32ch] text-callout leading-[21px] text-snow/80">Выберите интересы, чтобы получать более точные рекомендации.</p>
       </div>
 
       {/* Two rows, one horizontal scroller */}
@@ -94,11 +94,11 @@ export function Interests() {
       </div>
 
       <div className="relative mt-auto px-[58px] pt-4" style={{ paddingBottom: 'calc(var(--sa-bottom) + 26px)' }}>
-        <p className="mb-3 text-center text-footnote text-snow/65" aria-live="polite">
+        <p className="sr-only" aria-live="polite">
           {selected.length ? `Выбрано: ${selected.length}` : 'Можно выбрать несколько'}
         </p>
         <SantomiButton fullWidth trailingIcon="forward" onClick={save}>
-          Продолжить
+          Далее
         </SantomiButton>
       </div>
     </Screen>
@@ -125,7 +125,7 @@ function InterestTile({ item, tall, selected, onToggle }: { item: InterestMeta; 
       <span className="absolute inset-x-[10%] top-[9%] flex aspect-square items-center justify-center">
         <Art name={item.art} size="100%" noShadow />
       </span>
-      <span className="absolute bottom-[14px] left-[15px] right-2 truncate text-body font-medium text-snow">{item.title}</span>
+      <span className="absolute inset-x-2 bottom-[14px] truncate text-center text-body font-medium text-snow">{item.title}</span>
 
       <AnimatePresence>
         {selected && (

@@ -172,7 +172,7 @@ export function GiftAI() {
           transition={loading ? { duration: 1.8, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
         >
           {/* Rive robot when src/assets/rive/gift-ai-robot.riv exists; static 3D render until then */}
-          <RiveAnimation asset="gift-ai-robot" stateMachine="Robot" boolInput={{ name: 'thinking', value: loading }} label="Робот Gift AI" className="h-[176px] w-[176px]" fallback={<Art name="robot" size={176} eager noShadow />} />
+          <RiveAnimation asset="gift-ai-robot" stateMachine="Robot" boolInput={{ name: 'thinking', value: loading }} label="Робот Gift AI" className="h-[176px] w-[176px]" fallback={<Art name="mascot" size={176} eager noShadow />} />
         </motion.div>
       </div>
 

@@ -57,6 +57,10 @@ for (const s of SIZES) {
       for (const [name, route] of SCREENS) {
         await page.goto(route)
         await page.waitForTimeout(900)
+        if (name === '10-recipient-reveal') {
+          await page.getByRole('button', { name: 'Открыть подарок' }).press('Enter')
+          await page.waitForTimeout(2600)
+        }
         await page.screenshot({ path: `${out}/${name}.png` })
         m[name] = await metrics(page)
       }
