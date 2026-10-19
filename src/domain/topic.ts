@@ -43,6 +43,7 @@ const KEYWORD_INTERESTS: [string, InterestId][] = [
   ['одежд', 'fashion'], ['шарф', 'fashion'], ['стил', 'fashion'],
   ['рисов', 'creative'], ['творч', 'creative'], ['рукодел', 'creative'],
   ['спорт', 'sport'], ['трениров', 'sport'], ['бег', 'sport'],
+  ['путешеств', 'travel'], ['поездк', 'travel'], ['отпуск', 'travel'],
 ]
 
 /** Extracts interest hints from free text («что-то уютное для дома» → home). */

@@ -88,8 +88,11 @@ test('create a room, invite, add demo participants, run the draw and reveal', as
   await shots('10-reveal-idle', page, info.project.name)
   // The gift gently sways, so open it via keyboard (also checks a11y).
   await page.getByRole('button', { name: 'Открыть подарок' }).press('Enter')
-  await expect(page.getByText('Ты даришь подарок')).toBeVisible({ timeout: 4000 })
-  await expect(page.getByText('Несколько подсказок')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Твой получатель…' })).toBeVisible({ timeout: 4000 })
+  await expect(page.getByRole('link', { name: 'Посмотреть вишлист' })).toBeVisible()
+  await page.getByRole('button', { name: 'Несколько подсказок' }).click()
+  await expect(page.getByRole('dialog', { name: 'Несколько подсказок' }).getByText(/Бюджет — до/)).toBeVisible()
+  await page.keyboard.press('Escape')
   await page.waitForTimeout(900)
   await shots('10-reveal-open', page, info.project.name)
 })
@@ -169,45 +172,48 @@ test('wishlist: interests, add, edit and remove items', async ({ page }, info) =
   await expect(page).toHaveURL(/\/wishlist$/)
   await expect(page.getByRole('button', { name: 'Мои интересы (3)' })).toBeVisible()
 
-  // Empty wishlist → editor for a new item
+  // Empty wishlist → add the first wish in the editor sheet
   await expect(page.getByText('Добавьте первое желание')).toBeVisible()
   await page.waitForTimeout(400)
   await shots('08-wishlist-empty', page, info.project.name)
+  await page.getByRole('button', { name: 'Добавить желание' }).click()
+  const editor = page.getByRole('dialog', { name: 'Новое желание' })
+  await expect(editor).toBeVisible()
 
   // URL validation error state
-  await page.getByPlaceholder('Например, фотоаппарат моментальной печати').fill('Плед')
-  await page.getByPlaceholder('https://').fill('ozon')
-  await expect(page.getByRole('alert').filter({ hasText: 'https://' })).toBeVisible()
-  await page.getByRole('button', { name: 'Очистить ссылку' }).click()
+  await editor.getByPlaceholder('Например, фотоаппарат моментальной печати').fill('Плед')
+  await editor.getByPlaceholder('https://').fill('ozon')
+  await expect(editor.getByRole('alert').filter({ hasText: 'https://' })).toBeVisible()
+  await editor.getByRole('button', { name: 'Очистить ссылку' }).click()
 
-  await page.getByPlaceholder('Примерно').fill('3500')
-  await page.getByRole('radio', { name: 'Высокий' }).click()
-  await page.getByRole('button', { name: 'Добавить в вишлист' }).click()
-  await expect(page.getByRole('option', { name: 'Плед' })).toBeVisible()
+  await editor.getByPlaceholder('Примерно').fill('3500')
+  await editor.getByRole('radio', { name: 'Высокий' }).click()
+  await editor.getByRole('button', { name: 'Добавить в вишлист' }).click()
+  await expect(page.getByRole('list', { name: 'Желания' }).getByText('Плед')).toBeVisible()
 
   await page.getByRole('button', { name: 'Добавить желание' }).click()
-  await page.getByPlaceholder('Например, фотоаппарат моментальной печати').fill('Кофемолка')
-  await page.getByRole('button', { name: 'Добавить в вишлист' }).click()
-  await expect(page.getByRole('tab', { name: 'Товары (2)' })).toBeVisible()
+  await page.getByRole('dialog', { name: 'Новое желание' }).getByPlaceholder('Например, фотоаппарат моментальной печати').fill('Кофемолка')
+  await page.getByRole('dialog', { name: 'Новое желание' }).getByRole('button', { name: 'Добавить в вишлист' }).click()
+  await expect(page.getByRole('tab', { name: 'Все 2' })).toBeVisible()
 
   // Edit → save state
-  await page.getByRole('option', { name: 'Плед' }).click()
-  await expect(page.getByRole('button', { name: 'Сохранено' })).toBeDisabled()
-  await page.getByPlaceholder('Например, фотоаппарат моментальной печати').fill('Шерстяной плед')
-  await page.getByPlaceholder('Цвет, размер, модель — всё, что поможет Санте').fill('Серый или бежевый, 150×200')
+  await page.getByRole('button', { name: /^Плед/ }).click()
+  const edit = page.getByRole('dialog', { name: 'Изменить желание' })
+  await expect(edit.getByRole('button', { name: 'Сохранено' })).toBeDisabled()
+  await edit.getByPlaceholder('Например, фотоаппарат моментальной печати').fill('Шерстяной плед')
+  await edit.getByPlaceholder('Цвет, размер, модель — всё, что поможет Санте').fill('Серый или бежевый, 150×200')
   await page.waitForTimeout(400)
   await shots('08-wishlist-edit', page, info.project.name)
-  await page.evaluate(() => window.scrollTo(0, 0))
+  await edit.getByRole('button', { name: 'Сохранить изменения' }).click()
+  await expect(page.getByRole('list', { name: 'Желания' }).getByText('Шерстяной плед')).toBeVisible()
   await page.waitForTimeout(2600) // let toasts disappear for a clean reference comparison
   await shots('08-wishlist-top', page, info.project.name)
-  await page.getByRole('button', { name: 'Сохранить изменения' }).click()
-  await expect(page.getByRole('option', { name: 'Шерстяной плед' })).toBeVisible()
 
   // Delete via the item menu
-  await page.getByRole('button', { name: 'Действия с желанием' }).click()
+  await page.getByRole('button', { name: 'Ещё действия' }).first().click()
   await page.getByRole('button', { name: 'Удалить желание' }).click()
-  await expect(page.getByRole('option', { name: 'Шерстяной плед' })).toHaveCount(0)
-  await expect(page.getByRole('tab', { name: 'Товары (1)' })).toBeVisible()
+  await expect(page.getByRole('list', { name: 'Желания' }).getByText('Шерстяной плед')).toHaveCount(0)
+  await expect(page.getByRole('tab', { name: 'Все 1' })).toBeVisible()
 })
 
 test('anonymous chat: send message and receive simulated reply; no santa identity', async ({ page }, info) => {
@@ -254,7 +260,7 @@ test('anonymous chat: offline send fails and can be retried', async ({ page, con
 test('gift AI: topic guard, results, saving, free limit leads to AI Plus', async ({ page }, info) => {
   await enterApp(page)
   await page.goto('/ai')
-  await expect(page.getByText('Найду идеальный подарок')).toBeVisible()
+  await expect(page.getByText('Для кого ищем подарок?')).toBeVisible()
   // off-topic request is refused before any generation is spent
   await page.getByLabel('Что ищем').fill('напиши код на python')
   await page.getByLabel('Что ищем').press('Enter')
@@ -262,7 +268,7 @@ test('gift AI: topic guard, results, saving, free limit leads to AI Plus', async
   await expect(page.getByText('Бесплатно осталось: 3 из 3')).toBeVisible()
 
   await page.getByLabel('Что ищем').fill('что-то уютное, любит кофе')
-  await page.getByRole('button', { name: 'Подобрать идеи' }).last().click()
+  await page.getByRole('button', { name: 'Подобрать идеи' }).click()
   await expect(page.getByRole('heading', { name: 'Рекомендации' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Сохранить идею' })).toHaveCount(5)
   await page.getByRole('button', { name: 'Сохранить идею' }).first().click()
@@ -284,9 +290,9 @@ test('gift AI uses the revealed recipient', async ({ page }) => {
   await page.goto('/rooms/r-family/reveal')
   await page.getByRole('button', { name: 'Пропустить' }).click()
   await page.goto('/ai?room=r-family')
-  await expect(page.getByText('Найду идеи подарков для Вика')).toBeVisible()
-  await page.getByRole('button', { name: 'Подобрать для Вика' }).click()
-  await expect(page.getByRole('heading', { name: 'Рекомендации для Вика' })).toBeVisible()
+  await expect(page.getByText('Подарок для: Вика')).toBeVisible()
+  await page.getByRole('button', { name: 'Подобрать идеи: Вика' }).click()
+  await expect(page.getByRole('heading', { name: 'Рекомендации · Вика' })).toBeVisible()
 })
 
 test('animation runtimes stay lazy: no Rive/dotLottie download without real assets', async ({ page }) => {
@@ -296,7 +302,7 @@ test('animation runtimes stay lazy: no Rive/dotLottie download without real asse
   })
   await enterApp(page)
   await page.goto('/ai')
-  await expect(page.getByText('Найду идеальный подарок')).toBeVisible()
+  await expect(page.getByText('Для кого ищем подарок?')).toBeVisible()
   await page.goto('/rooms/r-friends/draw')
   await page.getByRole('button', { name: 'Запустить жеребьёвку' }).click()
   await page.getByRole('button', { name: 'Запустить', exact: true }).click()

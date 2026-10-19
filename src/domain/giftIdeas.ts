@@ -34,6 +34,8 @@ const C: Omit<GiftIdea, 'id'>[] = [
   { title: 'Бутылка для воды с термосом', why: 'Пригодится в зале, в дороге и в офисе.', priceMin: 900, priceMax: 2500, interests: ['sport'], tags: ['practical'] },
   { title: 'Массажный ролик', why: 'Помогает восстановиться после тренировок.', priceMin: 800, priceMax: 2500, interests: ['sport'], tags: ['practical'] },
   { title: 'Сертификат на скалодром', why: 'Новое приключение для тех, кто любит движение.', priceMin: 1500, priceMax: 3500, interests: ['sport'], tags: ['experience', 'unusual'] },
+  { title: 'Обложка для паспорта из кожи', why: 'Пригодится в каждой поездке и прослужит годы.', priceMin: 1200, priceMax: 3500, interests: ['travel', 'fashion'], tags: ['practical'] },
+  { title: 'Дорожная подушка с эффектом памяти', why: 'Долгий перелёт или поезд пройдут заметно легче.', priceMin: 1000, priceMax: 2500, interests: ['travel'], tags: ['practical', 'cozy'] },
   { title: 'Набор горячего шоколада с маршмеллоу', why: 'Сладкий зимний подарок, который понравится почти всем.', priceMin: 600, priceMax: 1500, interests: ['other', 'coffee'], tags: ['cozy'] },
   { title: 'Фотокнига с общими снимками', why: 'Личный подарок, который хранят годами.', priceMin: 1500, priceMax: 4000, interests: ['other', 'creative'], tags: ['unusual'] },
   { title: 'Ёлочная игрушка ручной работы', why: 'Каждый год напоминает о вашем Тайном Санте.', priceMin: 500, priceMax: 1800, interests: ['other', 'home'], tags: ['cozy', 'unusual'] },
@@ -42,18 +44,23 @@ const C: Omit<GiftIdea, 'id'>[] = [
 export const GIFT_CATALOG: GiftIdea[] = C.map((g, i) => ({ ...g, id: `idea-${i}` }))
 
 /** Picks the illustration that matches the object itself, not just its category. */
+// Order matters: specific words first («игрушка» must not match the games rule).
 const ART_BY_KEYWORD: [RegExp, string][] = [
-  [/кружк|кофе|кофемолк|чай|шоколад/i, 'mug'],
-  [/книг|чтени/i, 'book'],
-  [/игр|головоломк/i, 'gamepad'],
+  [/игрушк/i, 'bauble'],
+  [/кружк|кофе|кофемолк|чай|шоколад/i, 'cat-coffee'],
+  [/книг|чтени/i, 'cat-books'],
+  [/игр|головоломк/i, 'cat-games'],
+  [/паспорт|дорожн|поездк/i, 'cat-travel'],
   [/колонк|наушник|зарядн|лампа с настройкой/i, 'headphones'],
   [/пластинк|концерт/i, 'vinyl'],
   [/аромат|свеч|крем|уход|рук/i, 'perfume'],
   [/плед|лампа/i, 'house'],
   [/варежк|платок/i, 'stocking'],
-  [/скетч|керамик|вышив|фотокниг/i, 'palette'],
-  [/скалодром|ролик|бутылк|мяч/i, 'ball'],
-  [/игрушк|сертификат|подписк/i, 'gift-star'],
+  [/скетч|керамик|вышив/i, 'cat-creative'],
+  [/фотокниг/i, 'cat-photo'],
+  [/скалодром|ролик|бутылк/i, 'cat-sport'],
+  [/мяч/i, 'ball'],
+  [/сертификат|подписк/i, 'gift-star'],
 ]
 
 export function ideaArt(idea: Pick<GiftIdea, 'title' | 'interests'>, fallback: (i: InterestId) => string): string {

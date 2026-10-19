@@ -11,6 +11,7 @@ export type InterestId =
   | 'creative'
   | 'home'
   | 'sport'
+  | 'travel'
   | 'other'
 
 export interface Person {

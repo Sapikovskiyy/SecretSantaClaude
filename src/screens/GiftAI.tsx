@@ -1,29 +1,31 @@
 /**
- * 12 · Gift AI — sheet 03/screen 12.
- * Robot scene with a speech bubble, cream panel: recipient, budget, interests, «Что ищем?»,
- * up to 5 recommendations with save, follow-ups, free limit → AI Plus.
+ * 06 · Gift AI — design/references/05-full-screen-overview.jpeg («Gift ideas just for them»).
+ * Back circle + filters circle; two-line title; cream speech bubble next to the robot mascot;
+ * cream «Выберите получателя» panel with avatars; dark query pill with a red send button.
+ * Budget and interests live in the filters sheet. Up to 5 recommendations with save,
+ * follow-ups, free limit → AI Plus.
  * Controlled workflow (not a free chat); every free-text query passes the topic guard.
  * DEMO: ideas come from the local catalog instantly — no fake «thinking» delay, and
  * prices are category ranges, never live shop prices. Phase 4: Edge Function → Yandex AI.
  */
-import { useMemo, useState } from 'react'
+import { useMemo, useState, type ReactNode } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { AnimatePresence, motion } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
-import { Chip, DemoBadge, Sheet } from '@/components/ui/Kit'
-import { Icon } from '@/components/ui/Icon'
+import { Avatar, Chip, DemoBadge, Sheet } from '@/components/ui/Kit'
+import { Icon, type IconName } from '@/components/ui/Icon'
 import { Art } from '@/components/art/Art'
 import { RiveAnimation } from '@/animation'
-import { ErrorState, PageHeader, SantomiButton } from '@/components/ds'
+import { ErrorState, SantomiButton } from '@/components/ds'
 import { FREE_AI_GENERATIONS, useDemo } from '@/data/demoStore'
 import { DEMO_WISHLISTS } from '@/data/demoSeed'
-import { personName } from '@/data/people'
+import { personById, personName } from '@/data/people'
 import { INTERESTS, interestById } from '@/domain/interests'
 import { ideaArt, suggestIdeas, type FollowUp } from '@/domain/giftIdeas'
 import { checkGiftTopic, interestsFromText, MAX_QUERY_LENGTH } from '@/domain/topic'
 import type { GiftIdea, InterestId } from '@/domain/types'
 import { formatRange } from '@/lib/format'
-import { haptic } from '@/lib/telegram'
+import { haptic, isTelegram } from '@/lib/telegram'
 import { toast } from '@/data/uiStore'
 import { DUR, EASE, PRESS, cardIn } from '@/motion/tokens'
 
@@ -51,7 +53,7 @@ export function GiftAI() {
     () =>
       rooms
         .filter((r) => r.stage === 'drawn' && r.revealSeen && r.myRecipientId)
-        .map((r) => ({ roomId: r.id, personId: r.myRecipientId!, budget: r.budget, name: personName(r.myRecipientId!, me) })),
+        .map((r) => ({ roomId: r.id, personId: r.myRecipientId!, budget: r.budget, name: personName(r.myRecipientId!, me), person: personById(r.myRecipientId!, me) })),
     [rooms, me],
   )
   const preset = recipients.find((o) => o.roomId === params.get('room')) ?? recipients[0]
@@ -67,6 +69,7 @@ export function GiftAI() {
   const [pickInterests, setPickInterests] = useState(false)
   const [savedOpen, setSavedOpen] = useState(false)
   const [paywall, setPaywall] = useState(false)
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const recipient = recipients.find((r) => r.personId === who)
   const left = Math.max(0, FREE_AI_GENERATIONS - aiUsed)
@@ -113,80 +116,177 @@ export function GiftAI() {
     }
   }
 
+  const personas: { id: string; label: string; icon: IconName }[] = [
+    { id: 'friend', label: 'Друг', icon: 'user' },
+    { id: 'colleague', label: 'Коллега', icon: 'users' },
+    { id: 'family', label: 'Родные', icon: 'home' },
+    { id: 'partner', label: 'Партнёр', icon: 'heart' },
+  ]
+  const pickRecipient = (r: (typeof recipients)[number]) => {
+    haptic.select()
+    setWho(r.personId)
+    setBudget(budgetFor(r.budget))
+    setInterests(DEMO_WISHLISTS[r.personId]?.interests ?? [])
+    setResults(null)
+  }
+
   return (
     <Screen withDock headless>
-      <PageHeader
-        leading={<Icon name="sparkle" size={20} className="text-gold" />}
-        title="Gift AI"
-        subtitle="Поможет найти идеальный подарок"
-        right={
-          <motion.button
-            whileTap={PRESS}
-            aria-label={`Сохранённые идеи (${savedIdeas.length})`}
-            onClick={() => setSavedOpen(true)}
-            className="relative flex h-12 w-12 items-center justify-center rounded-full bg-white/10"
-          >
-            <Icon name="clock" size={20} />
-            {savedIdeas.length > 0 && <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-ember px-1 text-caption font-semibold">{savedIdeas.length}</span>}
-          </motion.button>
-        }
-      />
+      {/* warm light behind the mascot */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[520px] bg-[radial-gradient(60%_40%_at_85%_40%,rgba(201,53,31,.42),transparent_70%)]" />
 
-      {/* Robot scene */}
-      <div className="relative flex h-[190px] items-end overflow-hidden px-5">
-        <div aria-hidden className="absolute -left-10 top-0 h-full w-[70%] bg-[radial-gradient(closest-side,rgba(213,54,28,.55),rgba(40,29,25,0))]" />
-        <motion.div
-          className="relative -mb-2 shrink-0"
-          animate={loading ? { scale: [1, 1.04, 1] } : { scale: 1 }}
-          transition={loading ? { duration: 1.8, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
-        >
-          {/* Rive robot when src/assets/rive/gift-ai-robot.riv exists; static 3D render until then */}`n          <RiveAnimation asset="gift-ai-robot" stateMachine="Robot" boolInput={{ name: 'thinking', value: loading }} label="Робот Gift AI" className="h-[176px] w-[176px]" fallback={<Art name="robot" size={176} eager />} />
-        </motion.div>
+      {/* Header: back circle + filters */}
+      <div className="relative mt-[34px] flex h-12 items-center justify-between px-[22px] [@media(max-height:820px)]:mt-4">
+        {!isTelegram ? (
+          <motion.button whileTap={PRESS} aria-label="Назад" onClick={() => navigate('/home')} className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
+            <Icon name="back" size={22} />
+          </motion.button>
+        ) : (
+          <span className="w-12" />
+        )}
+        <motion.button whileTap={PRESS} aria-label="Настройки подбора" onClick={() => setFiltersOpen(true)} className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
+          <Icon name="sliders" size={22} />
+        </motion.button>
+      </div>
+
+      <div className="relative px-6 pt-[22px] [@media(max-height:820px)]:pt-3">
+        <h1 className="t-page-tight max-w-[12ch] text-snow">Идеи подарков именно для них</h1>
+        <p className="t-lead mt-2 max-w-[30ch] text-snow/80">Расскажите о человеке и получите персональные идеи.</p>
+      </div>
+
+      {/* Speech bubble + mascot */}
+      <div className="relative mt-3 flex h-[150px] items-start px-5">
         <motion.div
           key={forName ?? 'any'}
           initial={{ opacity: 0, y: 8, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: DUR.card, ease: EASE }}
-          className="relative mb-12 ml-1 rounded-[20px] rounded-bl-[6px] bg-snow px-4 py-3 text-ink shadow-lg"
+          className="relative z-10 mt-4 max-w-[58%] rounded-[24px] rounded-br-[8px] bg-[linear-gradient(180deg,#fff1e3,#fde5cf)] px-5 py-4 text-ink shadow-[0_14px_30px_-16px_rgba(0,0,0,.7)]"
         >
-          <p className="text-body font-semibold leading-tight">{forName ? `Найду идеи подарков для ${forName}` : 'Найду идеальный подарок'}</p>
-          <p className="mt-1 text-footnote text-ink-soft">Учитываю интересы, вишлист и бюджет</p>
+          <p className="text-callout font-medium leading-snug">{forName ? `Подарок для: ${forName}` : 'Для кого ищем подарок?'}</p>
+          {forName && <p className="mt-1 text-footnote leading-snug text-ink-soft">Учитываю интересы, вишлист и бюджет</p>}
+        </motion.div>
+        <motion.div
+          className="absolute -top-5 right-1"
+          animate={loading ? { scale: [1, 1.04, 1] } : { scale: 1 }}
+          transition={loading ? { duration: 1.8, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.2 }}
+        >
+          {/* Rive robot when src/assets/rive/gift-ai-robot.riv exists; static 3D render until then */}
+          <RiveAnimation asset="gift-ai-robot" stateMachine="Robot" boolInput={{ name: 'thinking', value: loading }} label="Робот Gift AI" className="h-[176px] w-[176px]" fallback={<Art name="robot" size={176} eager noShadow />} />
         </motion.div>
       </div>
 
-      <section className="relative z-10 flex-1 rounded-t-[32px] bg-marzipan px-5 pb-8 pt-5 text-ink">
-        {/* Recipient */}
-        <p className="type-label text-ink/75">Для кого</p>
-        <div className="no-scrollbar -mx-5 mt-2 flex gap-2 overflow-x-auto px-5">
+      {/* Recipient panel */}
+      <section className="relative z-10 mx-4 rounded-[30px] bg-marzipan px-5 pb-4 pt-4 text-ink shadow-[0_18px_40px_-20px_rgba(0,0,0,.6)]">
+        <div className="flex items-center justify-between">
+          <h2 className="text-button font-medium">Выберите получателя</h2>
+          <Icon name="forward" size={18} className="text-ink/60" />
+        </div>
+        <div className="no-scrollbar -mx-5 mt-3 flex gap-4 overflow-x-auto px-5" role="radiogroup" aria-label="Для кого">
           {recipients.map((r) => (
-            <Chip
-              key={r.personId}
-              tone="light"
-              active={who === r.personId}
+            <RecipientChoice key={r.personId} label={r.name} active={who === r.personId} onClick={() => pickRecipient(r)}>
+              <Avatar person={r.person} size={54} />
+            </RecipientChoice>
+          ))}
+          {personas.map((p) => (
+            <RecipientChoice
+              key={p.id}
+              label={p.label}
+              active={who === p.id}
               onClick={() => {
-                setWho(r.personId)
-                setBudget(budgetFor(r.budget))
-                setInterests(DEMO_WISHLISTS[r.personId]?.interests ?? [])
+                haptic.select()
+                setWho(p.id)
                 setResults(null)
               }}
             >
-              <Icon name="gift" size={15} /> {r.name}
-            </Chip>
-          ))}
-          {[
-            ['friend', 'Друг'],
-            ['colleague', 'Коллега'],
-            ['family', 'Родственник'],
-            ['partner', 'Партнёр'],
-          ].map(([id, label]) => (
-            <Chip key={id} tone="light" active={who === id} onClick={() => setWho(id)}>
-              {label}
-            </Chip>
+              <span className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-[#f6d6bb] text-ink/80">
+                <Icon name={p.icon} size={24} />
+              </span>
+            </RecipientChoice>
           ))}
         </div>
+      </section>
 
-        {/* Budget */}
-        <p className="type-label mt-4 text-ink/75">Бюджет</p>
+      {/* Query: dark pill + red send */}
+      <form
+        className="relative mx-4 mt-3 flex items-center gap-2 rounded-full bg-white/[0.09] p-1.5 pl-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,.06)] focus-within:shadow-[inset_0_0_0_1.5px_rgba(239,73,48,.9)]"
+        onSubmit={(e) => {
+          e.preventDefault()
+          generate()
+        }}
+      >
+        <input
+          aria-label="Что ищем"
+          value={query}
+          maxLength={MAX_QUERY_LENGTH + 20}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Что ещё учесть? Например, любит кофе"
+          className="h-12 min-w-0 flex-1 bg-transparent text-callout text-snow outline-none placeholder:text-snow/45"
+        />
+        <motion.button
+          whileTap={PRESS}
+          aria-label={forName ? `Подобрать идеи: ${forName}` : 'Подобрать идеи'}
+          disabled={loading}
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(180deg,#f2583a,#d23a22)] text-snow shadow-[0_8px_18px_-8px_rgba(217,54,36,.9)] disabled:opacity-50"
+        >
+          <Icon name="send" size={20} strokeWidth={2} />
+        </motion.button>
+      </form>
+      <div className="relative mx-5 mt-2 flex items-center justify-between gap-3">
+        <p className="text-caption text-snow/55">
+          Бесплатно осталось: {left} из {FREE_AI_GENERATIONS}
+        </p>
+        <button onClick={() => setSavedOpen(true)} aria-label={`Сохранённые идеи (${savedIdeas.length})`} className="flex h-9 items-center gap-1.5 rounded-full px-2 text-caption font-medium text-snow/75">
+          <Icon name="heart" size={15} className={savedIdeas.length ? 'text-ember-bright' : ''} /> Сохранённые · {savedIdeas.length}
+        </button>
+      </div>
+
+      {error && (
+        <div className="relative mx-4 mt-3">
+          <ErrorState title="Не получилось подобрать" text={error} />
+        </div>
+      )}
+
+      {/* Results */}
+      <div className="relative mx-4 mt-4" aria-live="polite">
+        {loading && (
+          <div className="flex items-center gap-2 text-secondary text-snow/70">
+            <span className="sbtn-spinner text-ember" aria-hidden /> Подбираем идеи…
+          </div>
+        )}
+        {!loading && results && (
+          <>
+            <h2 className="t-section px-1 text-snow">{forName ? `Рекомендации · ${forName}` : 'Рекомендации'}</h2>
+            {results.length === 0 ? (
+              <p className="mt-2 rounded-[22px] bg-marzipan p-4 text-callout text-ink">С таким бюджетом идей не нашлось. Попробуйте бюджет побольше.</p>
+            ) : (
+              <ul className="mt-3 space-y-2.5">
+                <AnimatePresence initial={false}>
+                  {results.map((idea, i) => (
+                    <motion.li key={idea.id} {...cardIn(i)}>
+                      <IdeaCard idea={idea} saved={savedIdeas.some((s) => s.id === idea.id)} onToggle={() => toggleSave(idea)} />
+                    </motion.li>
+                  ))}
+                </AnimatePresence>
+              </ul>
+            )}
+            <div className="no-scrollbar -mx-4 mt-3 flex gap-2 overflow-x-auto px-4">
+              {FOLLOW_UPS.map((f) => (
+                <Chip key={f.id} onClick={() => generate(f.id)}>
+                  {f.label}
+                </Chip>
+              ))}
+            </div>
+            <p className="mt-3 px-1 text-caption leading-snug text-snow/50">Цены — примерный диапазон по категории, а не цены магазинов. Демо: идеи из локального каталога, не ИИ.</p>
+          </>
+        )}
+        <div className="mt-4 flex justify-center pb-2">
+          <DemoBadge />
+        </div>
+      </div>
+
+      <Sheet open={filtersOpen} onClose={() => setFiltersOpen(false)} title="Настройки подбора">
+        <p className="type-label text-ink/75">Бюджет</p>
         <div className="mt-2 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Бюджет">
           {BUDGETS.map((b) => (
             <motion.button
@@ -204,9 +304,7 @@ export function GiftAI() {
             </motion.button>
           ))}
         </div>
-
-        {/* Interests */}
-        <p className="type-label mt-4 text-ink/75">Интересы получателя</p>
+        <p className="type-label mt-5 text-ink/75">Интересы получателя</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {interests.map((id) => (
             <button
@@ -224,79 +322,10 @@ export function GiftAI() {
             <Icon name="plus" size={14} /> Добавить
           </button>
         </div>
-
-        {/* Query */}
-        <p className="type-label mt-4 text-ink/75">Что ищем?</p>
-        <form
-          className="mt-2 flex items-center gap-2 rounded-full bg-snow p-1.5 pl-4 shadow-[0_0_0_1px_rgba(40,29,25,.08)] focus-within:shadow-[0_0_0_2px_#D5361C]"
-          onSubmit={(e) => {
-            e.preventDefault()
-            generate()
-          }}
-        >
-          <Icon name="sparkle" size={18} className="shrink-0 text-ember" />
-          <input
-            aria-label="Что ищем"
-            value={query}
-            maxLength={MAX_QUERY_LENGTH + 20}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Например: уютный подарок для дома"
-            className="h-11 min-w-0 flex-1 bg-transparent text-callout outline-none placeholder:text-ink/40"
-          />
-          <motion.button whileTap={PRESS} aria-label="Подобрать идеи" disabled={loading} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-ember text-snow disabled:opacity-50">
-            <Icon name="arrowRight" size={20} strokeWidth={2.2} />
-          </motion.button>
-        </form>
-        <p className="mt-2 text-caption text-ink-soft">Бесплатно осталось: {left} из {FREE_AI_GENERATIONS}</p>
-        {error && (
-          <div className="mt-3">
-            <ErrorState title="Не получилось подобрать" text={error} />
-          </div>
-        )}
-
-        {/* Results */}
-        <div className="mt-5" aria-live="polite">
-          {loading && (
-            <div className="flex items-center gap-2 text-secondary text-ink-soft">
-              <span className="sbtn-spinner text-ember" aria-hidden /> Подбираем идеи…
-            </div>
-          )}
-          {!loading && !results && (
-            <SantomiButton fullWidth leadingIcon="sparkle" onClick={() => generate()}>
-              {forName ? `Подобрать для ${forName}` : 'Подобрать идеи'}
-            </SantomiButton>
-          )}
-          {!loading && results && (
-            <>
-              <h2 className="text-card font-semibold">{forName ? `Рекомендации для ${forName}` : 'Рекомендации'}</h2>
-              {results.length === 0 ? (
-                <p className="mt-2 rounded-[18px] bg-snow p-4 text-callout">С таким бюджетом идей не нашлось. Попробуйте бюджет побольше.</p>
-              ) : (
-                <ul className="mt-3 space-y-2.5">
-                  <AnimatePresence initial={false}>
-                    {results.map((idea, i) => (
-                      <motion.li key={idea.id} {...cardIn(i)}>
-                        <IdeaCard idea={idea} saved={savedIdeas.some((s) => s.id === idea.id)} onToggle={() => toggleSave(idea)} />
-                      </motion.li>
-                    ))}
-                  </AnimatePresence>
-                </ul>
-              )}
-              <div className="no-scrollbar -mx-5 mt-3 flex gap-2 overflow-x-auto px-5">
-                {FOLLOW_UPS.map((f) => (
-                  <Chip key={f.id} tone="light" onClick={() => generate(f.id)}>
-                    {f.label}
-                  </Chip>
-                ))}
-              </div>
-              <p className="mt-3 text-caption leading-snug text-ink-soft">Цены — примерный диапазон по категории, а не цены магазинов. Демо: идеи из локального каталога, не ИИ.</p>
-            </>
-          )}
-        </div>
-        <div className="mt-4 flex justify-center">
-          <DemoBadge className="!bg-ink/8 !text-ink/70" />
-        </div>
-      </section>
+        <SantomiButton variant="secondary" fullWidth className="mt-5" onClick={() => setFiltersOpen(false)}>
+          Готово
+        </SantomiButton>
+      </Sheet>
 
       <Sheet open={pickInterests} onClose={() => setPickInterests(false)} title="Интересы получателя">
         <div className="grid grid-cols-3 gap-2">
@@ -376,5 +405,14 @@ function IdeaCard({ idea, saved, onToggle }: { idea: GiftIdea; saved: boolean; o
         <Icon name="heart" size={18} />
       </motion.button>
     </div>
+  )
+}
+
+function RecipientChoice({ label, active, onClick, children }: { label: string; active: boolean; onClick: () => void; children: ReactNode }) {
+  return (
+    <motion.button whileTap={PRESS} role="radio" aria-checked={active} aria-label={label} onClick={onClick} className="flex w-[62px] shrink-0 flex-col items-center gap-1.5">
+      <span className={`rounded-full p-[3px] transition-shadow duration-200 ${active ? 'shadow-[0_0_0_2.5px_#d93624]' : ''}`}>{children}</span>
+      <span className={`max-w-full truncate text-footnote ${active ? 'font-semibold text-ink' : 'text-ink/75'}`}>{label}</span>
+    </motion.button>
   )
 }

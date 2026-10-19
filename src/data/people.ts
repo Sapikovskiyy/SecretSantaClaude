@@ -19,3 +19,7 @@ export function useRoomPeople(room?: Room): Person[] {
 export function personName(id: string, me: Person) {
   return id === ME ? me.name : (byId.get(id)?.name ?? 'Участник')
 }
+
+export function personById(id: string, me: Person): Person | undefined {
+  return id === ME ? me : byId.get(id)
+}
