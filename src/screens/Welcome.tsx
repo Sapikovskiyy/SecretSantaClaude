@@ -6,9 +6,9 @@
  *   CTA pill 314×74 centred at ≈ 731 · «Присоединиться к игре» at ≈ 801
  * Motion: headline → illustration → CTA, ≤ 0.6 s total, no loops on the large raster.
  *
- * Illustration: polka-dot sack with candy cane (sack-v3.webp, cleaned by scripts/clean-cutout.mjs).
- * Body left edge ≈ 46 px, cane ≈ 190–377 px; the right side of the sack bleeds off-screen like the
- * reference (the source cutout has a clipped right edge). Gift + cane renders remain as a fallback.
+ * Illustration: CEO polka-dot sack render split into two aligned layers (scripts/split-sack.mjs):
+ * back (whole sack) → candy cane → front (lip, rope, body), so the cane stands inside the opening.
+ * The sack bleeds off the bottom/right edge like the reference. Gift + cane remain as a fallback.
  */
 import { useNavigate } from 'react-router'
 import { motion } from 'motion/react'
@@ -19,9 +19,14 @@ import { GlowStar } from '@/components/GlowStar'
 import { useDemo } from '@/data/demoStore'
 import { EASE } from '@/motion/tokens'
 
-const SACK = artUrl('sack-v3')
+const SACK_BACK = artUrl('sack-back')
+const SACK_FRONT = artUrl('sack-front')
 const GIFT = artUrl('gift')
 const CANE = artUrl('cane')
+
+/** Sack layers share one box; cane sits in the opening (positions tuned on the reference overlay). */
+const SACK_POS = 'absolute left-[-15%] top-[15.2%] w-[135%] max-w-none select-none brightness-[.84] contrast-[1.06] saturate-[1.05]'
+const CANE_POS = 'absolute left-[32%] top-[-4%] w-[46%] max-w-none -rotate-[19deg] select-none brightness-[.95]'
 
 const rise = (delay: number) => ({
   initial: { opacity: 0, y: 12 },
@@ -78,15 +83,12 @@ export function Welcome() {
         <GlowStar size={108} style={{ left: '4.6%', top: '4.7%' }} />
         <GlowStar size={66} delay={1.6} style={{ right: '1.8%', top: '26%' }} />
         <GlowStar size={62} delay={3.1} style={{ left: '-2.3%', top: '38.7%' }} />
-        {SACK ? (
-          <img
-            src={SACK}
-            alt=""
-            draggable={false}
-            decoding="async"
-            fetchPriority="high"
-            className="absolute left-[-0.5%] top-[-3%] w-[98%] max-w-none select-none"
-          />
+        {SACK_BACK && SACK_FRONT ? (
+          <>
+            <img src={SACK_BACK} alt="" draggable={false} decoding="async" fetchPriority="high" className={SACK_POS} />
+            <img src={CANE} alt="" draggable={false} decoding="async" className={CANE_POS} />
+            <img src={SACK_FRONT} alt="" draggable={false} decoding="async" fetchPriority="high" className={SACK_POS} />
+          </>
         ) : (
           <>
             <img
