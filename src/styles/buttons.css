@@ -1,12 +1,12 @@
 /*
   Santomi premium 3D gradient buttons.
   Three layers: top reflection (::before) → gradient body → darker depth edge (box-shadow).
-  Press: down ~3 px, depth collapses, scale 0.985; release with a gentle spring-like ease.
+  Press (v3 brief): down 2 px, depth collapses, scale 0.985; release with a gentle spring-like ease.
   Pure CSS (no JS animation), transform/box-shadow only — cheap in Telegram WebView.
 */
 @layer components {
   .sbtn {
-    --sb-depth: 4px;
+    --sb-depth: 3px;
     --sb-ease-release: cubic-bezier(0.34, 1.45, 0.55, 1); /* subtle overshoot, no bounce loop */
     position: relative;
     isolation: isolate;
@@ -15,7 +15,7 @@
     justify-content: center;
     gap: 0.6rem;
     border-radius: 999px;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.2;
     letter-spacing: -0.005em;
     white-space: nowrap;
@@ -50,7 +50,7 @@
 
   .sbtn:active:not(:disabled):not([aria-disabled='true']),
   .sbtn[data-pressed='true'] {
-    transform: translateY(calc(var(--sb-depth) - 1px)) scale(0.985);
+    transform: translateY(2px) scale(0.985);
     box-shadow:
       inset 0 1px 0 var(--sb-rim, rgba(255, 255, 255, 0.35)),
       inset 0 -1px 0 rgba(0, 0, 0, 0.08),
@@ -89,16 +89,20 @@
   /* sizes — all ≥ 44 px touch targets */
   .sbtn-sm { height: 44px; padding: 0 1.1rem; font-size: 15px; --sb-depth: 3px; }
   .sbtn-md { height: 52px; padding: 0 1.4rem; font-size: 16px; --sb-depth: 3px; }
-  .sbtn-lg { height: 60px; padding: 0 1.75rem; font-size: 17px; --sb-depth: 4px; }
+  .sbtn-lg { height: 58px; padding: 0 1.75rem; font-size: 17px; --sb-depth: 3px; }
   .sbtn-full { width: 100%; }
+  /* Full-width CTAs pin the trailing icon to the right edge (references 02–04) */
+  .sbtn-full .sbtn-trail { position: absolute; right: 1.4rem; }
 
   /* variants */
   .sbtn-primary {
-    --sb-bg: linear-gradient(155deg, #ff6b4a 0%, #e63b25 48%, #a71912 100%);
-    --sb-fg: #fff9f2;
-    --sb-edge: #7d140c;
-    --sb-shadow: rgba(167, 25, 18, 0.75);
-    --sb-rim: rgba(255, 214, 196, 0.6);
+    /* v3: subtle red like the references — mostly flat, lighter top, refined rim */
+    --sb-bg: linear-gradient(180deg, #f2533a 0%, #e03d27 52%, #c9301e 100%);
+    --sb-fg: #fff8f1;
+    --sb-edge: #9b2415;
+    --sb-shadow: rgba(201, 48, 30, 0.55);
+    --sb-rim: rgba(255, 200, 180, 0.55);
+    --sb-gloss: 0.16;
   }
   .sbtn-success {
     --sb-bg: linear-gradient(155deg, #35b77a 0%, #08784c 48%, #06442f 100%);

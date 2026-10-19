@@ -1,21 +1,32 @@
 /**
- * 01 · Welcome — sheet 01/screen 01 + original reference screen 1.
- * Giant serif headline, one dominant 3D gift on an ember glow, red «Начать» + outlined «Присоединиться к игре».
- * Motion spec: headline in 2–3 phases → gift 0.96→1 → CTA; total ≤ 0.9 s; gift breathes ±1.5° over 7.5 s.
+ * 01 · Welcome — design/references/01-welcome.jpeg (highest-fidelity screen).
+ * Measurements at 390 px (reference px × 0.5485):
+ *   title block top ≈ 66, centred, 2 lines («Время» / «Тайного Санты!»), ≈38 px medium
+ *   subtitle ≈ 173–195, 17 px · illustration from ≈ 271 to the bottom edge (cropped)
+ *   CTA pill 314×74 centred at ≈ 731 · «Присоединиться к игре» at ≈ 801
+ * Motion: headline → illustration → CTA, ≤ 0.6 s total, no loops on the large raster.
+ *
+ * ASSET NOTE: the reference shows a polka-dot sack with a candy cane. That render was not in
+ * the provided asset pack, so the composition uses the existing gift + cane renders in the same
+ * position and scale. Drop `sack.webp` into src/assets/3d to swap it in (see artUrl('sack')).
  */
 import { useNavigate } from 'react-router'
 import { motion } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
-import { PrimaryCTA, SecondaryCTA } from '@/components/ds'
-import { Art } from '@/components/art/Art'
-import { Logo } from '@/components/Logo'
+import { SwipeConfirm } from '@/components/ui/Buttons'
+import { artUrl } from '@/components/art/Art'
+import { GlowStar } from '@/components/GlowStar'
 import { useDemo } from '@/data/demoStore'
 import { EASE } from '@/motion/tokens'
 
-const phase = (delay: number) => ({
-  initial: { opacity: 0, y: 14 },
+const SACK = artUrl('sack-v3') // dedicated render not provided yet
+const GIFT = artUrl('gift')
+const CANE = artUrl('cane')
+
+const rise = (delay: number) => ({
+  initial: { opacity: 0, y: 12 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.42, ease: EASE, delay },
+  transition: { duration: 0.4, ease: EASE, delay },
 })
 
 export function Welcome() {
@@ -23,78 +34,86 @@ export function Welcome() {
   const complete = useDemo((s) => s.completeOnboarding)
 
   return (
-    <Screen surface="cocoa" headless className="overflow-hidden">
-      {/* Ember glow behind the hero — the reference's signature light */}
-      <div aria-hidden className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-[58%] h-[78%] w-[150%] -translate-x-1/2 -translate-y-1/2 rounded-[50%] bg-[radial-gradient(closest-side,rgba(213,54,28,.95),rgba(142,31,14,.65)_45%,rgba(40,29,25,0)_100%)]" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-bark/70 to-transparent" />
-      </div>
+    <Screen surface="cocoa" headless className="!pb-0 overflow-hidden">
+      {/* Warm red light rising from the bottom — static gradient, no blur */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(150% 78% at 50% 78%, rgba(206,48,28,.96) 0%, rgba(168,36,20,.86) 34%, rgba(104,26,16,.6) 58%, rgba(52,24,18,.15) 80%, rgba(40,29,25,0) 92%)',
+        }}
+      />
 
-      <div className="relative px-6">
-        <motion.div {...phase(0)}>
-          <Logo />
-        </motion.div>
-        <h1 className="type-hero mt-8 max-w-[9ch]">
-          <motion.span className="block" {...phase(0.05)}>
-            Время
-          </motion.span>
-          <motion.span className="block" {...phase(0.14)}>
-            Тайного
-          </motion.span>
-          <motion.span className="block" {...phase(0.23)}>
-            Санты!
-          </motion.span>
-        </h1>
-        <motion.p className="mt-4 max-w-[30ch] text-callout leading-relaxed text-snow/80" {...phase(0.32)}>
-          Создавайте игры, обменивайтесь подарками и дарите новогоднее настроение вместе в Telegram.
+      {/* Title + subtitle */}
+      <div className="relative z-10 px-6 pt-[62px] text-center">
+        <motion.h1 className="t-welcome mx-auto text-snow" {...rise(0)}>
+          Время
+          <br />
+          Тайного Санты!
+        </motion.h1>
+        <motion.p className="t-lead mx-auto mt-4 max-w-[30ch] text-snow/85" {...rise(0.08)}>
+          Дарите радость и сохраняйте
+          <br />
+          интригу до самого праздника
         </motion.p>
       </div>
 
-      {/* Hero scene */}
-      <div className="relative flex flex-1 items-center justify-center" style={{ minHeight: 190 }}>
-        <div className="float-a absolute left-[4%] top-[6%]">
-          <Art name="star" size={58} noShadow />
-        </div>
-        <div className="float-b absolute right-[6%] top-[2%]">
-          <Art name="star" size={40} noShadow />
-        </div>
-        <div className="float-b absolute bottom-[10%] left-[2%] -rotate-12">
-          <Art name="cane" size={78} noShadow />
-        </div>
-        <div className="float-a absolute bottom-[16%] right-[3%]">
-          <Art name="bauble" size={54} noShadow />
-        </div>
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: EASE, delay: 0.3 }}
-        >
-          <div className="breathe">
-            {/* sized by both width and height so both CTAs stay above the fold on short phones */}
-            <Art name="gift" size="min(70vw, 30dvh, 300px)" eager />
-          </div>
-        </motion.div>
-      </div>
+      {/* Illustration — anchored to the bottom, cropped by the screen edge like the reference */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 bottom-0 top-[31%]"
+        initial={{ opacity: 0, scale: 0.97 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, ease: EASE, delay: 0.12 }}
+        style={{ transformOrigin: '50% 100%' }}
+      >
+        <GlowStar size={100} style={{ left: '7%', top: '10%' }} />
+        <GlowStar size={52} style={{ right: '5%', top: '35%' }} />
+        <GlowStar size={46} style={{ left: '-1%', top: '53%' }} />
+        {SACK ? (
+          <img src={SACK} alt="" className="absolute bottom-[-14%] left-1/2 w-[112%] max-w-none -translate-x-1/2 select-none" draggable={false} />
+        ) : (
+          <>
+            <img
+              src={CANE}
+              alt=""
+              draggable={false}
+              decoding="async"
+              className="absolute left-1/2 top-[17%] w-[36%] max-w-[165px] -translate-x-[20%] rotate-[3deg] select-none"
+            />
+            <img
+              src={GIFT}
+              alt=""
+              draggable={false}
+              decoding="async"
+              fetchPriority="high"
+              className="absolute bottom-[-17%] left-1/2 w-[106%] max-w-[450px] -translate-x-[48%] select-none"
+            />
+          </>
+        )}
+      </motion.div>
 
-      <motion.div className="relative space-y-3 px-6 pt-4" {...phase(0.48)}>
-        <PrimaryCTA
-          trailing="arrowRight"
-          onClick={() => {
+      {/* CTA */}
+      <motion.div className="relative z-10 mt-auto px-[38px]" {...rise(0.25)} style={{ paddingBottom: 'calc(var(--sa-bottom) + 18px)' }}>
+        <SwipeConfirm
+          hero
+          tone="glass"
+          label="Начать"
+          onConfirm={() => {
             complete()
             navigate('/home', { replace: true })
           }}
-        >
-          Начать
-        </PrimaryCTA>
-        <SecondaryCTA
-          icon="users"
+        />
+        <button
           onClick={() => {
             complete()
             navigate('/join')
           }}
+          className="mx-auto mt-3 flex h-11 items-center px-4 text-body text-snow/90"
         >
           Присоединиться к игре
-        </SecondaryCTA>
+        </button>
       </motion.div>
     </Screen>
   )

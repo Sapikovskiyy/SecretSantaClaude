@@ -68,9 +68,10 @@ export function Icon({ name, size = 22, strokeWidth = 1.8, ...rest }: { name: Ic
   )
 }
 
-export function Chevrons({ className = '' }: { className?: string }) {
+/** »»» chevrons. `still` disables the blink loop (no perpetual animation on idle screens). */
+export function Chevrons({ className = '', still = false }: { className?: string; still?: boolean }) {
   return (
-    <span className={`chev inline-flex items-center gap-0 ${className}`} aria-hidden="true">
+    <span className={`${still ? '' : 'chev '}inline-flex items-center gap-0 ${className}`} aria-hidden="true">
       <Icon name="forward" size={16} strokeWidth={2} className="-mr-2" />
       <Icon name="forward" size={16} strokeWidth={2} className="-mr-2" />
       <Icon name="forward" size={16} strokeWidth={2} />

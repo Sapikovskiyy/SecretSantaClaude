@@ -40,7 +40,7 @@ function Content({ leadingIcon, trailingIcon, loading, succeeded, children, size
     <>
       {loading ? <span className="sbtn-spinner" aria-hidden /> : lead && <Icon name={lead} size={iconSize} strokeWidth={2.2} />}
       <span className="min-w-0 truncate">{children}</span>
-      {trailingIcon && !loading && <Icon name={trailingIcon} size={iconSize} strokeWidth={2.2} />}
+      {trailingIcon && !loading && <Icon name={trailingIcon} size={iconSize} strokeWidth={2.2} className="sbtn-trail" />}
     </>
   )
 }

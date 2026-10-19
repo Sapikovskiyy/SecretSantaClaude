@@ -46,24 +46,29 @@
   --text-numeral--letter-spacing: -0.03em;
   --text-numeral--font-weight: 600;
 
-  --color-cocoa: #281d19;        /* base chocolate surface */
-  --color-bark: #1d1512;         /* deepest chocolate */
-  --color-truffle: #3a2b25;      /* raised dark surface */
+  /* v3 palette — sampled from design/references (approved 5 images) */
+  --color-cocoa: #281d19;        /* app background (--santomi-bg) */
+  --color-bark: #211715;         /* deepest chocolate (--santomi-bg-deep) */
+  --color-truffle: #392a25;      /* raised dark surface (--santomi-surface) */
   --color-truffle-soft: #4a3830; /* dark controls on dark */
-  --color-taupe: #8f7d72;        /* muted controls */
-  --color-taupe-soft: #b5a399;   /* muted text on chocolate */
-  --color-ember: #d5361c;        /* Christmas red — primary action */
+  --color-nav: #2e221e;          /* bottom navigation surface */
+  --color-taupe: #8f7d72;
+  --color-taupe-soft: #bda99e;   /* muted text on chocolate (--santomi-muted) */
+  --color-ember: #d93624;        /* Christmas red (--santomi-red) */
+  --color-ember-bright: #ef4930; /* (--santomi-red-bright) */
   --color-ember-deep: #8e1f0e;
   --color-ember-glow: #ff6a45;
-  --color-pine: #006b43;         /* emerald */
-  --color-pine-deep: #004a2e;
+  --color-pine: #006b43;         /* emerald (--santomi-green) */
+  --color-pine-deep: #06452f;    /* (--santomi-green-dark) */
   --color-pine-glow: #1f9a62;
-  --color-marzipan: #ffe4ce;     /* cream panel */
+  --color-marzipan: #ffe4ce;     /* cream surface (--santomi-cream) */
+  --color-cream-light: #fff2e5;  /* (--santomi-cream-light) */
   --color-marzipan-deep: #f2cdb0;
-  --color-snow: #fff9f2;         /* warm white surface */
-  --color-gold: #e6b96c;         /* restrained accent */
-  --color-ink: #281d19;          /* text on light surfaces */
-  --color-ink-soft: #7a6a61;     /* secondary text on light surfaces */
+  --color-field: #f7dcc6;        /* inset field on cream (invite link) */
+  --color-snow: #fff8f1;         /* (--santomi-white) */
+  --color-gold: #c99b61;         /* (--santomi-gold) */
+  --color-ink: #281d19;          /* text on cream */
+  --color-ink-soft: #85746a;     /* secondary text on cream */
   --color-telegram: #2a8ce8;     /* only for the "Отправить в Telegram" action */
 
   --radius-pill: 999px;
@@ -160,6 +165,45 @@ body {
   font-weight: 500;
   font-size: var(--text-secondary);
   line-height: 1.35;
+}
+
+/*
+  v3 roles measured from design/references at 390 px (ref px × 0.5485).
+  Scale with viewport between 360 and 430 px; medium weights like the references.
+*/
+.t-welcome { /* «Время Тайного Санты!» — ≈38 px, centred */
+  font-weight: 500;
+  font-size: clamp(2.125rem, 9.8vw, 2.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.022em;
+}
+.t-page { /* «Создадим игру!», «Пригласите друзей» — ≈42 px */
+  font-weight: 500;
+  font-size: clamp(2.25rem, 10.8vw, 2.75rem);
+  line-height: 1.1;
+  letter-spacing: -0.026em;
+}
+.t-wordmark { /* «Santomi» on Home — ≈34 px */
+  font-weight: 600;
+  font-size: clamp(1.875rem, 8.7vw, 2.25rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.t-hero-card { /* featured game title on the green card — ≈32 px */
+  font-weight: 600;
+  font-size: clamp(1.75rem, 8.2vw, 2.125rem);
+  line-height: 1.08;
+  letter-spacing: -0.024em;
+}
+.t-section { /* «Мои игры» — ≈26 px */
+  font-weight: 600;
+  font-size: clamp(1.5rem, 6.7vw, 1.75rem);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+.t-lead { /* subtitles under page titles — 17 px */
+  font-size: 1.0625rem;
+  line-height: 1.4;
 }
 }
 

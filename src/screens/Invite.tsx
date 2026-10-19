@@ -1,25 +1,30 @@
 /**
- * 04 · Invite friends — sheet 01/screen 04.
- * Envelope scene (rises 10 px once), cream summary, participants with free slots,
- * invite link with copy, blue «Отправить в Telegram», row: copy / real QR / other ways.
- * The QR is generated locally from the actual invite URL (never a decorative fake).
+ * 04 · Invite friends — design/references/03-invite-friends.jpeg.
+ * At 390 px: back circle + green «Игра создана» badge (only right after creation);
+ * title ≈42 px on two lines + subtitle; gift ≈160 px centred; cream card (inset 16, radius 30)
+ * with room title, budget, date, hairline, link field + «Скопировать ссылку»; avatars row with
+ * «N из M участников / Свободно K мест»; red «Отправить в Telegram» CTA; quiet «Перейти в комнату».
+ * The link is the real room link (t.me/<bot>/<app>?startapp=CODE when configured).
  */
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router'
 import { AnimatePresence, motion } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
-import { Avatar, DemoBadge, Sheet } from '@/components/ui/Kit'
-import { Icon, type IconName } from '@/components/ui/Icon'
+import { Avatar } from '@/components/ui/Kit'
+import { Icon } from '@/components/ui/Icon'
 import { Art } from '@/components/art/Art'
-import { PageHeader, SantomiButton } from '@/components/ds'
+import { SantomiButton } from '@/components/ds'
 import { FREE_PARTICIPANT_LIMIT, useDemo } from '@/data/demoStore'
 import { useRoomPeople } from '@/data/people'
 import { copyText, inviteLink, shareInvite } from '@/lib/share'
+import { IS_DEMO } from '@/lib/mode'
 import { toast } from '@/data/uiStore'
-import { haptic } from '@/lib/telegram'
-import { formatDate, formatRub } from '@/lib/format'
+import { haptic, isTelegram } from '@/lib/telegram'
+import { formatRub, plural } from '@/lib/format'
 import { DUR, EASE, PRESS } from '@/motion/tokens'
 import { NotFound } from './NotFound'
+
+const longDate = (iso: string) => new Date(iso + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }).replace(' г.', '')
 
 export function Invite() {
   const { id } = useParams()
@@ -28,25 +33,14 @@ export function Invite() {
   const room = useDemo((s) => s.rooms.find((r) => r.id === id))
   const addDemo = useDemo((s) => s.addDemoParticipant)
   const people = useRoomPeople(room)
-  const [qrOpen, setQrOpen] = useState(false)
-  const [qrSvg, setQrSvg] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
-
-  const link = room ? inviteLink(room.inviteCode) : ''
-  useEffect(() => {
-    if (!qrOpen || !link) return
-    // qrcode is loaded only when the QR sheet opens (keeps it out of the main bundle)
-    import('qrcode')
-      .then(({ default: QRCode }) => QRCode.toString(link, { type: 'svg', margin: 1, color: { dark: '#281D19', light: '#FFF9F2' }, errorCorrectionLevel: 'M' }))
-      .then(setQrSvg)
-      .catch(() => setQrSvg(null))
-  }, [qrOpen, link])
 
   if (!room) return <NotFound />
   const limit = room.participantLimit ?? FREE_PARTICIPANT_LIMIT
-  const full = room.members.length >= limit
+  const free = Math.max(0, limit - people.length)
+  const full = free === 0
   const isNew = params.get('new') === '1'
-  const freeSlots = Math.max(0, Math.min(2, limit - people.length))
+  const link = inviteLink(room.inviteCode)
 
   const copy = async () => {
     await copyText(link)
@@ -58,58 +52,83 @@ export function Invite() {
 
   return (
     <Screen back={`/rooms/${room.id}`} headless className="!pb-0">
-      <PageHeader back={`/rooms/${room.id}`} title="Пригласить друзей" />
-
-      {/* Envelope scene */}
-      <div className="relative flex h-[200px] items-center justify-center">
-        <div aria-hidden className="absolute left-1/2 top-1/2 h-[140%] w-[120%] -translate-x-1/2 -translate-y-1/2 bg-[radial-gradient(closest-side,rgba(213,54,28,.7),rgba(40,29,25,0))]" />
-        <div className="float-a absolute left-[10%] top-[16%]">
-          <Art name="cane" size={56} noShadow />
-        </div>
-        <div className="float-b absolute right-[10%] top-[12%]">
-          <Art name="star" size={40} noShadow />
-        </div>
-        <motion.div initial={{ y: 10, opacity: 0, rotate: -8 }} animate={{ y: 0, opacity: 1, rotate: -6 }} transition={{ duration: 0.5, ease: EASE }} className="relative">
-          <Art name="envelope" size={190} eager />
+      {/* Header row */}
+      <div className="mt-4 flex h-12 items-center justify-between px-[22px]">
+        {!isTelegram ? (
+          <motion.button whileTap={PRESS} aria-label="Назад" onClick={() => navigate(`/rooms/${room.id}`)} className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
+            <Icon name="back" size={22} />
+          </motion.button>
+        ) : (
+          <span />
+        )}
+        {isNew && (
           <motion.span
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.35, duration: 0.3 }}
-            className="absolute -top-2 left-1/2 -translate-x-1/2 rotate-6 rounded-[10px] bg-snow px-3 py-1.5 text-footnote font-semibold text-ink shadow-md"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.25, ease: EASE, delay: 0.15 }}
+            className="flex h-[38px] items-center gap-2 rounded-full border border-[#2c8f5f]/60 bg-[#0f3b28] px-4 text-callout text-snow"
+            role="status"
           >
-            {isNew ? 'Игра создана!' : 'Ты в игре!'}
+            <Icon name="check" size={18} strokeWidth={2.6} className="text-[#3ddc8a]" />
+            Игра создана
           </motion.span>
-        </motion.div>
+        )}
       </div>
 
-      <section className="relative z-10 flex-1 rounded-t-[32px] bg-marzipan px-5 pb-8 pt-6 text-ink">
-        <h1 className="text-section">{room.name}</h1>
-        <ul className="mt-3 space-y-2 text-callout text-ink/85">
-          <Meta icon="calendar" text={formatDate(room.date)} />
-          <Meta icon="users" text={`до ${limit} участников`} />
-          <Meta icon="wallet" text={`до ${formatRub(room.budget)}`} />
-          {room.chatEnabled && <Meta icon="lock" text="Анонимный чат включён" />}
-        </ul>
+      <div className="px-6 pt-[22px] [@media(max-height:820px)]:pt-3">
+        <h1 className="t-page text-snow">
+          Пригласите
+          <br />
+          друзей
+        </h1>
+        <p className="t-lead mt-3 text-snow/75">Вместе праздник интереснее</p>
+      </div>
 
-        {/* Participants */}
-        <div className="mt-5 flex items-center justify-between">
-          <p className="text-body font-semibold">
-            Участники ({people.length} из {limit})
-          </p>
-          <button onClick={() => navigate(`/rooms/${room.id}/participants`)} className="flex h-9 items-center gap-0.5 text-secondary font-medium text-ink-soft">
-            Все <Icon name="forward" size={16} />
-          </button>
-        </div>
-        <div className="mt-3 flex items-center gap-2">
+      {/* Gift */}
+      <motion.div
+        className="relative mx-auto mt-1 flex h-[150px] w-full items-center justify-center [@media(max-height:820px)]:h-[128px]"
+        initial={{ opacity: 0, y: 10, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.45, ease: EASE, delay: 0.05 }}
+      >
+        <Art name="gift" size={150} eager />
+      </motion.div>
+
+      {/* Invitation card */}
+      <section className="mx-4 mt-1 rounded-[30px] bg-marzipan px-[22px] pb-4 pt-5 text-ink">
+        <h2 className="text-section">{room.name}</h2>
+        <p className="mt-1 text-callout text-ink-soft">Бюджет до {formatRub(room.budget)}</p>
+        <p className="text-callout text-ink-soft">{longDate(room.date)}</p>
+        <div className="my-4 h-px bg-ink/10" />
+        <button onClick={copy} className="flex h-[50px] w-full items-center gap-3 rounded-[16px] bg-field px-4 text-left" aria-label="Скопировать ссылку-приглашение">
+          <span className="min-w-0 flex-1 truncate text-callout text-ink">{link.replace(/^https?:\/\//, '')}</span>
+          <Icon name={copied ? 'check' : 'copy'} size={20} className={copied ? 'text-pine' : 'text-ink'} />
+        </button>
+        <button onClick={copy} className="mt-2 flex h-10 items-center gap-2.5 text-callout text-ink/75">
+          <Icon name="copy" size={18} />
+          {copied ? 'Ссылка скопирована' : 'Скопировать ссылку'}
+        </button>
+      </section>
+
+      {/* Participants */}
+      <div className="mt-4 flex items-center gap-3 px-6">
+        <div className="flex items-center">
           <AnimatePresence initial={false}>
-            {people.slice(0, 5).map((p) => (
-              <motion.span key={p.id} layout initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: DUR.layout, ease: EASE }}>
+            {people.slice(0, 4).map((p, i) => (
+              <motion.span
+                key={p.id}
+                layout
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: DUR.layout, ease: EASE }}
+                style={{ marginLeft: i ? -14 : 0 }}
+                className="rounded-full ring-[3px] ring-marzipan"
+              >
                 <Avatar person={p} size={46} />
               </motion.span>
             ))}
           </AnimatePresence>
-          {people.length > 5 && <span className="flex h-[46px] w-[46px] items-center justify-center rounded-full bg-ink/8 text-footnote font-semibold">+{people.length - 5}</span>}
-          {room.stage === 'gathering' && !full && (
+          {IS_DEMO && room.stage === 'gathering' && !full && (
             <motion.button
               whileTap={PRESS}
               aria-label="Добавить тестового участника"
@@ -117,32 +136,28 @@ export function Invite() {
                 const p = addDemo(room.id)
                 if (p) {
                   haptic.success()
-                  toast(`${p.name} присоединяется к игре`)
+                  toast(`${p.name} присоединяется (демо)`)
                 } else toast('Больше нельзя добавить участников', 'error')
               }}
-              className="flex h-[46px] w-[46px] items-center justify-center rounded-full border-2 border-dashed border-ink/25 text-ink/60"
+              style={{ marginLeft: people.length ? -14 : 0 }}
+              className="flex h-[50px] w-[50px] items-center justify-center rounded-full border-2 border-dashed border-snow/35 bg-cocoa text-snow/70"
             >
               <Icon name="plus" size={20} />
             </motion.button>
           )}
-          {Array.from({ length: full ? 0 : freeSlots }, (_, i) => (
-            <span key={i} aria-hidden className="h-[46px] w-[46px] rounded-full bg-ink/6" />
-          ))}
         </div>
-        {full && <p className="mt-2 text-footnote font-medium text-ember">Достигнут лимит участников</p>}
+        <div className="min-w-0">
+          <p className="whitespace-nowrap text-button text-snow">
+            {people.length} из {limit} {plural(limit, 'участника', 'участников', 'участников')}
+          </p>
+          <p className="text-secondary text-taupe-soft">{full ? 'Мест больше нет' : `Свободно ${free} ${plural(free, 'место', 'места', 'мест')}`}</p>
+        </div>
+      </div>
 
-        {/* Link */}
-        <p className="type-label mt-5 text-ink/75">Ссылка на приглашение</p>
-        <button onClick={copy} className="mt-2 flex h-[52px] w-full items-center gap-3 rounded-[16px] bg-snow px-4 text-left shadow-[0_0_0_1px_rgba(40,29,25,.08)]">
-          <span className="min-w-0 flex-1 truncate text-callout text-ink/80">{link.replace(/^https?:\/\//, '')}</span>
-          <Icon name={copied ? 'check' : 'copy'} size={20} className={copied ? 'text-pine' : 'text-ink/70'} />
-        </button>
-
+      <div className="mt-auto px-[22px] pt-4" style={{ paddingBottom: 'calc(var(--sa-bottom) + 4px)' }}>
         <SantomiButton
-          variant="telegram"
-          leadingIcon="send"
           fullWidth
-          className="mt-4"
+          trailingIcon="send"
           disabled={full || room.stage !== 'gathering'}
           onClick={async () => {
             const how = await shareInvite(room.inviteCode, room.name)
@@ -151,64 +166,10 @@ export function Invite() {
         >
           Отправить в Telegram
         </SantomiButton>
-
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          <SmallAction icon="link" label="Скопировать ссылку" onClick={copy} />
-          <SmallAction icon="grid" label="Показать QR-код" onClick={() => setQrOpen(true)} />
-          <SmallAction
-            icon="more"
-            label="Другие способы"
-            onClick={async () => {
-              if (navigator.share) {
-                try {
-                  await navigator.share({ title: 'Santomi', text: `Присоединяйся к «${room.name}»`, url: link })
-                } catch {
-                  /* cancelled */
-                }
-              } else await copy()
-            }}
-          />
-        </div>
-
-        <SantomiButton variant="secondary" fullWidth className="mt-5" onClick={() => navigate(`/rooms/${room.id}`)}>
-          Перейти к игре
-        </SantomiButton>
-        <div className="mt-4 flex justify-center">
-          <DemoBadge className="!bg-ink/8 !text-ink/70" />
-        </div>
-      </section>
-
-      <Sheet open={qrOpen} onClose={() => setQrOpen(false)} title="QR-код приглашения">
-        <div className="flex flex-col items-center pb-2">
-          {qrSvg ? (
-            <div className="w-[220px] overflow-hidden rounded-[20px] bg-snow p-3 [&>svg]:block [&>svg]:h-auto [&>svg]:w-full" role="img" aria-label={`QR-код ссылки ${link}`} dangerouslySetInnerHTML={{ __html: qrSvg }} />
-          ) : (
-            <div className="flex h-[220px] w-[220px] items-center justify-center rounded-[20px] bg-snow text-secondary text-ink-soft">Создаём код…</div>
-          )}
-          <p className="mt-3 text-center text-secondary text-ink-soft">Наведите камеру телефона, чтобы открыть приглашение</p>
-          <p className="mt-1 text-caption text-ink/50">Код: {room.inviteCode}</p>
-        </div>
-      </Sheet>
+        <button onClick={() => navigate(`/rooms/${room.id}`)} className="mx-auto mt-2 flex h-11 items-center px-4 text-body text-snow/90">
+          Перейти в комнату
+        </button>
+      </div>
     </Screen>
-  )
-}
-
-function Meta({ icon, text }: { icon: IconName; text: string }) {
-  return (
-    <li className="flex items-center gap-3">
-      <Icon name={icon} size={18} className="text-ember" />
-      {text}
-    </li>
-  )
-}
-
-function SmallAction({ icon, label, onClick }: { icon: IconName; label: string; onClick: () => void }) {
-  return (
-    <motion.button whileTap={PRESS} onClick={onClick} className="flex flex-col items-center gap-1.5 rounded-[16px] py-2">
-      <span className="flex h-11 w-11 items-center justify-center rounded-full bg-snow text-ink shadow-[0_1px_0_rgba(40,29,25,.06)]">
-        <Icon name={icon} size={20} />
-      </span>
-      <span className="text-center text-caption font-medium leading-tight text-ink/75">{label}</span>
-    </motion.button>
   )
 }

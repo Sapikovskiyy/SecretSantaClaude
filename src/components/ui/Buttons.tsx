@@ -89,10 +89,13 @@ export function SwipeConfirm({
   knobIcon = 'forward',
   disabled,
   className = '',
+  hero = false,
 }: {
   label: string
   onConfirm: () => void
-  tone?: 'dark' | 'taupe' | 'ember'
+  tone?: 'dark' | 'taupe' | 'ember' | 'glass'
+  /** Welcome-screen size from reference 01: 74 px track, 65 px cream knob with »»» chevrons. */
+  hero?: boolean
   knobIcon?: IconName
   disabled?: boolean
   className?: string
@@ -101,8 +104,8 @@ export function SwipeConfirm({
   const x = useMotionValue(0)
   const [done, setDone] = useState(false)
   const labelOpacity = useTransform(x, [0, 140], [1, 0])
-  const KNOB = 56
-  const PAD = 6
+  const KNOB = hero ? 65 : 56
+  const PAD = hero ? 5 : 6
 
   const max = () => (track.current ? track.current.offsetWidth - KNOB - PAD * 2 : 200)
 
@@ -125,6 +128,8 @@ export function SwipeConfirm({
     dark: 'bg-truffle/75 text-snow backdrop-blur-xl ring-1 ring-white/5',
     taupe: 'bg-taupe text-snow',
     ember: 'bg-ember-deep/70 text-snow backdrop-blur-xl',
+    // Dark translucent pill over the welcome illustration — no live blur (cheap on WebView).
+    glass: 'bg-[rgba(36,15,10,0.74)] text-snow ring-1 ring-white/[0.07]',
   }[tone]
 
   return (
@@ -139,7 +144,7 @@ export function SwipeConfirm({
         // Tapping the track (not dragging) also confirms — accessibility & speed.
         if ((e.target as HTMLElement).dataset.knob !== 'true') finish()
       }}
-      className={`relative flex h-[68px] w-full select-none items-center rounded-full ${bg} ${disabled ? 'opacity-40' : ''} ${className}`}
+      className={`relative flex ${hero ? 'h-[74px]' : 'h-[68px]'} w-full select-none items-center rounded-full ${bg} ${disabled ? 'opacity-40' : ''} ${className}`}
       style={{ padding: PAD }}
     >
       <motion.div
@@ -156,11 +161,18 @@ export function SwipeConfirm({
         onTap={finish}
         className="relative z-10 flex cursor-grab items-center justify-center rounded-full bg-snow text-ink shadow-[0_6px_18px_rgba(0,0,0,.25)] active:cursor-grabbing"
       >
-        <Icon name={knobIcon} size={22} strokeWidth={2} className="pointer-events-none" />
+        {hero ? (
+          <Chevrons still className="pointer-events-none text-ink" />
+        ) : (
+          <Icon name={knobIcon} size={22} strokeWidth={2} className="pointer-events-none" />
+        )}
       </motion.div>
-      <motion.span style={{ opacity: labelOpacity }} className="pointer-events-none absolute inset-0 flex items-center justify-center gap-3 pl-12 text-body">
+      <motion.span
+        style={{ opacity: labelOpacity, paddingLeft: hero ? KNOB + PAD : 48 }}
+        className={`pointer-events-none absolute inset-0 flex items-center justify-center gap-3 ${hero ? 'text-button font-medium' : 'text-body'}`}
+      >
         {label}
-        <Chevrons className="opacity-60" />
+        {!hero && <Chevrons className="opacity-60" />}
       </motion.span>
     </div>
   )

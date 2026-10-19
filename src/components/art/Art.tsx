@@ -364,6 +364,11 @@ const ALIAS: Record<string, string> = {
   mitten: 'stocking',
 }
 
+/** Direct URL of a 3D render (for compositions that need the native aspect ratio). */
+export function artUrl(name: string): string | undefined {
+  return RENDERS[ALIAS[name] ?? name]
+}
+
 export function hasRender(name: string) {
   return Boolean(RENDERS[ALIAS[name] ?? name])
 }

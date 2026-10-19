@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router'
-import { AnimatePresence } from 'motion/react'
 import { useDemo } from './data/demoStore'
 import { Dock, Toasts } from './components/ui/Kit'
 import { startParam } from './lib/telegram'
@@ -17,6 +16,7 @@ import { Chat } from './screens/Chat'
 import { RecipientWishlist } from './screens/RecipientWishlist'
 import { GiftAI } from './screens/GiftAI'
 import { Profile } from './screens/Profile'
+import { Chats } from './screens/Chats'
 import { Premium } from './screens/Premium'
 import { Participants } from './screens/Participants'
 import { Draw } from './screens/Draw'
@@ -26,7 +26,7 @@ import { ServerNotConnected } from './screens/ServerNotConnected'
 import { IS_DEMO } from './lib/mode'
 
 // The wishlist editor is a full-screen sheet flow (handoff 08), so it has no dock.
-const DOCK_ROUTES = ['/home', '/ai', '/profile']
+const DOCK_ROUTES = ['/home', '/chats', '/ai', '/profile']
 
 export function App() {
   const location = useLocation()
@@ -51,8 +51,8 @@ export function App() {
     <>
       <Offline />
       <Toasts />
-      <AnimatePresence mode="wait" initial={false}>
-        <Routes location={location} key={location.pathname}>
+      {/* No exit animations: the next screen appears immediately (≈200 ms enter), never via a dark gap. */}
+      <Routes location={location} key={location.pathname}>
           <Route path="/" element={onboarded ? <Navigate to="/home" replace /> : <Welcome />} />
           <Route path="/welcome" element={<Welcome />} />
           <Route path="/home" element={<Home />} />
@@ -70,10 +70,10 @@ export function App() {
           <Route path="/wishlist/interests" element={<Interests />} />
           <Route path="/ai" element={<GiftAI />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/chats" element={<Chats />} />
           <Route path="/premium" element={<Premium />} />
           <Route path="*" element={<NotFound />} />
-        </Routes>
-      </AnimatePresence>
+      </Routes>
       {showDock && <Dock />}
     </>
   )

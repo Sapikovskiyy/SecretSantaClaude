@@ -1,31 +1,30 @@
 /**
- * 03 · Create Room — sheet 01/screen 03.
- * Header + 3-step indicator, red sleigh scene, cream form sheet, sticky red CTA.
- * Steps: Основное (name, budget, date) → Настройки (limit, chat, theme, description) → Готово.
- * Validation errors highlight fields (no shake); entered data survives errors and step changes.
+ * 03 · Create game — design/references/02-create-game.jpeg.
+ * At 390 px: back circle 48 px; step dots + «Шаг 1 из 2» centred; title ≈42 px medium on two
+ * lines; cream panel (radius 30, inset 16) with flat rows split by hairlines; «Анонимный чат»
+ * toggle and «Исключения и правила» row on the dark background; red CTA inset 43 px.
+ * Step 1 = details, step 2 = review + appearance. Inputs live inside the rows (no nested cards).
  */
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router'
 import { AnimatePresence, motion } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
-import { Chip, Toggle } from '@/components/ui/Kit'
-import { Icon, type IconName } from '@/components/ui/Icon'
-import { Art } from '@/components/art/Art'
-import { PageHeader, PrimaryCTA } from '@/components/ds'
-import { HeroScene, roomArt } from '@/components/ds/blocks'
+import { Sheet } from '@/components/ui/Kit'
+import { Icon } from '@/components/ui/Icon'
+import { SantomiButton } from '@/components/ds'
+import { CalendarMark } from '@/components/CalendarMark'
 import { FREE_PARTICIPANT_LIMIT, useDemo } from '@/data/demoStore'
 import type { RoomTheme } from '@/domain/types'
-import { formatDate, formatRub } from '@/lib/format'
-import { haptic } from '@/lib/telegram'
-import { DUR, EASE, tween } from '@/motion/tokens'
+import { formatRub } from '@/lib/format'
+import { haptic, isTelegram } from '@/lib/telegram'
+import { DUR, EASE, PRESS, tween } from '@/motion/tokens'
 
 const BUDGETS = [500, 1000, 2000, 3000, 5000]
-const LIMITS = [5, 10, 15, 20, 30]
-const STEPS = ['Основное', 'Настройки', 'Готово']
-const THEMES: { id: RoomTheme; label: string }[] = [
-  { id: 'ember', label: 'Красная' },
-  { id: 'pine', label: 'Изумрудная' },
-  { id: 'cocoa', label: 'Шоколадная' },
+const LIMITS = [5, 8, 10, 12, 15, 20, 30]
+const THEMES: { id: RoomTheme; label: string; swatch: string }[] = [
+  { id: 'pine', label: 'Изумрудная', swatch: '#006b43' },
+  { id: 'ember', label: 'Красная', swatch: '#d93624' },
+  { id: 'cocoa', label: 'Шоколадная', swatch: '#4a3830' },
 ]
 
 function nextDate(month: number, day: number) {
@@ -35,42 +34,47 @@ function nextDate(month: number, day: number) {
   return new Date(y, month, day, 12).toISOString().slice(0, 10)
 }
 const today = () => new Date().toISOString().slice(0, 10)
+const longDate = (iso: string) => new Date(iso + 'T12:00:00').toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }).replace(' г.', '')
 
 export function CreateRoom() {
   const navigate = useNavigate()
   const createRoom = useDemo((s) => s.createRoom)
-  const [step, setStep] = useState(0)
+  const [step, setStep] = useState<0 | 1>(0)
   const [touched, setTouched] = useState(false)
+  const [rules, setRules] = useState(false)
   const [name, setName] = useState('')
-  const [budget, setBudget] = useState(3000)
-  const [customBudget, setCustomBudget] = useState('')
-  const [date, setDate] = useState(nextDate(11, 31))
-  const [limit, setLimit] = useState(10)
-  const [chatEnabled, setChatEnabled] = useState(true)
-  const [theme, setTheme] = useState<RoomTheme>('ember')
   const [description, setDescription] = useState('')
+  const [budget, setBudget] = useState('3000')
+  const [customBudget, setCustomBudget] = useState('')
+  const [date, setDate] = useState(nextDate(11, 25))
+  const [limit, setLimit] = useState(12)
+  const [chatEnabled, setChatEnabled] = useState(true)
+  const [theme, setTheme] = useState<RoomTheme>('pine')
 
-  const effectiveBudget = customBudget ? Number(customBudget) : budget
+  const budgetValue = budget === 'custom' ? Number(customBudget || 0) : Number(budget)
   const errors = {
     name: name.trim().length < 2 ? 'Введите название — хотя бы 2 буквы' : undefined,
-    budget: effectiveBudget < 100 ? 'Бюджет — от 100 ₽' : undefined,
+    budget: budgetValue < 100 ? 'Бюджет — от 100 ₽' : undefined,
     date: date < today() ? 'Выберите дату в будущем' : undefined,
   }
-  const stepValid = step !== 0 || (!errors.name && !errors.budget && !errors.date)
+  const invalid = Boolean(errors.name || errors.budget || errors.date)
 
   const next = () => {
-    if (!stepValid) {
-      setTouched(true)
-      haptic.error()
+    if (step === 0) {
+      if (invalid) {
+        setTouched(true)
+        haptic.error()
+        return
+      }
+      setTouched(false)
+      setStep(1)
       return
     }
-    setTouched(false)
-    if (step < 2) return setStep(step + 1)
     const id = createRoom({
       name: name.trim().slice(0, 60),
-      budget: effectiveBudget,
-      date,
       description: description.trim() || undefined,
+      budget: budgetValue,
+      date,
       participantLimit: limit,
       chatEnabled,
       theme,
@@ -79,208 +83,242 @@ export function CreateRoom() {
     navigate(`/rooms/${id}/invite?new=1`, { replace: true })
   }
 
+  const back = () => (step === 1 ? setStep(0) : navigate(-1))
+
   return (
     <Screen back headless className="!pb-0">
-      <PageHeader back onBack={step > 0 ? () => setStep(step - 1) : undefined} title="Создать игру" />
-      <Stepper current={step} />
+      {/* Header: back circle + step indicator */}
+      <div className="relative mt-4 flex h-12 items-center px-[22px]">
+        {!isTelegram && (
+          <motion.button whileTap={PRESS} aria-label="Назад" onClick={back} className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
+            <Icon name="back" size={22} />
+          </motion.button>
+        )}
+        <div className="absolute inset-x-0 top-0 flex flex-col items-center gap-2 pt-1" aria-label={`Шаг ${step + 1} из 2`}>
+          <div className="flex gap-2">
+            {[0, 1].map((i) => (
+              <motion.span key={i} className="h-2 w-2 rounded-full" animate={{ backgroundColor: i === step ? '#ef4930' : '#6e5d55' }} transition={tween(DUR.chip)} />
+            ))}
+          </div>
+          <span className="text-footnote text-taupe-soft">Шаг {step + 1} из 2</span>
+        </div>
+      </div>
 
-      <HeroScene art="sleigh" size={196} height={196} />
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, x: 10 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -10 }}
+          transition={{ duration: 0.2, ease: EASE }}
+          className="flex flex-1 flex-col"
+        >
+          <div className="px-6 pt-[34px] [@media(max-height:820px)]:pt-4">
+            <h1 className="t-page text-snow">
+              {step === 0 ? (
+                <>
+                  Создадим
+                  <br />
+                  игру!
+                </>
+              ) : (
+                <>
+                  Почти
+                  <br />
+                  готово
+                </>
+              )}
+            </h1>
+            <p className="t-lead mt-3 text-snow/80">{step === 0 ? 'Начнём с главного.' : 'Проверьте детали и выберите оформление.'}</p>
+          </div>
 
-      <section className="relative z-10 -mt-2 flex-1 rounded-t-[32px] bg-marzipan px-5 pb-36 pt-6 text-ink">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div key={step} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} transition={tween(0.24)} className="space-y-5">
-            {step === 0 && (
+          {/* Cream form surface — flat rows, hairline dividers */}
+          <section className="mx-4 mt-5 rounded-[30px] bg-marzipan px-[22px] text-ink">
+            {step === 0 ? (
               <>
-                <FormRow label="Название игры" icon="gift" error={touched ? errors.name : undefined}>
+                <Row label="Название игры" error={touched ? errors.name : undefined}>
                   <input
-                    autoFocus
                     aria-label="Название игры"
-                    className={fieldCls(touched && !!errors.name)}
-                    placeholder="Например, Новогодний обмен"
+                    className={valueCls}
+                    placeholder="Новогодний обмен"
                     value={name}
                     maxLength={60}
                     onChange={(e) => setName(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && next()}
                   />
-                </FormRow>
-                <FormRow label="Бюджет на подарок" icon="wallet" error={touched ? errors.budget : undefined}>
-                  <select
-                    aria-label="Бюджет на подарок"
-                    className={fieldCls(false)}
-                    value={customBudget ? 'custom' : String(budget)}
-                    onChange={(e) => {
-                      if (e.target.value === 'custom') setCustomBudget(String(budget))
-                      else {
-                        setCustomBudget('')
-                        setBudget(Number(e.target.value))
-                      }
-                    }}
-                  >
+                </Row>
+                <Row label="Описание">
+                  <input aria-label="Описание" className={valueCls} placeholder="Праздник для друзей и коллег" value={description} maxLength={300} onChange={(e) => setDescription(e.target.value)} />
+                </Row>
+                <Row label="Бюджет подарка" error={touched ? errors.budget : undefined} trailing={<Icon name="down" size={22} strokeWidth={2} />}>
+                  <select aria-label="Бюджет подарка" className={`${valueCls} appearance-none pr-8`} value={budget} onChange={(e) => setBudget(e.target.value)}>
                     {BUDGETS.map((b) => (
                       <option key={b} value={b}>
-                        до {formatRub(b)}
+                        {formatRub(b)}
                       </option>
                     ))}
                     <option value="custom">Другая сумма</option>
                   </select>
-                  {customBudget !== '' && (
+                  {budget === 'custom' && (
                     <input
                       aria-label="Своя сумма"
                       inputMode="numeric"
-                      className={`${fieldCls(touched && !!errors.budget)} mt-2`}
+                      autoFocus
+                      className={`${valueCls} mt-1`}
+                      placeholder="Сумма, ₽"
                       value={customBudget}
                       onChange={(e) => setCustomBudget(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                      placeholder="Сумма в рублях"
                     />
                   )}
-                </FormRow>
-                <FormRow label="Дата обмена подарками" icon="calendar" error={touched ? errors.date : undefined}>
-                  <input type="date" aria-label="Дата обмена" min={today()} className={fieldCls(touched && !!errors.date)} value={date} onChange={(e) => setDate(e.target.value)} />
-                </FormRow>
-              </>
-            )}
-
-            {step === 1 && (
-              <>
-                <FormRow label="Максимум участников" icon="users">
-                  <select aria-label="Максимум участников" className={fieldCls(false)} value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
+                </Row>
+                <Row label="Дата обмена" error={touched ? errors.date : undefined} trailing={<CalendarMark />}>
+                  {/* Visible formatted value; the native picker sits on top, transparent */}
+                  <span className={`${valueCls} pointer-events-none block`}>{longDate(date)}</span>
+                  <input type="date" aria-label="Дата обмена" min={today()} value={date} onChange={(e) => e.target.value && setDate(e.target.value)} className="absolute inset-0 opacity-0" />
+                </Row>
+                <Row label="Лимит участников" last trailing={<Icon name="down" size={22} strokeWidth={2} />}>
+                  <select aria-label="Лимит участников" className={`${valueCls} appearance-none pr-8`} value={limit} onChange={(e) => setLimit(Number(e.target.value))}>
                     {LIMITS.map((l) => (
                       <option key={l} value={l}>
                         {l} человек
                       </option>
                     ))}
                   </select>
-                  <p className="mt-1.5 text-footnote text-ink-soft">Бесплатно — до {FREE_PARTICIPANT_LIMIT} человек</p>
-                </FormRow>
-                <div className="rounded-[18px] bg-snow px-4 py-1">
-                  <Toggle checked={chatEnabled} onChange={setChatEnabled} label="Анонимный чат" />
-                  <p className="-mt-1 pb-3 text-footnote text-ink-soft">Санта сможет задавать вопросы получателю, не раскрывая себя</p>
-                </div>
-                <div>
-                  <p className="type-label mb-2 text-ink/75">Оформление</p>
-                  <div className="flex flex-wrap gap-2">
+                </Row>
+              </>
+            ) : (
+              <>
+                <ReadRow label="Название игры" value={name.trim()} />
+                {description.trim() && <ReadRow label="Описание" value={description.trim()} />}
+                <ReadRow label="Бюджет подарка" value={`до ${formatRub(budgetValue)}`} />
+                <ReadRow label="Дата обмена" value={longDate(date)} />
+                <ReadRow label="Лимит участников" value={`${limit} человек`} />
+                <Row label="Оформление" last>
+                  <div className="flex gap-3 pt-1" role="radiogroup" aria-label="Оформление">
                     {THEMES.map((t) => (
-                      <Chip key={t.id} tone="light" active={theme === t.id} onClick={() => setTheme(t.id)}>
-                        {t.label}
-                      </Chip>
+                      <button
+                        key={t.id}
+                        role="radio"
+                        aria-checked={theme === t.id}
+                        aria-label={t.label}
+                        onClick={() => {
+                          haptic.select()
+                          setTheme(t.id)
+                        }}
+                        className={`h-9 w-9 rounded-full transition-shadow duration-150 ${theme === t.id ? 'shadow-[0_0_0_3px_#ffe4ce,0_0_0_5px_#281d19]' : ''}`}
+                        style={{ background: t.swatch }}
+                      />
                     ))}
                   </div>
-                </div>
-                <FormRow label="Описание (необязательно)" icon="edit">
-                  <textarea
-                    className={`${fieldCls(false)} h-24 resize-none py-3`}
-                    placeholder="Где и когда встречаемся"
-                    value={description}
-                    maxLength={300}
-                    onChange={(e) => setDescription(e.target.value)}
-                  />
-                </FormRow>
+                </Row>
               </>
             )}
+          </section>
 
-            {step === 2 && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-4 rounded-[22px] bg-snow p-4">
-                  <span className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-[18px] bg-marzipan">
-                    <Art name={roomArt({ theme })} size={62} noShadow />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate text-card font-semibold">{name.trim()}</p>
-                    <p className="text-secondary text-ink-soft">Всё готово к приглашению друзей</p>
-                  </div>
-                </div>
-                <ul className="space-y-2 rounded-[22px] bg-snow p-4 text-callout">
-                  <SummaryRow icon="calendar" text={formatDate(date)} />
-                  <SummaryRow icon="wallet" text={`до ${formatRub(effectiveBudget)}`} />
-                  <SummaryRow icon="users" text={`до ${limit} участников`} />
-                  <SummaryRow icon="lock" text={chatEnabled ? 'Анонимный чат включён' : 'Анонимный чат выключен'} />
-                </ul>
-                {description.trim() && <p className="rounded-[18px] bg-snow/70 p-4 text-secondary text-ink/75">{description.trim()}</p>}
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </section>
+          {/* Settings on the dark background */}
+          {step === 0 && (
+            <div className="mt-3 px-6">
+              <label className="flex h-12 items-center justify-between">
+                <span className="text-body text-snow">Анонимный чат</span>
+                <Switch checked={chatEnabled} onChange={setChatEnabled} label="Анонимный чат" />
+              </label>
+              <button onClick={() => setRules(true)} className="flex h-12 w-full items-center justify-between text-left">
+                <span className="text-body text-snow">Исключения и правила</span>
+                <Icon name="forward" size={20} className="text-snow/80" />
+              </button>
+            </div>
+          )}
 
-      <div
-        className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[480px] bg-[linear-gradient(to_top,var(--color-marzipan)_75%,transparent)] px-5 pt-6"
-        style={{ paddingBottom: 'calc(var(--sa-bottom) + 16px)' }}
-      >
-        <PrimaryCTA trailing={step < 2 ? 'arrowRight' : undefined} icon={step === 2 ? 'check' : undefined} onClick={next}>
-          {step < 2 ? 'Далее' : 'Создать игру'}
-        </PrimaryCTA>
-      </div>
+          <div className="mt-auto px-[38px] pt-4" style={{ paddingBottom: 'calc(var(--sa-bottom) + 14px)' }}>
+            <SantomiButton fullWidth trailingIcon={step === 0 ? 'forward' : undefined} leadingIcon={step === 1 ? 'check' : undefined} onClick={next}>
+              {step === 0 ? 'Продолжить' : 'Создать игру'}
+            </SantomiButton>
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      <Sheet open={rules} onClose={() => setRules(false)} title="Исключения и правила">
+        <p className="text-callout text-ink/75">
+          Исключения — пары, которые не должны дарить друг другу (например, супруги). Их можно настроить в комнате, когда участники присоединятся.
+        </p>
+        <ul className="mt-4 space-y-2">
+          {[
+            'Минимум 3 участника',
+            'Каждый дарит одному человеку и получает один подарок',
+            'Никто не вытянет сам себя',
+            `Бесплатно — до ${FREE_PARTICIPANT_LIMIT} участников`,
+            'Кто кому дарит, видит только сервер',
+          ].map((t) => (
+            <li key={t} className="flex items-start gap-3 text-callout">
+              <Icon name="check" size={18} className="mt-0.5 shrink-0 text-pine" />
+              {t}
+            </li>
+          ))}
+        </ul>
+        <SantomiButton variant="secondary" fullWidth className="mt-5" onClick={() => setRules(false)}>
+          Понятно
+        </SantomiButton>
+      </Sheet>
     </Screen>
   )
 }
 
-function Stepper({ current }: { current: number }) {
-  return (
-    <ol className="mx-auto mt-3 flex w-full max-w-[300px] items-start justify-between px-5" aria-label={`Шаг ${current + 1} из 3`}>
-      {STEPS.map((s, i) => {
-        const done = i < current
-        const active = i === current
-        return (
-          <li key={s} className="relative flex flex-1 flex-col items-center gap-1.5">
-            {i > 0 && (
-              <span className="absolute right-1/2 top-[13px] h-0.5 w-full -translate-x-[14px] overflow-hidden rounded bg-white/15">
-                <motion.span className="block h-full bg-ember" initial={false} animate={{ width: i <= current ? '100%' : '0%' }} transition={{ duration: 0.3, ease: EASE }} />
-              </span>
-            )}
-            <motion.span
-              initial={false}
-              animate={{ scale: active ? 1 : 0.92 }}
-              transition={{ duration: DUR.chip }}
-              className={`relative z-10 flex h-7 w-7 items-center justify-center rounded-full text-footnote font-semibold ${
-                active ? 'bg-ember text-snow ring-4 ring-ember/25' : done ? 'bg-ember text-snow' : 'bg-white/15 text-snow/70'
-              }`}
-            >
-              {done ? <Icon name="check" size={14} strokeWidth={2.6} /> : i + 1}
-            </motion.span>
-            <span className={`text-caption font-medium ${active ? 'text-ember-glow' : 'text-snow/55'}`}>{s}</span>
-          </li>
-        )
-      })}
-    </ol>
-  )
-}
+const valueCls = 'w-full bg-transparent text-button leading-snug text-ink outline-none placeholder:text-ink/35'
 
-function FormRow({ label, icon, error, children }: { label: string; icon: IconName; error?: string; children: React.ReactNode }) {
+function Row({ label, children, trailing, error, last }: { label: string; children: ReactNode; trailing?: ReactNode; error?: string; last?: boolean }) {
   return (
-    <div>
-      <p className="type-label mb-2 flex items-center gap-1.5 text-ink/75">
-        <Icon name={icon} size={16} className="text-ink/45" />
-        {label}
-      </p>
-      {children}
-      <AnimatePresence>
-        {error && (
-          <motion.p
-            role="alert"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={tween(DUR.chip)}
-            className="mt-1.5 text-footnote font-medium text-ember"
-          >
-            {error}
-          </motion.p>
-        )}
-      </AnimatePresence>
+    <div className={`relative flex items-center gap-3 py-[13px] ${last ? '' : 'border-b border-ink/10'}`}>
+      <label className="relative min-w-0 flex-1">
+        <span className={`block text-secondary transition-colors duration-150 ${error ? 'text-ember' : 'text-ink-soft'}`}>{label}</span>
+        <span className="relative mt-1 block">{children}</span>
+        <AnimatePresence>
+          {error && (
+            <motion.span
+              role="alert"
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={tween(DUR.chip)}
+              className="mt-1 block text-footnote text-ember"
+            >
+              {error}
+            </motion.span>
+          )}
+        </AnimatePresence>
+      </label>
+      {trailing && <span className="pointer-events-none shrink-0 text-ink">{trailing}</span>}
     </div>
   )
 }
 
-function SummaryRow({ icon, text }: { icon: IconName; text: string }) {
+function ReadRow({ label, value }: { label: string; value: string }) {
   return (
-    <li className="flex items-center gap-3">
-      <Icon name={icon} size={18} className="text-ember" />
-      {text}
-    </li>
+    <div className="border-b border-ink/10 py-[15px]">
+      <span className="block text-secondary text-ink-soft">{label}</span>
+      <span className="mt-1 block text-button leading-snug">{value}</span>
+    </div>
   )
 }
 
-const fieldCls = (error: boolean) =>
-  `h-[52px] w-full appearance-none rounded-[16px] bg-snow px-4 text-body text-ink placeholder:text-ink/35 outline-none transition-shadow duration-200 ${
-    error ? 'shadow-[0_0_0_2px_#D5361C]' : 'shadow-[0_0_0_1px_rgba(40,29,25,.08)] focus:shadow-[0_0_0_2px_#D5361C]'
-  }`
+/** Green iOS-style switch (reference: «Анонимный чат»). */
+function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <button
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      onClick={(e) => {
+        e.preventDefault()
+        haptic.select()
+        onChange(!checked)
+      }}
+      className={`relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-150 ${checked ? 'bg-[#15935c]' : 'bg-white/20'}`}
+    >
+      <motion.span
+        className="absolute left-0 top-[2px] h-[27px] w-[27px] rounded-full bg-snow shadow-[0_2px_4px_rgba(0,0,0,.25)]"
+        animate={{ x: checked ? 22 : 2 }}
+        transition={{ type: 'spring', stiffness: 700, damping: 38 }}
+      />
+    </button>
+  )
+}

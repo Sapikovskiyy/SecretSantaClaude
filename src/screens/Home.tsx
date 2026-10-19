@@ -1,176 +1,215 @@
 /**
- * 02 · Home — sheet 01/screen 02.
- * Logo + bell, greeting with avatar, emerald festive hero with Santa, three quick actions,
- * «Мои игры» list with live status. The hero switches to the reveal call-to-action
- * when a draw has happened and the envelope is still unopened.
+ * 02 · Home — design/references/04-home.jpeg (primary reference for the product language).
+ * At 390 px: «Santomi» wordmark ≈34 px + outlined «+» (47 px); avatars + «N участников»;
+ * tall emerald featured-game card (inset 16, radius 33, ≈413 px) with title ≈32 px, budget,
+ * translucent arrow, centred 3D illustration and an overlapping cream status panel with a
+ * black arrow; «Мои игры» ≈26 px + «Все»; compact cream game rows; bottom navigation.
+ * All content is real store data; nothing is hard-coded.
+ *
+ * ASSET NOTE: the reference uses a snow-globe render; until it exists the gingerbread house
+ * render (same art direction) is used.
  */
 import { Link, useNavigate } from 'react-router'
 import { motion } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
-import { Avatar, DemoBadge, Sheet } from '@/components/ui/Kit'
-import { Icon, type IconName } from '@/components/ui/Icon'
+import { Avatar } from '@/components/ui/Kit'
+import { Icon } from '@/components/ui/Icon'
 import { Art } from '@/components/art/Art'
-import { Logo } from '@/components/Logo'
-import { RoomRow, SectionTitle } from '@/components/ds/blocks'
-import { SantomiLinkButton } from '@/components/ds'
-import { useDemo, useMyRooms, unreadCount } from '@/data/demoStore'
+import { CalendarMark } from '@/components/CalendarMark'
+import { ME, useMyRooms } from '@/data/demoStore'
+import { useRoomPeople } from '@/data/people'
+import type { Room } from '@/domain/types'
+import { daysUntil, formatRub, plural } from '@/lib/format'
+import { IS_DEMO } from '@/lib/mode'
 import { haptic } from '@/lib/telegram'
-import { DUR, EASE, PRESS, cardIn, tween } from '@/motion/tokens'
-import { useState } from 'react'
+import { EASE, PRESS } from '@/motion/tokens'
+
+const STAGE_ORDER = (r: Room) => (r.stage === 'drawn' && !r.revealSeen ? 0 : r.stage === 'drawn' ? 1 : r.stage === 'gathering' ? 2 : 3)
+
+/** Card surface per room theme — emerald is the reference default. */
+const CARD_BG: Record<Room['theme'], string> = {
+  pine: 'radial-gradient(120% 80% at 30% 0%, #0e8152 0%, #006b43 45%, #05502f 100%)',
+  ember: 'radial-gradient(120% 80% at 30% 0%, #e2492c 0%, #b72d1a 50%, #7c1c10 100%)',
+  cocoa: 'radial-gradient(120% 80% at 30% 0%, #5a4038 0%, #3a2b25 55%, #281d19 100%)',
+}
+
+/** Illustration that reflects the game's stage (not a random decoration). */
+export const stageArt = (r: Room) => (r.stage === 'gathering' ? 'envelope' : r.stage === 'drawn' ? (r.revealSeen ? 'gift-star' : 'gift') : 'star')
+
+function status(room: Room, people: number): { title: string; action: string } {
+  const limit = room.participantLimit ?? 30
+  if (room.stage === 'gathering') {
+    if (room.organizerId === ME && people < 3) return { title: `Пригласите ещё ${3 - people} ${plural(3 - people, 'человека', 'человек', 'человек')}`, action: `/rooms/${room.id}/invite` }
+    return { title: room.organizerId === ME ? `Готово к жеребьёвке: ${people} из ${limit}` : 'Ждём жеребьёвку', action: room.organizerId === ME ? `/rooms/${room.id}/draw` : `/rooms/${room.id}` }
+  }
+  if (room.stage === 'drawn' && !room.revealSeen) return { title: 'Жеребьёвка прошла — откройте подарок', action: `/rooms/${room.id}/reveal` }
+  if (room.stage === 'drawn') {
+    const d = daysUntil(room.date)
+    return { title: d > 0 ? `Обмен через ${d} ${plural(d, 'день', 'дня', 'дней')}` : d === 0 ? 'Обмен сегодня' : 'Обмен прошёл', action: `/rooms/${room.id}` }
+  }
+  return { title: 'Обмен завершён', action: `/rooms/${room.id}` }
+}
 
 export function Home() {
-  const navigate = useNavigate()
-  const { me, chats } = useDemo()
   const rooms = useMyRooms()
-  const [bell, setBell] = useState(false)
-  const active = rooms.filter((r) => r.stage !== 'exchanged')
-  const pendingReveal = rooms.find((r) => r.stage === 'drawn' && !r.revealSeen)
-  const unreadRooms = rooms.filter((r) => unreadCount(chats, r.id, 'fromSanta') + unreadCount(chats, r.id, 'toRecipient') > 0)
-  const firstName = me.name === 'Вы' ? null : me.name
+  const sorted = [...rooms].sort((a, b) => STAGE_ORDER(a) - STAGE_ORDER(b) || a.date.localeCompare(b.date))
+  const featured = sorted.find((r) => r.stage !== 'exchanged') ?? sorted[0]
+  const others = sorted.filter((r) => r !== featured)
 
   return (
-    <Screen withDock>
+    <Screen withDock headless>
       {/* Header */}
-      <div className="flex items-center justify-between px-5">
-        <Logo />
-        <div className="flex items-center gap-2">
-          <DemoBadge />
-          <motion.button
-            whileTap={PRESS}
-            onClick={() => setBell(true)}
-            aria-label={unreadRooms.length ? `Уведомления: ${unreadRooms.length}` : 'Уведомления'}
-            className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white/10"
-          >
-            <Icon name="bell" size={20} />
-            {unreadRooms.length > 0 && <span className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full bg-ember ring-2 ring-cocoa" />}
-          </motion.button>
-        </div>
+      <div className="flex items-center justify-between px-6 pt-[36px]">
+        <p className="t-wordmark flex items-start gap-1.5 text-snow">
+          Santomi
+          {IS_DEMO && <span className="mt-0.5 text-caption font-medium tracking-normal text-taupe-soft">демо</span>}
+        </p>
+        <motion.div whileTap={PRESS}>
+          <Link to="/rooms/new" aria-label="Создать игру" className="flex h-[47px] w-[47px] items-center justify-center rounded-full border-[1.5px] border-snow/70 text-snow">
+            <Icon name="plus" size={24} strokeWidth={1.8} />
+          </Link>
+        </motion.div>
       </div>
 
-      {/* Greeting */}
-      <motion.div {...cardIn(0)} className="mt-5 flex items-center gap-3 px-5">
-        <Link to="/profile" aria-label="Профиль">
-          <Avatar person={me} size={52} />
-        </Link>
-        <div className="min-w-0">
-          <p className="text-secondary text-snow/60">Привет{firstName ? ',' : '!'}</p>
-          {firstName && <p className="truncate text-section">{firstName}!</p>}
-          <p className="text-footnote text-snow/55">Готов к новогодним чудесам?</p>
-        </div>
-      </motion.div>
+      {featured ? <Featured room={featured} /> : <EmptyFeatured />}
 
-      {/* Hero */}
-      <motion.button
-        initial={{ opacity: 0, y: 14 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ ...tween(DUR.card), delay: 0.05 }}
-        whileTap={PRESS}
-        onClick={() => {
-          haptic.press()
-          navigate(pendingReveal ? `/rooms/${pendingReveal.id}/reveal` : '/rooms/new')
-        }}
-        className="relative mx-5 mt-5 flex min-h-[190px] overflow-hidden rounded-[28px] p-5 text-left"
-        style={{
-          background: pendingReveal
-            ? 'radial-gradient(130% 120% at 15% 0%, #e2492c 0%, #a42813 55%, #5c150b 100%)'
-            : 'radial-gradient(130% 120% at 15% 0%, #1f9a62 0%, #006b43 50%, #004a2e 100%)',
-        }}
-      >
-        <span aria-hidden className="absolute -left-8 -top-10 h-36 w-36 rounded-full bg-white/10 blur-2xl" />
-        <div className="relative z-10 flex max-w-[58%] flex-col">
-          {pendingReveal ? (
-            <>
-              <span className="text-footnote text-snow/75">{pendingReveal.name}</span>
-              <span className="mt-1 text-section leading-tight">Жеребьёвка прошла!</span>
-              <span className="mt-2 text-secondary text-snow/80">Откройте конверт и узнайте, кому дарите</span>
-            </>
-          ) : (
-            <>
-              <span className="text-section leading-tight">Новый год ближе, чем кажется</span>
-              <span className="mt-2 text-secondary text-snow/80">Создай игру, пригласи друзей и дарите друг другу незабываемые подарки</span>
-            </>
-          )}
-        </div>
-        <div className="pointer-events-none absolute -bottom-3 -right-4">
-          <Art name={pendingReveal ? 'envelope' : 'santa'} size={pendingReveal ? 150 : 172} eager />
-        </div>
-        <span className="absolute bottom-4 right-4 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-snow text-ink shadow-md">
-          <Icon name="arrowRight" size={20} strokeWidth={2.2} />
-        </span>
-      </motion.button>
-
-      {/* Quick actions */}
-      <div className="mt-4 grid grid-cols-3 gap-3 px-5">
-        <QuickAction to="/rooms/new" icon="plus" label="Создать игру" tone="ember" i={1} />
-        <QuickAction to={active[0] ? `/rooms/${active[0].id}` : '/rooms/new'} icon="users" label="Мои игры" tone="pine" i={2} />
-        <QuickAction to="/ai" icon="gift" label="Идеи подарков" tone="cream" i={3} />
-      </div>
-
-      {/* Games */}
-      <section className="mt-7 px-5">
-        <SectionTitle tone="dark" action={rooms.length > 3 ? { label: 'Все', to: '/profile' } : undefined}>
-          Мои игры
-        </SectionTitle>
-        {rooms.length === 0 ? (
-          <div className="mt-3 flex flex-col items-center rounded-[24px] bg-white/[0.05] px-6 py-8 text-center">
-            <Art name="gift-star" size={110} />
-            <p className="mt-3 text-card font-semibold">Пока нет игр</p>
-            <p className="mt-1 max-w-[28ch] text-secondary text-snow/60">Создайте первую игру и пригласите друзей</p>
-            <SantomiLinkButton to="/rooms/new" size="medium" leadingIcon="plus" className="mt-5">
-              Создать игру
-            </SantomiLinkButton>
+      {/* My games */}
+      {others.length > 0 && (
+        <section className="mt-7 px-4">
+          <div className="flex items-end justify-between px-2">
+            <h2 className="t-section text-snow">Мои игры</h2>
+            {others.length > 0 && (
+              <Link to="/profile" className="flex h-9 items-center gap-1 text-button text-snow/85">
+                Все <Icon name="forward" size={18} />
+              </Link>
+            )}
           </div>
-        ) : (
           <ul className="mt-3 space-y-2.5">
-            {rooms.slice(0, 4).map((r, i) => (
-              <RoomRow key={r.id} room={r} index={i} />
+            {others.slice(0, 1).map((r, i) => (
+              <GameRow key={r.id} room={r} index={i} />
             ))}
           </ul>
-        )}
-      </section>
-
-      <Sheet open={bell} onClose={() => setBell(false)} title="Уведомления">
-        {unreadRooms.length === 0 ? (
-          <p className="pb-4 text-center text-callout text-ink-soft">Новых уведомлений нет</p>
-        ) : (
-          <div className="space-y-2">
-            {unreadRooms.map((r) => (
-              <Link
-                key={r.id}
-                to={`/rooms/${r.id}/chat/${unreadCount(chats, r.id, 'fromSanta') ? 'fromSanta' : 'toRecipient'}`}
-                className="flex items-center gap-3 rounded-[18px] bg-snow p-3"
-              >
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-ember/12 text-ember">
-                  <Icon name="chat" size={20} />
-                </span>
-                <span className="flex-1">
-                  <span className="block text-body font-semibold">Новое анонимное сообщение</span>
-                  <span className="block text-footnote text-ink-soft">{r.name}</span>
-                </span>
-                <Icon name="forward" size={16} className="text-ink/35" />
-              </Link>
-            ))}
-          </div>
-        )}
-      </Sheet>
+        </section>
+      )}
     </Screen>
   )
 }
 
-function QuickAction({ to, icon, label, tone, i }: { to: string; icon: IconName; label: string; tone: 'ember' | 'pine' | 'cream'; i: number }) {
-  const t = {
-    ember: 'bg-[linear-gradient(155deg,#ff6b4a,#e63b25_48%,#a71912)] text-snow',
-    pine: 'bg-[linear-gradient(155deg,#35b77a,#08784c_48%,#06442f)] text-snow',
-    cream: 'bg-[linear-gradient(155deg,#fff7ea,#ffe4ce_52%,#e9c9ae)] text-ink',
-  }[tone]
+function Featured({ room }: { room: Room }) {
+  const navigate = useNavigate()
+  const people = useRoomPeople(room)
+  const st = status(room, people.length)
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: DUR.card, ease: EASE, delay: i * 0.045 }} whileTap={PRESS}>
-      <Link to={to} className={`flex h-[104px] flex-col items-center justify-center gap-2 rounded-[24px] px-2 text-center shadow-[inset_0_1px_0_rgba(255,255,255,.35)] ${t}`}>
-        <span className={`flex h-10 w-10 items-center justify-center rounded-full ${tone === 'cream' ? 'bg-ember/12 text-ember' : 'bg-white/20'}`}>
-          <Icon name={icon} size={20} strokeWidth={2.2} />
+    <>
+      {/* Participants of the featured game */}
+      <div className="mt-[18px] flex items-center gap-3 px-6">
+        <div className="flex items-center">
+          {people.slice(0, 3).map((p, i) => (
+            <span key={p.id} style={{ marginLeft: i ? -10 : 0 }} className="rounded-full ring-2 ring-cocoa">
+              <Avatar person={p} size={34} />
+            </span>
+          ))}
+          {people.length > 3 && (
+            <span style={{ marginLeft: -10 }} className="flex h-[34px] min-w-[34px] items-center justify-center rounded-full bg-[#8a7a72] px-1 text-footnote font-semibold text-snow ring-2 ring-cocoa">
+              +{people.length - 3}
+            </span>
+          )}
+        </div>
+        <span className="text-callout text-taupe-soft">
+          {people.length} {plural(people.length, 'участник', 'участника', 'участников')}
         </span>
-        <span className="text-footnote font-semibold leading-tight">{label}</span>
+      </div>
+
+      {/* Featured game card */}
+      <motion.article
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.32, ease: EASE }}
+        className="relative mx-4 mt-4 overflow-hidden rounded-[33px] pb-[10px]"
+        style={{ background: CARD_BG[room.theme] }}
+      >
+        <Link to={`/rooms/${room.id}`} className="block px-[22px] pt-6" aria-label={`Открыть игру ${room.name}`}>
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="t-hero-card line-clamp-2 text-snow">{room.name}</h1>
+              <p className="mt-2 text-button font-normal text-snow/85">Бюджет до {formatRub(room.budget)}</p>
+            </div>
+            <span className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-white/15 text-snow">
+              <Icon name="forward" size={22} strokeWidth={2} />
+            </span>
+          </div>
+          {/* Illustration area: soft ground + centred render */}
+          <div className="relative mt-1 flex h-[min(232px,27dvh)] items-end justify-center">
+            <span aria-hidden className="absolute inset-x-[-10%] bottom-[-8%] h-[46%] rounded-[50%] bg-[radial-gradient(closest-side,rgba(255,236,214,.55),rgba(255,236,214,0))]" />
+            <Art name="house" size="min(226px, 26dvh)" eager />
+          </div>
+        </Link>
+
+        {/* Overlapping cream status panel */}
+        <motion.button
+          whileTap={{ scale: 0.98 }}
+          onClick={() => {
+            haptic.press()
+            navigate(st.action)
+          }}
+          className="relative mx-[10px] -mt-6 flex w-[calc(100%-20px)] items-center gap-4 rounded-[28px] bg-marzipan py-3 pl-5 pr-3 text-left text-ink"
+        >
+          <CalendarMark size={38} />
+          <span className="min-w-0 flex-1 text-button font-normal leading-snug">{st.title}</span>
+          <span className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full bg-ink text-snow">
+            <Icon name="arrowRight" size={22} strokeWidth={2} />
+          </span>
+        </motion.button>
+      </motion.article>
+    </>
+  )
+}
+
+function EmptyFeatured() {
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.32, ease: EASE }}
+      className="relative mx-4 mt-6 overflow-hidden rounded-[33px] px-[22px] pb-4 pt-6"
+      style={{ background: CARD_BG.pine }}
+    >
+      <h1 className="t-hero-card text-snow">Первая игра</h1>
+      <p className="mt-2 text-button font-normal text-snow/85">Создайте игру и позовите друзей</p>
+      <div className="flex h-[180px] items-center justify-center">
+        <Art name="gift-star" size={170} eager />
+      </div>
+      <Link to="/rooms/new" className="flex items-center gap-4 rounded-[28px] bg-marzipan py-3 pl-5 pr-3 text-ink">
+        <CalendarMark size={38} />
+        <span className="flex-1 text-button">Создать игру</span>
+        <span className="flex h-[54px] w-[54px] items-center justify-center rounded-full bg-ink text-snow">
+          <Icon name="arrowRight" size={22} strokeWidth={2} />
+        </span>
       </Link>
-    </motion.div>
+    </motion.article>
+  )
+}
+
+function GameRow({ room, index }: { room: Room; index: number }) {
+  const people = room.members.length
+  return (
+    <motion.li initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.28, ease: EASE, delay: 0.08 + index * 0.05 }}>
+      <motion.div whileTap={PRESS}>
+        <Link to={`/rooms/${room.id}`} className="flex items-center gap-4 rounded-[28px] bg-marzipan py-3.5 pl-3.5 pr-4 text-ink">
+          <span className="flex h-[66px] w-[66px] shrink-0 items-center justify-center rounded-[20px] bg-[#f6d3ba]">
+            <Art name={stageArt(room)} size={54} noShadow />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-button font-semibold">{room.name}</span>
+            <span className="block text-callout text-ink-soft">До {formatRub(room.budget)}</span>
+            <span className="block text-secondary text-ink-soft">
+              {people} {plural(people, 'участник', 'участника', 'участников')}
+              {room.stage === 'exchanged' ? ', завершена' : ''}
+            </span>
+          </span>
+          <Icon name="forward" size={22} className="shrink-0 text-ink" />
+        </Link>
+      </motion.div>
+    </motion.li>
   )
 }

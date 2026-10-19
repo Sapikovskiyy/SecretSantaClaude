@@ -231,41 +231,51 @@ export function Steps({ count, current }: { count: number; current: number }) {
 const dockItems: { to: string; icon: IconName; label: string }[] = [
   { to: '/home', icon: 'home', label: 'Главная' },
   { to: '/wishlist', icon: 'gift', label: 'Вишлист' },
-  { to: '/ai', icon: 'sparkle', label: 'Идеи' },
+  { to: '/chats', icon: 'chat', label: 'Чаты' },
   { to: '/profile', icon: 'user', label: 'Профиль' },
 ]
 
-/** Floating dock — compact, round, matches the reference controls; not a generic tab bar. */
+/** Height of the bottom navigation incl. its bottom gap — screens reserve exactly this space. */
+export const NAV_SPACE = 'calc(var(--sa-bottom) + 96px)'
+
+/**
+ * Bottom navigation (reference 04-home): a solid rounded bar spanning the width,
+ * four icons, the active one inside a cream circle that slides between items.
+ * It never floats over content — every dock screen reserves NAV_SPACE.
+ */
 export function Dock() {
   // Ignore taps for a moment after mounting so the tap that navigated here
   // can't "fall through" onto a dock item (ghost click on touch devices).
   const [armed, setArmed] = useState(false)
   useEffect(() => {
-    const t = setTimeout(() => setArmed(true), 350)
+    const t = setTimeout(() => setArmed(true), 300)
     return () => clearTimeout(t)
   }, [])
   return (
     <nav
-      className={`fixed inset-x-0 z-40 mx-auto flex w-fit items-center gap-1 rounded-full bg-truffle/85 p-1.5 shadow-[0_18px_40px_-12px_rgba(0,0,0,.6)] ring-1 ring-white/6 backdrop-blur-xl ${armed ? '' : 'pointer-events-none'}`}
-      style={{ bottom: 'calc(var(--sa-bottom) + 18px)' }}
+      className={`fixed inset-x-4 z-40 mx-auto flex h-[66px] max-w-[448px] items-center justify-around rounded-[34px] bg-nav px-2 ring-1 ring-white/[0.06] ${armed ? '' : 'pointer-events-none'}`}
+      style={{ bottom: 'calc(var(--sa-bottom) + 10px)' }}
       aria-label="Основная навигация"
     >
       {dockItems.map((it) => (
         <NavLink
           key={it.to}
           to={it.to}
+          aria-label={it.label}
           onClick={() => haptic.select()}
-          className={({ isActive }) =>
-            `relative flex h-14 items-center justify-center gap-2 rounded-full px-4 text-secondary transition-colors ${
-              isActive ? 'bg-snow text-ink' : 'text-snow/70'
-            }`
-          }
+          className={({ isActive }) => `relative flex h-[52px] w-[52px] items-center justify-center rounded-full transition-colors duration-150 ${isActive ? 'text-ink' : 'text-snow/80'}`}
         >
           {({ isActive }) => (
             <>
-              <Icon name={it.icon} size={22} />
-              {isActive && <span className="pr-1 font-medium">{it.label}</span>}
-              {!isActive && <span className="sr-only">{it.label}</span>}
+              {isActive && (
+                <motion.span
+                  layoutId="dock-active"
+                  transition={{ type: 'spring', stiffness: 520, damping: 40 }}
+                  className="absolute inset-0 rounded-full bg-snow"
+                  aria-hidden
+                />
+              )}
+              <Icon name={it.icon} size={28} strokeWidth={1.6} className="relative" />
             </>
           )}
         </NavLink>
