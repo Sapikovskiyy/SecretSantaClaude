@@ -14,7 +14,9 @@
     "typecheck": "tsc --noEmit",
     "render:all": "npm run render:vertical && npm run render:horizontal && npm run render:teaser",
     "qa": "node scripts/qa.mjs",
-    "stills": "node scripts/stills.mjs"
+    "stills": "node scripts/stills.mjs",
+    "render:chat": "remotion render src/index.ts ChatTrailer916 renders/santomi-chat-15s-9x16.mp4 --codec h264 --crf 16 --audio-codec aac --audio-bitrate 256k && remotion render src/index.ts ChatTrailer169 renders/santomi-chat-15s-16x9.mp4 --codec h264 --crf 16 --audio-codec aac --audio-bitrate 256k",
+    "capture:chat": "cd ../.. && npx playwright test --config=marketing/santomi-trailer/playwright.capture.config.ts capture-chat"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.6",

@@ -35,19 +35,19 @@ export function phoneGeom(W: number, H: number, opts: { width?: number; x?: numb
 }
 
 /** Shows `screen` (a capture) only inside a CSS-px box — for typing reveals and state changes. */
-export function Region({ screen, k, box, reveal = 1, opacity = 1, style }: { screen: string; k: number; box: { x: number; y: number; w: number; h: number }; reveal?: number; opacity?: number; style?: CSSProperties }) {
+export function Region({ screen, k, box, reveal = 1, opacity = 1, style, dir = 'ui' }: { screen: string; k: number; box: { x: number; y: number; w: number; h: number }; reveal?: number; opacity?: number; style?: CSSProperties; dir?: string }) {
   if (reveal <= 0 || opacity <= 0) return null
   return (
     <div style={{ position: 'absolute', left: box.x * k, top: box.y * k, width: box.w * k * reveal, height: box.h * k, overflow: 'hidden', opacity, ...style }}>
-      <Img src={staticFile(`assets/ui/${screen}.png`)} style={{ position: 'absolute', left: -box.x * k, top: -box.y * k, width: CSS_W * k, height: CSS_H * k, maxWidth: 'none' }} />
+      <Img src={staticFile(`assets/${dir}/${screen}.png`)} style={{ position: 'absolute', left: -box.x * k, top: -box.y * k, width: CSS_W * k, height: CSS_H * k, maxWidth: 'none' }} />
     </div>
   )
 }
 
 /** Full-screen capture layer inside the phone (crossfades / slides). */
-export function ScreenLayer({ screen, opacity = 1, x = 0, style }: { screen: string; opacity?: number; x?: number; style?: CSSProperties }) {
+export function ScreenLayer({ screen, opacity = 1, x = 0, style, dir = 'ui' }: { screen: string; opacity?: number; x?: number; style?: CSSProperties; dir?: string }) {
   if (opacity <= 0) return null
-  return <Img src={staticFile(`assets/ui/${screen}.png`)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity, transform: x ? `translateX(${x}px)` : undefined, ...style }} />
+  return <Img src={staticFile(`assets/${dir}/${screen}.png`)} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity, transform: x ? `translateX(${x}px)` : undefined, ...style }} />
 }
 
 /** Chocolate studio background shared by the product scenes. */

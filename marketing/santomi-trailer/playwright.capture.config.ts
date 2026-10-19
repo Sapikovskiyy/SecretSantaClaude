@@ -9,7 +9,7 @@ const root = resolve(here, '../..')
 
 export default defineConfig({
   testDir: resolve(here, 'scripts'),
-  testMatch: /capture\.spec\.ts/,
+  testMatch: /capture(-chat)?\.spec\.ts/,
   timeout: 180_000,
   reporter: [['list']],
   use: {

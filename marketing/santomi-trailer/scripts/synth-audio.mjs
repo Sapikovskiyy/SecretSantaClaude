@@ -250,3 +250,29 @@ function musicTeaser() {
   return out
 }
 writeWav('music-teaser.wav', musicTeaser())
+
+// ---------- chat feature trailer bed (15 s) ----------
+// Chat edit (frames @30): ask 0–200 · the other side 200–330 · brand 330–450 (finale chord at 11.0 s).
+function musicChat() {
+  const LEN = 15
+  const m = buf(LEN + 3)
+  add(m, pad([50, 57, 61, 64, 66], 3.9, { amp: 0.07, bright: 0.85, attack: 1.4, release: 1.2 }), 0)
+  add(m, pad([47, 54, 57, 61, 62], 3.2, { amp: 0.072, bright: 0.95, attack: 0.6, release: 1.2 }), 3.67)
+  add(m, pad([43, 50, 54, 57, 62], 4.4, { amp: 0.072, bright: 1, attack: 0.6, release: 1.0 }), 6.67)
+  for (let t = 2.5; t < 10.6; t += 1) add(m, thump({ amp: 0.16, decay: 0.32 }), t)
+  const seqs = [[69, 73, 76, 78], [66, 69, 73, 74], [67, 71, 74, 78]]
+  for (let t = 2.5; t < 10.75; t += 0.5) {
+    const seq = seqs[t < 3.67 ? 0 : t < 6.67 ? 1 : 2]
+    const i = Math.round((t - 2.5) / 0.5) % 4
+    add(m, celesta(seq[i], { amp: 0.04, decay: 0.6, p: i % 2 ? 0.35 : -0.35 }), t)
+  }
+  add(m, pad([38, 50, 57, 61, 64, 66, 69], 3.8, { amp: 0.085, bright: 1.1, attack: 0.25, release: 2.2 }), 11)
+  ;[74, 78, 81, 85, 86].forEach((n, k) => add(m, celesta(n, { amp: 0.055, decay: 1.2, p: k % 2 ? 0.4 : -0.4 }), 11.5 + k * 0.4))
+  highpass(m[0], 35); highpass(m[1], 35)
+  reverb(m, { mix: 0.32, size: 1.15, damp: 0.45 })
+  for (const ch of m) for (let i = N(13.6); i < ch.length; i++) ch[i] *= Math.max(0, 1 - (i - N(13.6)) / N(1.4))
+  const out = [m[0].slice(0, N(LEN)), m[1].slice(0, N(LEN))]
+  normalize(out, -3)
+  return out
+}
+writeWav('music-chat.wav', musicChat())
