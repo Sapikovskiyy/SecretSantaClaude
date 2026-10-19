@@ -122,7 +122,7 @@ body {
   Sizes use rem so the user's text-size setting is respected.
 */
 @layer components {
-/* Welcome / reveal / AI Plus — 40–44 px */
+/* Welcome / reveal / Santa+ — 40–44 px */
 .type-hero {
   font-weight: 700;
   font-size: clamp(2.5rem, 10.6vw, 2.75rem);

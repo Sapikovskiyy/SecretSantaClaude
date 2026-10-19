@@ -1,5 +1,5 @@
 /**
- * 13 · AI Plus paywall — sheet 04/screen 13.
+ * 13 · Santa+ paywall — sheet 04/screen 13.
  * Large display headline + robot, cream benefits, Stars price block, gold CTA.
  * No payment is simulated: Telegram Stars checkout arrives in Phase 5; premium is never
  * unlocked from the client. The mockup's «100 ₽» is a hypothesis — price is shown in Stars
@@ -34,7 +34,7 @@ export function Premium() {
 
   return (
     <Screen back headless className="!pb-0">
-      <PageHeader back title="AI Plus" right={<Logo compact className="scale-90" />} />
+      <PageHeader back title="Santa+" right={<Logo compact className="scale-90" />} />
 
       {/* Hero */}
       <div className="relative flex min-h-[230px] items-end px-5">
@@ -81,7 +81,7 @@ export function Premium() {
                 <Icon name="star" size={22} className="self-center text-gold" />
                 <span className="text-callout text-ink-soft">/ 30 дней</span>
               </p>
-              <p className="text-footnote text-ink-soft">Подписка AI Plus, оплата в Telegram Stars</p>
+              <p className="text-footnote text-ink-soft">Подписка Santa+, оплата в Telegram Stars</p>
             </div>
             <span className="shrink-0 rounded-[14px] bg-marzipan px-3 py-2 text-center text-caption font-semibold leading-tight text-ink/70">
               Цена

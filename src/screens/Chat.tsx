@@ -1,16 +1,16 @@
 /**
- * 11 · Anonymous chat — sheet 03/screen 11.
+ * 11 · Anonymous chat — design/references/05-overview-original.png («Anonymous chat»).
  * Two-way thread tied to an assignment. The recipient only ever sees «Твой Тайный Санта».
- * Cream bubbles = them, red bubbles = me; anonymity banner; «Попробуйте спросить» grid;
- * cream composer with red send. Delivery states: sending → sent, failed → retry.
+ * Centred title + who you talk to; red bubbles = me, dark bubbles = them; a quiet anonymity
+ * note; «Попробуйте спросить» grid; dark composer pill with a round red send.
+ * Delivery states: sending → sent, failed → retry.
  * Motion: only NEW messages animate (140–220 ms); autoscroll only when the reader is at the bottom.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Navigate, useParams } from 'react-router'
+import { Navigate, useNavigate, useParams } from 'react-router'
 import { AnimatePresence, motion } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
-import { PageHeader } from '@/components/ds'
-import { Avatar, DemoBadge, Sheet } from '@/components/ui/Kit'
+import { DemoBadge, Sheet } from '@/components/ui/Kit'
 import { Icon } from '@/components/ui/Icon'
 import { Art } from '@/components/art/Art'
 import { chatKeyOf, useDemo } from '@/data/demoStore'
@@ -18,7 +18,7 @@ import { usePerson } from '@/data/people'
 import { SUGGESTED_QUESTIONS_TO_RECIPIENT, SUGGESTED_REPLIES_TO_SANTA, type Suggestion } from '@/data/demoSeed'
 import type { ChatMessage, ChatRole } from '@/domain/types'
 import { timeHM } from '@/lib/format'
-import { haptic } from '@/lib/telegram'
+import { haptic, isTelegram } from '@/lib/telegram'
 import { toast } from '@/data/uiStore'
 import { DUR, EASE, PRESS, tween } from '@/motion/tokens'
 import { NotFound } from './NotFound'
@@ -38,6 +38,7 @@ export function Chat() {
   const typing = useDemo((s) => s.typing[chatKeyOf(id ?? '', role)])
   const { sendMessage, retryMessage, markRead } = useDemo()
   const recipient = usePerson(room?.myRecipientId)
+  const navigate = useNavigate()
   const [text, setText] = useState('')
   const [report, setReport] = useState(false)
   const lastSent = useRef(0)
@@ -93,42 +94,32 @@ export function Chat() {
         }}
       />
 
-      <div className="sticky top-0 z-20 bg-cocoa/90 pb-2 backdrop-blur-md" style={{ paddingTop: 4 }}>
-        <PageHeader
-          back={`/rooms/${room.id}`}
-          leading={
-            toRecipient ? (
-              <Avatar person={recipient} size={38} />
-            ) : (
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ember/20">
-                <Art name="santa" size={34} noShadow eager />
-              </span>
-            )
-          }
-          title={toRecipient ? recipient?.name : 'Твой Тайный Санта'}
-          subtitle="Анонимный чат"
-          right={
-            <motion.button
-              whileTap={PRESS}
-              aria-label="Пожаловаться"
-              onClick={() => setReport(true)}
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10"
-            >
-              <Icon name="flag" size={20} />
+      <div className="sticky top-0 z-20 bg-cocoa/90 pb-3 backdrop-blur-md" style={{ paddingTop: 22 }}>
+        <div className="relative flex h-12 items-center justify-between px-[22px]">
+          {!isTelegram ? (
+            <motion.button whileTap={PRESS} aria-label="Назад" onClick={() => navigate(`/rooms/${room.id}`)} className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
+              <Icon name="back" size={22} />
             </motion.button>
-          }
-        />
+          ) : (
+            <span className="w-12" />
+          )}
+          <motion.button whileTap={PRESS} aria-label="Пожаловаться" onClick={() => setReport(true)} className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
+            <Icon name="flag" size={20} />
+          </motion.button>
+        </div>
+        <div className="-mt-1 px-16 text-center">
+          <h1 className="t-section font-medium text-snow">Анонимный чат</h1>
+          <p className="mt-1 truncate text-callout text-snow/75">{toRecipient ? `Получатель: ${recipient?.name ?? '—'}` : 'Твой Тайный Санта'}</p>
+        </div>
       </div>
 
       <div className="relative flex-1 px-4 pb-4">
         {/* Anonymity banner */}
-        <div className="mx-1 mt-2 flex items-start gap-3 rounded-[20px] border border-white/8 bg-white/[0.04] p-4">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold">
-            <Icon name="lock" size={18} />
-          </span>
-          <div className="text-footnote leading-snug">
-            <p className="font-bold text-gold">Вы общаетесь анонимно</p>
-            <p className="mt-0.5 text-snow/65">
+        <div className="mx-auto mt-1 flex max-w-[340px] items-start gap-2.5 rounded-[18px] bg-white/[0.04] px-3.5 py-2.5">
+          <Icon name="lock" size={16} className="mt-0.5 shrink-0 text-gold" />
+          <div className="text-caption leading-snug">
+            <p className="font-semibold text-gold">Вы общаетесь анонимно</p>
+            <p className="mt-0.5 text-snow/60">
               {toRecipient
                 ? `${recipient?.name ?? 'Получатель'} видит вас только как «Твой Тайный Санта».`
                 : 'Санта знает, кто вы. Вы узнаете его на обмене подарками.'}
@@ -153,11 +144,11 @@ export function Chat() {
           </AnimatePresence>
           {typing && (
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={tween(DUR.message)} className="flex">
-              <div className="flex gap-1 rounded-[22px] rounded-bl-[8px] bg-marzipan px-4 py-3.5" aria-label="Собеседник печатает">
+              <div className="flex gap-1 rounded-[24px] rounded-bl-[8px] bg-[#3b2a23] px-4 py-3.5" aria-label="Собеседник печатает">
                 {[0, 1, 2].map((i) => (
                   <motion.span
                     key={i}
-                    className="h-2 w-2 rounded-full bg-ink/45"
+                    className="h-2 w-2 rounded-full bg-snow/55"
                     animate={{ opacity: [0.3, 1, 0.3] }}
                     transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.18 }}
                   />
@@ -195,7 +186,7 @@ export function Chat() {
         )}
 
         <form
-          className="flex items-end gap-2 rounded-[28px] bg-marzipan p-1.5 pl-5"
+          className="flex items-end gap-2.5"
           onSubmit={(e) => {
             e.preventDefault()
             send()
@@ -214,15 +205,15 @@ export function Chat() {
             }}
             placeholder="Написать сообщение…"
             aria-label="Сообщение"
-            className="max-h-32 min-h-[48px] flex-1 resize-none bg-transparent py-3 text-body text-ink placeholder:text-ink/40 outline-none"
+            className="max-h-32 min-h-[54px] flex-1 resize-none rounded-[27px] bg-white/[0.08] px-5 py-[15px] text-body text-snow placeholder:text-snow/45 outline-none ring-1 ring-white/[0.06] focus:ring-white/20"
           />
           <motion.button
             whileTap={PRESS}
             disabled={!text.trim()}
             aria-label="Отправить"
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-ember text-snow transition-opacity disabled:opacity-40"
+            className="flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full bg-[linear-gradient(180deg,#f04b22,#dc2016)] text-snow shadow-[0_8px_18px_-8px_rgba(200,30,14,.8)] transition-opacity disabled:opacity-45"
           >
-            <Icon name="send" size={20} />
+            <Icon name="send" size={21} className="fill-current" />
           </motion.button>
         </form>
         <div className="mt-2 flex items-center justify-between px-2 text-caption text-snow/40">
@@ -268,12 +259,14 @@ function Bubble({ m, onRetry }: { m: ChatMessage; onRetry: () => void }) {
       className={`flex flex-col ${m.mine ? 'items-end' : 'items-start'}`}
     >
       <div
-        className={`max-w-[82%] rounded-[22px] px-4 pb-2 pt-3 text-callout leading-snug ${
-          m.mine ? `rounded-br-[8px] bg-ember text-snow ${failed ? 'opacity-70' : ''}` : 'rounded-bl-[8px] bg-marzipan text-ink'
+        className={`max-w-[80%] rounded-[24px] px-[18px] pb-2.5 pt-3.5 text-body leading-snug ${
+          m.mine
+            ? `rounded-br-[8px] bg-[linear-gradient(180deg,#e2381c,#bf2414)] text-snow shadow-[0_8px_18px_-12px_rgba(200,30,14,.9)] ${failed ? 'opacity-70' : ''}`
+            : 'rounded-bl-[8px] bg-[#3b2a23] text-snow ring-1 ring-white/[0.05]'
         }`}
       >
         <p className="whitespace-pre-wrap break-words">{m.text}</p>
-        <p className={`mt-1 flex items-center justify-end gap-1 text-caption ${m.mine ? 'text-snow/70' : 'text-ink/45'}`}>
+        <p className={`mt-1 flex items-center justify-end gap-1 text-caption ${m.mine ? 'text-snow/70' : 'text-snow/45'}`}>
           {timeHM(m.at)}
           {m.mine && m.status === 'sending' && <Icon name="clock" size={13} aria-label="Отправляется" />}
           {m.mine && (m.status === 'sent' || !m.status) && <Icon name="checks" size={15} aria-label="Доставлено" />}

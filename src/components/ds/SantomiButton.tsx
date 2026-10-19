@@ -1,6 +1,6 @@
 /**
  * SantomiButton — the single button primitive of the app.
- * Variants: primary (red) · success (emerald) · premium (gold, AI Plus) · secondary (cream) · ghost · danger.
+ * Variants: primary (red) · success (emerald) · premium (gold, Santa+) · secondary (cream) · ghost · danger.
  * One prominent gradient CTA per screen; quieter actions use secondary/ghost.
  * Styling lives in src/styles/buttons.css (pure CSS press physics, reduced-motion aware).
  */

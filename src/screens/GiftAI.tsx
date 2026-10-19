@@ -3,7 +3,7 @@
  * Back circle + filters circle; two-line title; cream speech bubble next to the robot mascot;
  * cream «Выберите получателя» panel with avatars; dark query pill with a red send button.
  * Budget and interests live in the filters sheet. Up to 5 recommendations with save,
- * follow-ups, free limit → AI Plus.
+ * follow-ups, free limit → Santa+.
  * Controlled workflow (not a free chat); every free-text query passes the topic guard.
  * DEMO: ideas come from the local catalog instantly — no fake «thinking» delay, and
  * prices are category ranges, never live shop prices. Phase 4: Edge Function → Yandex AI.
@@ -367,9 +367,9 @@ export function GiftAI() {
       <Sheet open={paywall} onClose={() => setPaywall(false)} title="Бесплатные подборы закончились">
         <div className="flex flex-col items-center text-center">
           <Art name="robot" size={120} />
-          <p className="mt-2 max-w-[30ch] text-callout text-ink/70">С Santomi AI Plus — 50 подборов на 30 дней, анализ вишлистов и сохранённые идеи</p>
+          <p className="mt-2 max-w-[30ch] text-callout text-ink/70">С Santa+ — 50 подборов на 30 дней, анализ вишлистов и сохранённые идеи</p>
           <SantomiButton variant="premium" leadingIcon="star" fullWidth className="mt-5" onClick={() => navigate('/premium')}>
-            Подробнее об AI Plus
+            Подробнее о Santa+
           </SantomiButton>
           <button className="mt-3 h-11 text-secondary text-ink-soft" onClick={() => setPaywall(false)}>
             Не сейчас

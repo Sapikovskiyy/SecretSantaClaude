@@ -1,35 +1,43 @@
 /**
- * 06 · Participants & exclusions — sheet 02/screen 06.
- * Tabs: «Участники» (readiness, remind, remove), «Исключения» (A × B chips, organizer only —
- * matches the DB rule that exclusions are organizer-only knowledge), «Правила».
- * The mockup's «Пары» tab is deliberately replaced by «Правила»: pairs are never shown.
+ * 08 · Participants — design/references/05-overview-original.png («Participants / 12 people»).
+ * Dark screen: back circle + «+» (invite, organizer); large title + «N человек»; a calm list of
+ * avatars with name, role/readiness, crown for the organizer and «⋯» actions. Exclusions sit in
+ * a cream card below the list (organizer only — exclusions are organizer-only knowledge);
+ * the rules open in a sheet. Pairs are never shown.
  */
 import { useMemo, useState } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router'
 import { AnimatePresence, motion } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
 import { Avatar, Sheet, Toggle, inputLight } from '@/components/ui/Kit'
-import { Icon } from '@/components/ui/Icon'
-import { ErrorState, PageHeader, PrimaryCTA, SantomiButton, Segmented } from '@/components/ds'
-import { FREE_PARTICIPANT_LIMIT, ME, isMember, useDemo } from '@/data/demoStore'
+import { Icon, type IconName } from '@/components/ui/Icon'
+import { ErrorState, SantomiButton } from '@/components/ds'
+import { ME, isMember, useDemo } from '@/data/demoStore'
 import { personName, useRoomPeople } from '@/data/people'
 import { drawAssignments } from '@/domain/draw'
-import { haptic } from '@/lib/telegram'
+import { plural } from '@/lib/format'
+import { haptic, isTelegram } from '@/lib/telegram'
 import { toast } from '@/data/uiStore'
 import { DUR, EASE, PRESS, tween } from '@/motion/tokens'
 import { NotFound } from './NotFound'
 
-type Tab = 'people' | 'exclusions' | 'rules'
+const RULES: [IconName, string][] = [
+  ['users', 'Минимум 3 участника'],
+  ['shuffle', 'Каждый дарит ровно одному человеку и получает ровно один подарок'],
+  ['x', 'Никто не вытянет сам себя, исключения всегда соблюдаются'],
+  ['lock', 'Пары видит только сервер. Организатор и участники не видят, кто кому дарит'],
+  ['alert', 'Жеребьёвка проводится один раз — после неё состав не меняется'],
+]
 
 export function Participants() {
   const { id } = useParams()
   const navigate = useNavigate()
   const room = useDemo((s) => s.rooms.find((r) => r.id === id))
-  const { addDemoParticipant, removeMember, addExclusion, removeExclusion, me } = useDemo()
+  const { removeMember, addExclusion, removeExclusion, me } = useDemo()
   const people = useRoomPeople(room)
-  const [tab, setTab] = useState<Tab>('people')
   const [menuFor, setMenuFor] = useState<string | null>(null)
   const [addEx, setAddEx] = useState(false)
+  const [rules, setRules] = useState(false)
 
   const feasible = useMemo(() => {
     if (!room || room.members.length < 3) return true
@@ -40,150 +48,112 @@ export function Participants() {
   if (!isMember(room)) return <Navigate to={`/join/${room.inviteCode}`} replace />
   const isOrganizer = room.organizerId === ME
   const editable = isOrganizer && room.stage === 'gathering'
-  const limit = room.participantLimit ?? FREE_PARTICIPANT_LIMIT
-
-  const tabs: { id: Tab; label: string }[] = [
-    { id: 'people', label: `Участники ${people.length}` },
-    ...(isOrganizer ? [{ id: 'exclusions' as Tab, label: 'Исключения' }] : []),
-    { id: 'rules', label: 'Правила' },
-  ]
 
   return (
-    <Screen back={`/rooms/${room.id}`} headless className="!pb-0">
-      <PageHeader back={`/rooms/${room.id}`} title="Участники" />
-      <div className="mt-3 px-5">
-        <Segmented label="Раздел участников" value={tab} onChange={setTab} options={tabs} />
+    <Screen back={`/rooms/${room.id}`} headless surface="cocoa" className="!pb-0">
+      {/* Header */}
+      <div className="mt-[22px] flex h-12 items-center justify-between px-[22px]">
+        {!isTelegram ? (
+          <motion.button whileTap={PRESS} aria-label="Назад" onClick={() => navigate(`/rooms/${room.id}`)} className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
+            <Icon name="back" size={22} />
+          </motion.button>
+        ) : (
+          <span className="w-12" />
+        )}
+        {editable ? (
+          <motion.button
+            whileTap={PRESS}
+            aria-label="Пригласить участников"
+            onClick={() => navigate(`/rooms/${room.id}/invite`)}
+            className="flex h-[46px] w-[46px] items-center justify-center rounded-full border-[1.25px] border-[#e2c7b4]/85 text-snow"
+          >
+            <Icon name="plus" size={26} strokeWidth={1.5} />
+          </motion.button>
+        ) : (
+          <span className="w-12" />
+        )}
       </div>
 
-      <section className="relative z-10 mt-5 flex-1 rounded-t-[32px] bg-marzipan px-5 pb-36 pt-6 text-ink">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div key={tab} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={tween(0.18)}>
-            {tab === 'people' && (
-              <>
-                <div className="flex items-center justify-between">
-                  <h2 className="text-card font-semibold">
-                    Участники ({people.length}
-                    {limit ? ` из ${limit}` : ''})
-                  </h2>
-                  {editable && (
-                    <button
-                      onClick={() => {
-                        const p = addDemoParticipant(room.id)
-                        if (p) toast(`${p.name} присоединяется (демо)`)
-                        else toast('Больше нельзя добавить участников', 'error')
-                      }}
-                      className="flex h-10 items-center gap-1.5 rounded-full bg-snow px-3.5 text-secondary font-semibold"
-                    >
-                      <Icon name="plus" size={16} /> Добавить
-                    </button>
-                  )}
+      <div className="px-6 pt-[22px]">
+        <h1 className="t-page-tight text-snow">Участники</h1>
+        <p className="mt-2 text-body text-snow/75">
+          {people.length} {plural(people.length, 'человек', 'человека', 'человек')}
+        </p>
+      </div>
+
+      <ul className="mt-5 px-5" aria-label="Список участников">
+        <AnimatePresence initial={false}>
+          {people.map((p, i) => {
+            const m = room.members.find((x) => x.personId === p.id)!
+            const organizer = p.id === room.organizerId
+            const sub = organizer ? 'Организатор' : m.wishlistReady ? 'Вишлист готов' : 'Вишлист не готов'
+            return (
+              <motion.li
+                key={p.id}
+                layout
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, x: 12, height: 0 }}
+                transition={{ duration: DUR.layout, ease: EASE, delay: Math.min(i, 6) * 0.03 }}
+                className="flex items-center gap-4 border-b border-white/[0.07] py-[11px] last:border-b-0"
+              >
+                <span className="rounded-full ring-2 ring-[#efe2d8]/85">
+                  <Avatar person={p} size={46} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-button text-snow">{p.id === ME ? (p.name !== 'Вы' ? `${p.name} (вы)` : 'Вы') : p.name}</p>
+                  <p className="text-secondary text-taupe-soft">{sub}</p>
                 </div>
-                <ul className="mt-3 divide-y divide-ink/6 overflow-hidden rounded-[22px] bg-snow">
-                  <AnimatePresence initial={false}>
-                    {people.map((p) => {
-                      const m = room.members.find((x) => x.personId === p.id)!
-                      const organizer = p.id === room.organizerId
-                      return (
-                        <motion.li
-                          key={p.id}
-                          layout
-                          initial={{ opacity: 0, x: -12 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 12, height: 0 }}
-                          transition={{ duration: DUR.layout, ease: EASE }}
-                          className="flex items-center gap-3 px-3.5 py-3"
-                        >
-                          <Avatar person={p} size={44} />
-                          <div className="min-w-0 flex-1">
-                            <p className="flex items-center gap-1.5 truncate text-body font-semibold">
-                              {p.id === ME && p.name !== 'Вы' ? `${p.name} (вы)` : p.name}
-                              {organizer && <Icon name="crown" size={16} className="shrink-0 text-gold" aria-label="Организатор" />}
-                            </p>
-                            <p className="flex items-center gap-1.5 text-footnote text-ink-soft">
-                              <span className={`h-2 w-2 rounded-full ${m.wishlistReady ? 'bg-pine-glow' : 'bg-ember'}`} aria-hidden />
-                              {m.wishlistReady ? 'вишлист готов' : 'вишлист не готов'}
-                            </p>
-                          </div>
-                          {!m.wishlistReady && p.id !== ME && room.stage === 'gathering' && (
-                            <button
-                              onClick={() => {
-                                haptic.tap()
-                                toast(`Напоминание для ${p.name} отправлено (демо)`)
-                              }}
-                              className="h-8 shrink-0 rounded-full bg-ember/10 px-3 text-footnote font-semibold text-ember"
-                            >
-                              Напомнить
-                            </button>
-                          )}
-                          {editable && !organizer && (
-                            <motion.button whileTap={PRESS} aria-label={`Действия: ${p.name}`} onClick={() => setMenuFor(p.id)} className="flex h-10 w-8 shrink-0 items-center justify-center text-ink/50">
-                              <Icon name="more" size={22} strokeWidth={2.6} />
-                            </motion.button>
-                          )}
-                        </motion.li>
-                      )
-                    })}
-                  </AnimatePresence>
-                </ul>
-                {isOrganizer && (
-                  <ExclusionsBlock
-                    exclusions={room.exclusions}
-                    name={(pid) => personName(pid, me)}
-                    editable={editable}
-                    onRemove={(i) => removeExclusion(room.id, i)}
-                    onAdd={() => setAddEx(true)}
-                    feasible={feasible}
-                    compact
-                  />
+                {!m.wishlistReady && p.id !== ME && room.stage === 'gathering' && (
+                  <button
+                    onClick={() => {
+                      haptic.tap()
+                      toast(`Напоминание для ${p.name} отправлено (демо)`)
+                    }}
+                    className="h-8 shrink-0 rounded-full bg-white/[0.08] px-3 text-footnote text-snow/85"
+                  >
+                    Напомнить
+                  </button>
                 )}
-              </>
-            )}
-
-            {tab === 'exclusions' && (
-              <>
-                <p className="text-callout text-ink/75">Эти участники не будут дарить подарки друг другу — например, пары или члены одной семьи.</p>
-                <ExclusionsBlock
-                  exclusions={room.exclusions}
-                  name={(pid) => personName(pid, me)}
-                  editable={editable}
-                  onRemove={(i) => removeExclusion(room.id, i)}
-                  onAdd={() => setAddEx(true)}
-                  feasible={feasible}
-                />
-              </>
-            )}
-
-            {tab === 'rules' && (
-              <ul className="space-y-2.5">
-                {[
-                  ['users', 'Минимум 3 участника'],
-                  ['shuffle', 'Каждый дарит ровно одному человеку и получает ровно один подарок'],
-                  ['x', 'Никто не вытянет сам себя, исключения всегда соблюдаются'],
-                  ['lock', 'Пары видит только сервер. Организатор и участники не видят, кто кому дарит'],
-                  ['alert', 'Жеребьёвка проводится один раз — после неё состав не меняется'],
-                ].map(([icon, text]) => (
-                  <li key={text} className="flex items-start gap-3 rounded-[18px] bg-snow p-4">
-                    <Icon name={icon as 'users'} size={20} className="mt-0.5 shrink-0 text-ember" />
-                    <span className="text-callout">{text}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </motion.div>
+                {organizer && <Icon name="crown" size={22} className="shrink-0 text-gold" aria-label="Организатор" />}
+                {editable && !organizer && (
+                  <motion.button whileTap={PRESS} aria-label={`Действия: ${p.name}`} onClick={() => setMenuFor(p.id)} className="flex h-10 w-8 shrink-0 items-center justify-center text-snow/55">
+                    <Icon name="more" size={22} strokeWidth={2.6} className="rotate-90" />
+                  </motion.button>
+                )}
+              </motion.li>
+            )
+          })}
         </AnimatePresence>
-      </section>
+      </ul>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[480px] bg-[linear-gradient(to_top,var(--color-marzipan)_75%,transparent)] px-5 pt-6" style={{ paddingBottom: 'calc(var(--sa-bottom) + 16px)' }}>
-        <PrimaryCTA
-          icon="check"
-          onClick={() => {
-            toast('Настройки сохранены')
-            navigate(`/rooms/${room.id}`)
-          }}
-        >
-          Сохранить настройки
-        </PrimaryCTA>
+      <div className="mt-4 space-y-3 px-4" style={{ paddingBottom: 'calc(var(--sa-bottom) + 24px)' }}>
+        {isOrganizer && (
+          <ExclusionsBlock
+            exclusions={room.exclusions}
+            name={(pid) => personName(pid, me)}
+            editable={editable}
+            onRemove={(i) => removeExclusion(room.id, i)}
+            onAdd={() => setAddEx(true)}
+            feasible={feasible}
+          />
+        )}
+        <button onClick={() => setRules(true)} className="flex h-12 w-full items-center justify-between rounded-[18px] bg-white/[0.06] px-4 text-left text-body text-snow/90">
+          Правила жеребьёвки
+          <Icon name="forward" size={18} className="text-snow/55" />
+        </button>
       </div>
+
+      <Sheet open={rules} onClose={() => setRules(false)} title="Правила жеребьёвки">
+        <ul className="space-y-2.5">
+          {RULES.map(([icon, text]) => (
+            <li key={text} className="flex items-start gap-3 rounded-[18px] bg-snow p-4">
+              <Icon name={icon} size={20} className="mt-0.5 shrink-0 text-ember" />
+              <span className="text-callout">{text}</span>
+            </li>
+          ))}
+        </ul>
+      </Sheet>
 
       <Sheet open={!!menuFor} onClose={() => setMenuFor(null)} title={menuFor ? personName(menuFor, me) : undefined}>
         <SantomiButton
@@ -212,7 +182,6 @@ function ExclusionsBlock({
   onRemove,
   onAdd,
   feasible,
-  compact,
 }: {
   exclusions: { a: string; b: string; mutual: boolean }[]
   name: (id: string) => string
@@ -220,10 +189,9 @@ function ExclusionsBlock({
   onRemove: (i: number) => void
   onAdd: () => void
   feasible: boolean
-  compact?: boolean
 }) {
   return (
-    <div className={`${compact ? 'mt-5' : 'mt-4'} rounded-[22px] bg-snow p-4`}>
+    <div className="rounded-[24px] bg-[linear-gradient(180deg,#ffe8d2,#fde2c8)] p-4 text-ink">
       <p className="text-body font-semibold">Исключения при жеребьёвке</p>
       <p className="mt-0.5 text-footnote text-ink-soft">Эти участники не будут дарить подарки друг другу</p>
       <div className="mt-3 flex flex-wrap gap-2">
@@ -236,7 +204,7 @@ function ExclusionsBlock({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.8 }}
               transition={tween(DUR.chip)}
-              className="flex h-9 items-center gap-1.5 rounded-full bg-marzipan pl-3.5 pr-1.5 text-footnote font-semibold"
+              className="flex h-9 items-center gap-1.5 rounded-full bg-[#f7d8bf] pl-3.5 pr-1.5 text-footnote font-semibold"
             >
               {name(e.a)} {e.mutual ? '×' : '→'} {name(e.b)}
               {editable && (

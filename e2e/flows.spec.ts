@@ -75,7 +75,7 @@ test('create a room, invite, add demo participants, run the draw and reveal', as
   await shots('05-room', page, info.project.name)
   await page.getByRole('button', { name: 'Перейти к жеребьёвке' }).click()
 
-  await expect(page.getByRole('heading', { name: 'Проверьте участников' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Время жеребьёвки!' })).toBeVisible()
   await page.waitForTimeout(500)
   await shots('09-draw', page, info.project.name)
   await page.getByRole('button', { name: 'Запустить жеребьёвку' }).click()
@@ -116,7 +116,8 @@ test('draw cannot run twice; participants cannot start it', async ({ page }) => 
 test('participants: exclusions, impossible configuration, reminders', async ({ page }, info) => {
   await enterApp(page)
   await page.goto('/rooms/r-friends/participants')
-  await expect(page.getByRole('heading', { name: /Участники \(4/ })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Участники', exact: true })).toBeVisible()
+  await expect(page.getByText('4 человека')).toBeVisible()
   await page.getByRole('button', { name: 'Напомнить' }).first().click()
   await expect(page.getByText(/Напоминание для .* отправлено/)).toBeVisible()
   // Build exclusions until the draw becomes impossible: me ⇄ everyone.
@@ -129,7 +130,7 @@ test('participants: exclusions, impossible configuration, reminders', async ({ p
   await expect(page.getByText('Пары не сложатся').first()).toBeVisible()
   await page.waitForTimeout(400)
   await shots('06-participants', page, info.project.name)
-  await page.getByRole('tab', { name: 'Правила' }).click()
+  await page.getByRole('button', { name: 'Правила жеребьёвки' }).click()
   await expect(page.getByText(/Пары видит только сервер/)).toBeVisible()
   // The draw screen blocks the impossible configuration
   await page.goto('/rooms/r-friends/draw')
@@ -257,7 +258,7 @@ test('anonymous chat: offline send fails and can be retried', async ({ page, con
   await expect(page.getByLabel('Доставлено').last()).toBeVisible()
 })
 
-test('gift AI: topic guard, results, saving, free limit leads to AI Plus', async ({ page }, info) => {
+test('gift AI: topic guard, results, saving, free limit leads to Santa+', async ({ page }, info) => {
   await enterApp(page)
   await page.goto('/ai')
   await expect(page.getByText('Для кого ищем подарок?')).toBeVisible()
@@ -281,7 +282,7 @@ test('gift AI: topic guard, results, saving, free limit leads to AI Plus', async
   await expect(page.getByText('Бесплатно осталось: 0 из 3')).toBeVisible()
   await page.getByRole('button', { name: 'Что-то необычное' }).click()
   await expect(page.getByText('Бесплатные подборы закончились')).toBeVisible()
-  await page.getByRole('button', { name: 'Подробнее об AI Plus' }).click()
+  await page.getByRole('button', { name: 'Подробнее о Santa+' }).click()
   await expect(page).toHaveURL(/\/premium$/)
 })
 
@@ -310,7 +311,7 @@ test('animation runtimes stay lazy: no Rive/dotLottie download without real asse
   expect(heavy, heavy.join('\n')).toEqual([])
 })
 
-test('AI Plus never simulates a payment', async ({ page }, info) => {
+test('Santa+ never simulates a payment', async ({ page }, info) => {
   await enterApp(page)
   await page.goto('/premium')
   await expect(page.getByRole('heading', { name: 'Подарки на новом уровне' })).toBeVisible()
