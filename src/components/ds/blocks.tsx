@@ -7,6 +7,7 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 import { motion } from 'motion/react'
 import type { Person, Room } from '@/domain/types'
+import { DEFAULT_COVER } from '@/domain/look'
 import { Art } from '@/components/art/Art'
 import { Icon, type IconName } from '@/components/ui/Icon'
 import { AvatarStack } from '@/components/ui/Kit'
@@ -83,7 +84,8 @@ export function SectionTitle({ children, action, tone = 'light' }: { children: R
 
 /* ───────────────────────── Room row ───────────────────────── */
 
-export const roomArt = (room: Pick<Room, 'theme'>) => ({ ember: 'bauble', pine: 'house', cocoa: 'gift-star' })[room.theme]
+/** Game illustration: the organizer's chosen cover (domain/look.ts). */
+export const roomArt = (room: Pick<Room, 'cover'>) => room.cover ?? DEFAULT_COVER
 
 export function roomStatus(room: Room): { label: string; tone: 'green' | 'gold' | 'red' | 'muted' } {
   if (room.stage === 'gathering') return room.organizerId === ME ? { label: 'Сбор', tone: 'gold' } : { label: 'Ожидание', tone: 'gold' }

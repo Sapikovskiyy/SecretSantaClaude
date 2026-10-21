@@ -3,24 +3,25 @@
  * Warm red light at the top; back + gear circles; centred game name and «N участников ·
  * Бюджет до …»; snow globe between two glowing stars; a cream panel rises over the scene with
  * a status card (calendar + date + black arrow), the participants' avatars and a quiet list:
- * Участники · Обмен вишлистами · Анонимный чат · Настройки игры.
+ * Участники · Обмен вишлистами · Анонимный чат · Оформление и настройки (CustomizeRoom).
+ * The scene uses the organizer's cover and theme light (domain/look.ts).
  * Stage-aware: gathering → draw (organizer only); drawn → reveal / recipient / chats; finished.
  * The organizer only ever sees aggregate readiness, never pairs.
  */
-import { useState, type ReactNode } from 'react'
+import { type ReactNode } from 'react'
 import { Navigate, useNavigate, useParams } from 'react-router'
 import { motion } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
-import { Avatar, Chip, Field, Sheet, Toggle, inputLight } from '@/components/ui/Kit'
+import { Avatar, Chip } from '@/components/ui/Kit'
 import { Icon, type IconName } from '@/components/ui/Icon'
 import { Art } from '@/components/art/Art'
 import { GlowStar } from '@/components/GlowStar'
 import { CalendarMark } from '@/components/CalendarMark'
-import { SantomiButton } from '@/components/ds'
 import { useRoomStats } from '@/components/ds/blocks'
 import { ME, isMember, unreadCount, useDemo } from '@/data/demoStore'
 import { personName, usePerson } from '@/data/people'
-import type { GiftStatus, Room } from '@/domain/types'
+import type { GiftStatus } from '@/domain/types'
+import { DEFAULT_COVER, themeLook } from '@/domain/look'
 import { formatRub, plural } from '@/lib/format'
 import { haptic, isTelegram } from '@/lib/telegram'
 import { toast } from '@/data/uiStore'
@@ -48,7 +49,6 @@ export function RoomDashboard() {
   const { setGiftStatus, chats, me } = useDemo()
   const { people, ready } = useRoomStats(room)
   const recipient = usePerson(room?.myRecipientId)
-  const [settings, setSettings] = useState(false)
 
   if (!room) return <NotFound />
   if (!isMember(room)) return <Navigate to={`/join/${room.inviteCode}`} replace />
@@ -80,7 +80,7 @@ export function RoomDashboard() {
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-[460px]"
-        style={{ background: 'radial-gradient(110% 70% at 50% 30%, rgba(160,34,18,.75) 0%, rgba(110,24,12,.55) 40%, rgba(45,29,22,0) 75%)' }}
+        style={{ background: `radial-gradient(110% 70% at 50% 30%, ${themeLook(room.theme).glow} 0%, rgba(45,29,22,.35) 45%, rgba(45,29,22,0) 75%)` }}
       />
 
       {/* Header */}
@@ -92,8 +92,8 @@ export function RoomDashboard() {
         ) : (
           <span className="w-12" />
         )}
-        {isOrganizer && room.stage === 'gathering' ? (
-          <motion.button whileTap={PRESS} aria-label="Настройки игры" onClick={() => setSettings(true)} className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
+        {isOrganizer ? (
+          <motion.button whileTap={PRESS} aria-label="Оформление и настройки" onClick={() => navigate(`/rooms/${room.id}/customize`)} className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
             <Icon name="gear" size={21} strokeWidth={1.6} />
           </motion.button>
         ) : (
@@ -112,7 +112,7 @@ export function RoomDashboard() {
       <div aria-hidden className="relative z-0 mx-auto mt-2 flex h-[206px] w-full items-end justify-center [@media(max-height:820px)]:h-[176px]">
         <GlowStar size={44} style={{ left: '9%', top: '46%' }} />
         <GlowStar size={40} delay={2} style={{ right: '10%', top: '38%' }} />
-        <Art name="snow-globe" size="min(214px, 22dvh)" eager noShadow />
+        <Art name={room.cover ?? DEFAULT_COVER} size="min(214px, 22dvh)" eager noShadow />
       </div>
 
       {/* Cream panel */}
@@ -181,8 +181,8 @@ export function RoomDashboard() {
             disabled={!room.chatEnabled || !drawn}
             onClick={() => navigate('/chats')}
           />
-          {isOrganizer && room.stage === 'gathering' && <Row icon="gear" label="Настройки игры" onClick={() => setSettings(true)} last />}
-          {!(isOrganizer && room.stage === 'gathering') && <Row icon="help" label="Правила и исключения" onClick={() => navigate(`/rooms/${room.id}/participants`)} last />}
+          {isOrganizer && <Row icon="gear" label="Оформление и настройки" onClick={() => navigate(`/rooms/${room.id}/customize`)} last />}
+          {!isOrganizer && <Row icon="help" label="Правила и исключения" onClick={() => navigate(`/rooms/${room.id}/participants`)} last />}
         </motion.ul>
 
         {/* Gift progress after the draw */}
@@ -214,7 +214,6 @@ export function RoomDashboard() {
         )}
       </section>
 
-      <SettingsSheet open={settings} onClose={() => setSettings(false)} room={room} />
     </Screen>
   )
 }
@@ -240,43 +239,5 @@ function Row({ icon, label, value, badge, onClick, disabled, last }: { icon: Ico
         <Icon name="forward" size={18} strokeWidth={1.8} className="shrink-0 text-ink/45" />
       </motion.button>
     </li>
-  )
-}
-
-function SettingsSheet({ open, onClose, room }: { open: boolean; onClose: () => void; room: Room }) {
-  const updateRoom = useDemo((s) => s.updateRoom)
-  const [name, setName] = useState(room.name)
-  const [budget, setBudget] = useState(String(room.budget))
-  const [date, setDate] = useState(room.date)
-  const [chat, setChat] = useState(room.chatEnabled)
-  return (
-    <Sheet open={open} onClose={onClose} title="Настройки игры">
-      <div className="space-y-4">
-        <Field label="Название">
-          <input className={inputLight} value={name} maxLength={60} onChange={(e) => setName(e.target.value)} />
-        </Field>
-        <div className="grid grid-cols-2 gap-3">
-          <Field label="Бюджет, ₽">
-            <input className={inputLight} inputMode="numeric" value={budget} onChange={(e) => setBudget(e.target.value.replace(/\D/g, '').slice(0, 6))} />
-          </Field>
-          <Field label="Дата обмена">
-            <input type="date" className={inputLight} value={date} onChange={(e) => setDate(e.target.value)} />
-          </Field>
-        </div>
-        <Toggle checked={chat} onChange={setChat} label="Анонимный чат" />
-        <SantomiButton
-          fullWidth
-          leadingIcon="check"
-          onClick={() => {
-            if (name.trim().length < 2 || Number(budget) < 100) return toast('Проверьте название и бюджет', 'error')
-            updateRoom(room.id, { name: name.trim(), budget: Number(budget), date, chatEnabled: chat })
-            toast('Настройки сохранены')
-            onClose()
-          }}
-        >
-          Сохранить
-        </SantomiButton>
-      </div>
-    </Sheet>
   )
 }

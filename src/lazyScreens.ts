@@ -42,6 +42,8 @@ export const Chats = screen(() => import('./screens/Chats'), 'Chats')
 export const Premium = screen(() => import('./screens/Premium'), 'Premium')
 export const Participants = screen(() => import('./screens/Participants'), 'Participants')
 export const Draw = screen(() => import('./screens/Draw'), 'Draw')
+export const CustomizeRoom = screen(() => import('./screens/CustomizeRoom'), 'CustomizeRoom')
+export const EditProfile = screen(() => import('./screens/EditProfile'), 'EditProfile')
 
 let prefetched = false
 /** Warm all screen chunks once the first screen is on screen and the main thread is idle. */

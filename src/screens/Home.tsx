@@ -14,6 +14,7 @@ import { Avatar } from '@/components/ui/Kit'
 import { Icon } from '@/components/ui/Icon'
 import { Art } from '@/components/art/Art'
 import { CalendarMark } from '@/components/CalendarMark'
+import { DEFAULT_COVER, themeLook } from '@/domain/look'
 import { ME, useMyRooms } from '@/data/demoStore'
 import { useRoomPeople } from '@/data/people'
 import type { Room } from '@/domain/types'
@@ -25,12 +26,8 @@ import { EASE, PRESS } from '@/motion/tokens'
 /** Active games first, then by nearest exchange date (finished games last). */
 const byDate = (a: Room, b: Room) => Number(a.stage === 'exchanged') - Number(b.stage === 'exchanged') || a.date.localeCompare(b.date)
 
-/** Card surface per room theme — emerald is the reference default. */
-const CARD_BG: Record<Room['theme'], string> = {
-  pine: 'radial-gradient(110% 70% at 75% 12%, #08744a 0%, #04603a 45%, #034e2d 100%)',
-  ember: 'radial-gradient(120% 80% at 30% 0%, #e2492c 0%, #b72d1a 50%, #7c1c10 100%)',
-  cocoa: 'radial-gradient(120% 80% at 30% 0%, #5a4038 0%, #3a2b25 55%, #281d19 100%)',
-}
+/** Card surface per room theme (domain/look.ts) — emerald is the reference default. */
+const CARD_BG = (theme: Room['theme']) => themeLook(theme).card
 
 /** Illustration that reflects the game's stage (not a random decoration). */
 export const stageArt = (r: Room) => (r.stage === 'exchanged' ? 'star' : r.stage === 'drawn' && r.revealSeen ? 'gift-star' : 'gift')
@@ -133,7 +130,7 @@ function Featured({ room }: { room: Room }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.32, ease: EASE }}
         className="relative mx-4 mt-[18px] overflow-hidden rounded-[33px] pb-[9px] shadow-[0_18px_40px_-18px_rgba(0,0,0,.6)]"
-        style={{ background: CARD_BG[room.theme] }}
+        style={{ background: CARD_BG(room.theme) }}
       >
         {/* Landscape: two soft hills + cream snow ground (static, behind the illustration) */}
         <span aria-hidden className="absolute left-[-9%] top-[252px] h-[130px] w-[44%] rounded-[50%] bg-[linear-gradient(180deg,#dcb987,#c6a473_60%)] [@media(max-height:820px)]:top-[228px]" />
@@ -153,7 +150,7 @@ function Featured({ room }: { room: Room }) {
           {/* Illustration stage: the globe sinks behind the status panel like in the reference */}
           <div style={{ clipPath: "inset(-200px 0 -80px 0)" }} className="relative -ml-[32px] -mr-[25px] h-[185px] [@media(max-height:820px)]:h-[160px]">
             <span className="absolute left-1/2 top-[-4px] -translate-x-1/2">
-              <Art name="snow-globe" size="min(240px, 28.5dvh)" eager noShadow />
+              <Art name={room.cover ?? DEFAULT_COVER} size="min(240px, 28.5dvh)" eager noShadow />
             </span>
           </div>
         </Link>
@@ -185,7 +182,7 @@ function EmptyFeatured() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.32, ease: EASE }}
       className="relative mx-4 mt-6 overflow-hidden rounded-[33px] px-[22px] pb-4 pt-6"
-      style={{ background: CARD_BG.pine }}
+      style={{ background: CARD_BG('pine') }}
     >
       <h1 className="t-hero-card text-snow">Первая игра</h1>
       <p className="mt-2 text-button font-normal text-snow/85">Создайте игру и позовите друзей</p>

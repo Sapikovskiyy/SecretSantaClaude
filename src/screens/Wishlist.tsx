@@ -47,7 +47,7 @@ const isValidUrl = (u: string) => !u || /^https?:\/\/[^\s/]+\.[^\s]+$/i.test(u)
 
 export function Wishlist() {
   const navigate = useNavigate()
-  const { wishlist, interests, avoid, savedIdeas, addWish, updateWish, removeWish, moveWish, addAvoid, removeAvoid, removeIdea } = useDemo()
+  const { wishlist, interests, avoid, profile, savedIdeas, addWish, updateWish, removeWish, moveWish, addAvoid, removeAvoid, removeIdea } = useDemo()
   const [filter, setFilter] = useState<Filter>('all')
   /** undefined = editor closed, null = new wish, string = editing that wish */
   const [editing, setEditing] = useState<string | null | undefined>(undefined)
@@ -159,6 +159,13 @@ export function Wishlist() {
                 />
                 <div className="mx-5 h-px bg-white/[0.08]" />
                 <HintRow icon="alert" title="Не дарить" label={`Не дарить${avoid.length ? ` (${avoid.length})` : ''}`} value={avoid.length ? avoid.join(', ') : 'Ничего не указано'} onClick={() => setAvoidOpen(true)} />
+                <div className="mx-5 h-px bg-white/[0.08]" />
+                <HintRow
+                  icon="user"
+                  label="Размеры"
+                  value={profile.clothing || profile.shoe ? [profile.clothing && `Одежда ${profile.clothing}`, profile.shoe && `обувь ${profile.shoe}`].filter(Boolean).join(' · ') : 'Не указаны'}
+                  onClick={() => navigate('/profile/edit')}
+                />
               </div>
             </motion.div>
           )}

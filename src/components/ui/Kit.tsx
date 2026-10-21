@@ -6,6 +6,7 @@ import { NavLink } from 'react-router'
 import type { Person } from '@/domain/types'
 import { haptic } from '@/lib/telegram'
 import { Icon, type IconName } from './Icon'
+import { Art } from '../art/Art'
 import { useUi } from '@/data/uiStore'
 
 export function Avatar({ person, size = 40, ring }: { person?: Person; size?: number; ring?: boolean }) {
@@ -21,7 +22,7 @@ export function Avatar({ person, size = 40, ring }: { person?: Person; size?: nu
       }}
       aria-label={person?.name}
     >
-      {initial}
+      {person?.avatarArt ? <Art name={person.avatarArt} size={Math.round(size * 0.8)} noShadow /> : initial}
     </span>
   )
 }

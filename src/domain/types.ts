@@ -19,12 +19,22 @@ export interface Person {
   name: string
   /** Hex tint for the generated avatar */
   tint: string
+  /** Optional 3D mascot (render key) instead of the initial */
+  avatarArt?: string
   isDemo?: boolean
+}
+
+/** What the user shares with their Secret Santa (visible only to the person who draws them). */
+export interface Profile {
+  bio: string
+  clothing?: string
+  shoe?: string
 }
 
 export type RoomStage = 'gathering' | 'drawn' | 'exchanged'
 export type GiftStatus = 'none' | 'choosing' | 'bought' | 'ready'
-export type RoomTheme = 'cocoa' | 'pine' | 'ember'
+export type RoomTheme = 'cocoa' | 'pine' | 'ember' | 'night' | 'gold'
+export type RoomCover = 'snow-globe' | 'house' | 'gift-green' | 'sleigh' | 'santa' | 'gift-star' | 'stocking' | 'bauble'
 
 export interface Exclusion {
   a: ID
@@ -53,6 +63,8 @@ export interface Room {
   participantLimit?: number
   chatEnabled: boolean
   theme: RoomTheme
+  /** Illustration on the game card and room scene (default: snow globe) */
+  cover?: RoomCover
   exclusions: Exclusion[]
   stage: RoomStage
   inviteCode: string

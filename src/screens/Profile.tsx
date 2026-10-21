@@ -24,7 +24,7 @@ const BENEFITS = ['50 AI-подборов на 30 дней', 'Анализ ви�
 
 export function Profile() {
   const navigate = useNavigate()
-  const { me, wishlist, aiUsed, resetDemo } = useDemo()
+  const { me, profile, wishlist, aiUsed, resetDemo } = useDemo()
   const rooms = useMyRooms()
   const [notif, setNotif] = useState(false)
   const [help, setHelp] = useState(false)
@@ -54,16 +54,19 @@ export function Profile() {
       </div>
 
       {/* Identity */}
-      <motion.div {...cardIn(0)} className="mt-3 flex items-center gap-5 px-6">
+      <motion.button {...cardIn(0)} whileTap={{ scale: 0.98 }} onClick={() => navigate('/profile/edit')} aria-label="Изменить профиль" className="mt-3 flex w-full items-center gap-5 px-6 text-left">
         <span className="relative rounded-full ring-[3px] ring-[#efe2d8]/85">
           <Avatar person={me} size={72} />
           {isTelegram && <span className="absolute bottom-0.5 right-0.5 h-4 w-4 rounded-full bg-pine-glow ring-[3px] ring-cocoa" aria-label="В сети" />}
         </span>
         <div className="min-w-0 flex-1">
           <h1 className="truncate text-section font-medium text-snow">{me.name === 'Вы' ? 'Гость' : me.name}</h1>
-          <p className="mt-0.5 truncate text-callout text-snow/65">{username ? `@${username} · Бесплатный план` : 'Бесплатный план'}</p>
+          <p className="mt-0.5 truncate text-callout text-snow/65">{profile.bio || (username ? `@${username} · Бесплатный план` : 'Бесплатный план')}</p>
+          <span className="mt-2 inline-flex h-8 items-center gap-1.5 rounded-full bg-white/[0.1] px-3 text-footnote text-snow/90">
+            <Icon name="edit" size={14} /> Изменить профиль
+          </span>
         </div>
-      </motion.div>
+      </motion.button>
 
       {/* Santa+ card */}
       <motion.section

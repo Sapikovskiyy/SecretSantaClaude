@@ -14,7 +14,9 @@ import type {
   GiftStatus,
   InterestId,
   Person,
+  Profile,
   Room,
+  RoomCover,
   RoomTheme,
   WishItem,
 } from '@/domain/types'
@@ -159,11 +161,14 @@ export interface CreateRoomInput {
   participantLimit?: number
   chatEnabled: boolean
   theme: RoomTheme
+  cover?: RoomCover
+  drawDate?: string
 }
 
 interface DemoState {
   onboarded: boolean
   me: Person
+  profile: Profile
   rooms: Room[]
   wishlist: WishItem[]
   interests: InterestId[]
@@ -175,7 +180,9 @@ interface DemoState {
 
   completeOnboarding(): void
   createRoom(input: CreateRoomInput): string
-  updateRoom(id: string, patch: Partial<Pick<Room, 'name' | 'description' | 'budget' | 'date' | 'chatEnabled' | 'theme' | 'participantLimit'>>): void
+  updateRoom(id: string, patch: Partial<Pick<Room, 'name' | 'description' | 'budget' | 'date' | 'drawDate' | 'chatEnabled' | 'theme' | 'cover' | 'participantLimit'>>): void
+  updateMe(patch: Partial<Pick<Person, 'name' | 'tint' | 'avatarArt'>>): void
+  updateProfile(patch: Partial<Profile>): void
   addDemoParticipant(roomId: string): Person | null
   removeMember(roomId: string, personId: string): void
   joinByCode(code: string): { status: 'joined' | 'already' | 'full' | 'invalid' | 'closed'; roomId?: string }
@@ -209,6 +216,7 @@ interface DemoState {
 const initial = () => ({
   onboarded: false,
   me: { id: ME, name: tgUserName() ?? 'Вы', tint: '#C7321C' } as Person,
+  profile: { bio: '' } as Profile,
   rooms: seedRooms(),
   wishlist: [] as WishItem[],
   interests: [] as InterestId[],
@@ -257,6 +265,8 @@ export const useDemo = create<DemoState>()(
         },
 
         updateRoom: (id, patch) => patchRoom(id, (r) => ({ ...r, ...patch })),
+        updateMe: (patch) => set((s) => ({ me: { ...s.me, ...patch } })),
+        updateProfile: (patch) => set((s) => ({ profile: { ...s.profile, ...patch } })),
 
         addDemoParticipant: (roomId) => {
           const room = get().rooms.find((r) => r.id === roomId)

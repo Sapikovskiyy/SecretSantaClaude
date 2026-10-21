@@ -7,7 +7,7 @@ import { startParam, tgUserName } from './lib/telegram'
 import { Welcome } from './screens/Welcome'
 import { Home } from './screens/Home'
 import { NotFound } from './screens/NotFound'
-import { CreateRoom, RoomDashboard, Invite, Join, Wishlist, Interests, Reveal, Chat, RecipientWishlist, GiftAI, Profile, Chats, Premium, Participants, Draw, prefetchScreens } from './lazyScreens'
+import { CreateRoom, RoomDashboard, Invite, Join, Wishlist, Interests, Reveal, Chat, RecipientWishlist, GiftAI, Profile, Chats, Premium, Participants, Draw, CustomizeRoom, EditProfile, prefetchScreens } from './lazyScreens'
 import { Offline } from './components/Offline'
 
 // The wishlist editor is a full-screen sheet flow (handoff 08), so it has no dock.
@@ -53,6 +53,7 @@ export function App() {
           <Route path="/rooms/:id/invite" element={<Invite />} />
           <Route path="/rooms/:id/participants" element={<Participants />} />
           <Route path="/rooms/:id/draw" element={<Draw />} />
+          <Route path="/rooms/:id/customize" element={<CustomizeRoom />} />
           <Route path="/rooms/:id/reveal" element={<Reveal />} />
           <Route path="/rooms/:id/recipient" element={<RecipientWishlist />} />
           <Route path="/rooms/:id/chat/:role" element={<Chat />} />
@@ -62,6 +63,7 @@ export function App() {
           <Route path="/wishlist/interests" element={<Interests />} />
           <Route path="/ai" element={<GiftAI />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/profile/edit" element={<EditProfile />} />
           <Route path="/chats" element={<Chats />} />
           <Route path="/premium" element={<Premium />} />
           <Route path="*" element={<NotFound />} />
