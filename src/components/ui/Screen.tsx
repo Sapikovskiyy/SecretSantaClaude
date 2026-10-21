@@ -3,6 +3,7 @@ import { useNavigate, useNavigationType } from 'react-router'
 import { motion } from 'motion/react'
 import { bindBackButton, isTelegram } from '@/lib/telegram'
 import { DUR, tween } from '@/motion/tokens'
+import { usesViewTransitions } from '@/motion/viewTransition'
 import { IconButton } from './Buttons'
 
 export type Surface = 'cocoa' | 'ember' | 'pine' | 'marzipan'
@@ -61,7 +62,8 @@ export function Screen({ children, surface = 'cocoa', back, right, className = '
   const showHeader = !headless && ((back && !isTelegram) || right)
   return (
     <motion.main
-      initial={{ opacity: 0, x: 8 * dir }}
+      // With view transitions the browser animates the whole screen; otherwise a short enter fade.
+      initial={usesViewTransitions() ? false : { opacity: 0, x: 8 * dir }}
       animate={{ opacity: 1, x: 0 }}
       transition={tween(DUR.enter)}
       className={`relative mx-auto flex min-h-dvh w-full max-w-[480px] flex-col overflow-x-clip ${surfaces[surface]} ${className}`}

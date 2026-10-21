@@ -66,9 +66,22 @@ export const itemVariants = {
   exit: { opacity: 0, x: -16, transition: tween(DUR.layout) },
 }
 
-/** Card entrance (opacity + translateY 12px). */
+/**
+ * Apple-style springs (SwiftUI semantics: visual duration + bounce).
+ * `smooth` = UIKit default (no overshoot), `snappy` = quick UI response, `bouncy` = playful accents.
+ */
+export const APPLE = {
+  smooth: { type: 'spring', visualDuration: 0.5, bounce: 0 } as Transition,
+  snappy: { type: 'spring', visualDuration: 0.3, bounce: 0.15 } as Transition,
+  bouncy: { type: 'spring', visualDuration: 0.45, bounce: 0.3 } as Transition,
+} as const
+
+/** Default for every motion component without its own transition (set on MotionConfig). */
+export const DEFAULT_TRANSITION: Transition = APPLE.snappy
+
+/** Card entrance: soft spring rise (opacity + translateY 14px), staggered 45 ms, max 5. */
 export const cardIn = (i = 0) => ({
-  initial: { opacity: 0, y: 12 },
+  initial: { opacity: 0, y: 14 },
   animate: { opacity: 1, y: 0 },
-  transition: { ...tween(DUR.card), delay: Math.min(i, MAX_STAGGERED) * STAGGER },
+  transition: { ...APPLE.smooth, opacity: tween(0.3), delay: Math.min(i, MAX_STAGGERED) * STAGGER },
 })

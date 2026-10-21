@@ -21,15 +21,18 @@ import { DEMO_WISHLISTS } from '@/data/demoSeed'
 import { interestById } from '@/domain/interests'
 import { formatRub, plural } from '@/lib/format'
 import { haptic } from '@/lib/telegram'
-import { EASE } from '@/motion/tokens'
+import { APPLE, EASE } from '@/motion/tokens'
 import { NotFound } from './NotFound'
 
 type Phase = 'idle' | 'tap' | 'opening' | 'glow' | 'card' | 'done'
 
-/** Box width; lid geometry is derived from the two renders (same source frame, base-width units). */
+/**
+ * Box width; lid placement in box-width units comes from scripts/fit-lid.mjs, which warps the
+ * CEO lid render (design/renders/gift-lid-v2.webp) onto the rim of gift-base.webp.
+ */
 const BOX = 216
-const LID = { left: -0.0683 * BOX, top: -0.389 * BOX, width: 1.1404 * BOX }
-const BOX_H = 0.7837 * BOX
+const LID = { left: -0.0226 * BOX, top: -0.1964 * BOX, width: 1.056 * BOX }
+const BOX_H = 0.7833 * BOX
 
 export function Reveal() {
   const { id } = useParams()
@@ -143,11 +146,17 @@ export function Reveal() {
               aria-label="Открыть подарок"
               onClick={open}
               className="relative"
-              style={{ width: BOX, height: BOX_H - LID.top }}
+              style={{ width: BOX, height: BOX_H - LID.top, transformOrigin: '50% 100%' }}
               initial={{ opacity: 0, scale: 0.92 }}
-              animate={phase === 'tap' ? { opacity: 1, scale: 0.95 } : { opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.06, y: 16, transition: { duration: 0.25 } }}
-              transition={{ duration: phase === 'tap' ? 0.12 : 0.3, ease: EASE }}
+              animate={
+                phase === 'tap'
+                  ? { opacity: 1, scaleX: 1.04, scaleY: 0.93, scale: 1 } // anticipation: the box squashes
+                  : lifting
+                    ? { opacity: 1, scaleX: 1, scaleY: 1, scale: 1 } // …and springs back as the lid pops
+                    : { opacity: 1, scaleX: 1, scaleY: 1, scale: 1 }
+              }
+              exit={{ opacity: 0, scale: 1.04, y: 18, transition: { duration: 0.28, ease: EASE } }}
+              transition={phase === 'tap' ? { duration: 0.12, ease: EASE } : APPLE.bouncy}
             >
               <span className="absolute inset-x-[8%] bottom-[-14px] h-7 rounded-[50%] bg-[radial-gradient(closest-side,rgba(40,6,2,.55),transparent)]" />
               <span className="absolute left-0 bottom-0 block" style={{ width: BOX }}>
@@ -159,14 +168,15 @@ export function Reveal() {
                 initial={false}
                 animate={
                   lifting
-                    ? { y: -BOX * 0.62, x: BOX * 0.2, rotate: 16, opacity: 0 }
+                    ? // the lid pops off on an arc: up, drifting right, tipping over, then fades
+                      { y: [0, -BOX * 0.38, -BOX * 0.88, -BOX * 0.98], x: [0, BOX * 0.1, BOX * 0.38, BOX * 0.44], rotate: [0, -5, 22, 26], opacity: [1, 1, 1, 0] }
                     : phase === 'idle'
                       ? { y: [0, -3, 0], rotate: 0, opacity: 1 }
                       : { y: 0, rotate: 0, opacity: 1 }
                 }
                 transition={
                   lifting
-                    ? { duration: 0.6, ease: [0.3, 0.7, 0.4, 1], opacity: { duration: 0.6, delay: 0.25 } }
+                    ? { duration: 0.7, times: [0, 0.4, 0.78, 1], ease: [0.32, 0.72, 0, 1] }
                     : phase === 'idle'
                       ? { duration: 2.6, repeat: Infinity, ease: 'easeInOut' }
                       : { duration: 0.12 }
@@ -185,12 +195,17 @@ export function Reveal() {
               key="card"
               initial={reduce ? { opacity: 0 } : { opacity: 0, y: 90, scale: 0.78 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ duration: reduce ? 0.2 : 0.42, ease: EASE }}
+              transition={reduce ? { duration: 0.2 } : { ...APPLE.bouncy, opacity: { duration: 0.25 } }}
               className="absolute mt-[48px] flex w-[76%] max-w-[300px] flex-col items-center rounded-[30px] bg-[linear-gradient(180deg,#fff1e3,#fde5cf)] px-6 pb-6 pt-[86px] text-center text-ink shadow-[0_30px_60px_-24px_rgba(40,6,2,.75)]"
             >
-              <span className="absolute -top-[54px] flex h-[132px] w-[132px] items-center justify-center rounded-[36px] bg-[linear-gradient(180deg,#fff4e8,#f8dcc3)] shadow-[0_14px_30px_-16px_rgba(40,6,2,.6)]">
+              <motion.span
+                initial={reduce ? false : { scale: 0.6, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ ...APPLE.bouncy, delay: 0.12 }}
+                className="absolute -top-[54px] flex h-[132px] w-[132px] items-center justify-center rounded-[36px] bg-[linear-gradient(180deg,#fff4e8,#f8dcc3)] shadow-[0_14px_30px_-16px_rgba(40,6,2,.6)]"
+              >
                 <Avatar person={recipient} size={104} />
-              </span>
+              </motion.span>
               <p className="text-hero font-semibold leading-none tracking-[-0.02em]">{recipient.name}</p>
               <p className="mt-3 text-callout leading-snug text-ink/80">Теперь можно посмотреть вишлист и начать готовить подарок!</p>
               <button onClick={() => setHintsOpen(true)} className="mt-3 flex h-10 items-center gap-1.5 rounded-full bg-ink/[0.06] px-4 text-footnote font-semibold text-ink">

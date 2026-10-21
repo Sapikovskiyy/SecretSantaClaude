@@ -100,6 +100,27 @@ export function DemoBadge({ className = '' }: { className?: string }) {
   )
 }
 
+let openSheets = 0
+/** Scales the page around the visible viewport and clips it to rounded corners (iOS sheet look). */
+function recedePage(delta: 1 | -1) {
+  openSheets = Math.max(0, openSheets + delta)
+  const html = document.documentElement
+  const root = document.getElementById('root')
+  if (!root) return
+  if (openSheets > 0) {
+    const y = window.scrollY
+    root.style.transformOrigin = `50% ${y + window.innerHeight / 2}px`
+    root.style.clipPath = `inset(${y}px 0 ${Math.max(0, root.scrollHeight - y - window.innerHeight)}px 0 round 22px)`
+    html.dataset.sheet = ''
+  } else {
+    delete html.dataset.sheet
+    // keep origin/clip until the scale-back transition has finished
+    window.setTimeout(() => {
+      if (openSheets === 0) root.style.clipPath = ''
+    }, 520)
+  }
+}
+
 /** Bottom sheet — the reference's rounded panel, used for all secondary flows. */
 export function Sheet({
   open,
@@ -124,6 +145,13 @@ export function Sheet({
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
+  // iOS card sheet: the page behind recedes while any sheet is open (CSS: html[data-sheet] #root).
+  useEffect(() => {
+    if (!open) return
+    recedePage(1)
+    return () => recedePage(-1)
+  }, [open])
+
   // Portal to <body>: screens are transformed (page transitions), which would
   // otherwise trap the sheet below the floating dock.
   return createPortal(
@@ -131,7 +159,7 @@ export function Sheet({
       {open && (
         <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label={title}>
           <motion.div
-            className="absolute inset-0 bg-bark/70 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-bark/45"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -269,6 +297,7 @@ export function Dock() {
     <nav
       className={`fixed inset-x-4 z-40 mx-auto flex h-[65px] max-w-[448px] items-center justify-between rounded-[33px] bg-[#30221b] px-[21px] shadow-[0_12px_30px_-10px_rgba(0,0,0,.55),inset_0_1px_0_rgba(255,255,255,.05)] ring-1 ring-white/[0.06] ${armed ? '' : 'pointer-events-none'}`}
       style={{ bottom: 'calc(var(--sa-bottom) + 16px)' }}
+      data-dock
       aria-label="Основная навигация"
     >
       {dockItems.map((it) => (
@@ -289,7 +318,14 @@ export function Dock() {
                   aria-hidden
                 />
               )}
-              <motion.span className="relative flex" whileTap={{ scale: 0.86 }} transition={{ type: 'spring', stiffness: 700, damping: 30 }}>
+              <motion.span
+                className="relative flex"
+                initial={false}
+                // the icon pops once when its tab becomes active (iOS tab bar feel)
+                animate={isActive ? { scale: [1, 1.16, 1] } : { scale: 1 }}
+                transition={{ duration: 0.38, ease: [0.32, 0.72, 0, 1] }}
+                whileTap={{ scale: 0.86, transition: { type: 'spring', stiffness: 700, damping: 30 } }}
+              >
                 <Icon name={it.icon} size={27} strokeWidth={1.7} />
               </motion.span>
             </>

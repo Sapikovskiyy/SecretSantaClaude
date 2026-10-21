@@ -3,15 +3,29 @@
  * every other screen is its own chunk, prefetched while the browser is idle right after
  * the first screen renders — so navigation never waits on the network in practice.
  */
-import { lazy, type ComponentType } from 'react'
+import { createElement, lazy, type ComponentType } from 'react'
 
-type Loader = () => Promise<Record<string, ComponentType>>
+type Loader = () => Promise<unknown>
 const loaders: Loader[] = []
 
-function screen<K extends string>(load: () => Promise<Record<K, ComponentType>>, name: K) {
-  loaders.push(load as Loader)
-  return lazy(() => load().then((m) => ({ default: m[name] })))
+/**
+ * Once its chunk has loaded, a screen renders synchronously (no Suspense round-trip), so a view
+ * transition snapshot always contains the real screen instead of an empty fallback.
+ */
+function screen<K extends string>(load: () => Promise<Record<K, ComponentType>>, name: K): ComponentType {
+  let Loaded: ComponentType | null = null
+  let pending: Promise<unknown> | null = null
+  const get = () => (pending ??= load().then((m) => (Loaded = m[name])))
+  loaders.push(get)
+  const Lazy = lazy(() => get().then(() => ({ default: Loaded! })))
+  return function Screen(props: object) {
+    return createElement(Loaded ?? Lazy, props)
+  }
 }
+
+let all: Promise<unknown> | null = null
+/** Resolves when every screen chunk is loaded (starts loading them if needed). */
+export const whenScreensReady = () => (all ??= Promise.all(loaders.map((l) => l().catch(() => {}))))
 
 export const CreateRoom = screen(() => import('./screens/CreateRoom'), 'CreateRoom')
 export const RoomDashboard = screen(() => import('./screens/RoomDashboard'), 'RoomDashboard')
@@ -38,7 +52,7 @@ export function prefetchScreens() {
   const run = () => {
     if (ran) return
     ran = true
-    loaders.forEach((l) => l().catch(() => {}))
+    void whenScreensReady()
   }
   const ric = (window as unknown as { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback
   // Only after the page has fully loaded (first screen painted, hero images in), then on idle.

@@ -303,10 +303,13 @@ function ReadRow({ label, value }: { label: string; value: string }) {
 /** Green iOS-style switch (reference: «Анонимный чат»). */
 function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label: string }) {
   return (
-    <button
+    <motion.button
       role="switch"
       aria-checked={checked}
       aria-label={label}
+      initial={false}
+      animate="rest"
+      whileTap="pressed"
       onClick={(e) => {
         e.preventDefault()
         haptic.select()
@@ -315,10 +318,13 @@ function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: 
       className={`relative h-[31px] w-[51px] shrink-0 rounded-full transition-colors duration-150 ${checked ? 'bg-[#15935c]' : 'bg-white/20'}`}
     >
       <motion.span
-        className="absolute left-0 top-[2px] h-[27px] w-[27px] rounded-full bg-snow shadow-[0_2px_4px_rgba(0,0,0,.25)]"
-        animate={{ x: checked ? 22 : 2 }}
-        transition={{ type: 'spring', stiffness: 700, damping: 38 }}
+        className="absolute left-0 top-[2px] h-[27px] rounded-full bg-snow shadow-[0_2px_4px_rgba(0,0,0,.25)]"
+        variants={{
+          rest: { x: checked ? 22 : 2, width: 27 },
+          pressed: { x: checked ? 16 : 2, width: 33 },
+        }}
+        transition={{ type: 'spring', visualDuration: 0.28, bounce: 0.2 }}
       />
-    </button>
+    </motion.button>
   )
 }

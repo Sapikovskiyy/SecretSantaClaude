@@ -12,6 +12,7 @@ import { Screen } from '@/components/ui/Screen'
 import { Avatar, Sheet, Toggle, inputLight } from '@/components/ui/Kit'
 import { Icon, type IconName } from '@/components/ui/Icon'
 import { ErrorState, SantomiButton } from '@/components/ds'
+import { CollapsingHeader, useLargeTitle } from '@/components/ds/apple'
 import { ME, isMember, useDemo } from '@/data/demoStore'
 import { personName, useRoomPeople } from '@/data/people'
 import { drawAssignments } from '@/domain/draw'
@@ -38,6 +39,7 @@ export function Participants() {
   const [menuFor, setMenuFor] = useState<string | null>(null)
   const [addEx, setAddEx] = useState(false)
   const [rules, setRules] = useState(false)
+  const largeTitle = useLargeTitle()
 
   const feasible = useMemo(() => {
     if (!room || room.members.length < 3) return true
@@ -51,16 +53,19 @@ export function Participants() {
 
   return (
     <Screen back={`/rooms/${room.id}`} headless surface="cocoa" className="!pb-0">
-      {/* Header */}
-      <div className="mt-[22px] flex h-12 items-center justify-between px-[22px]">
-        {!isTelegram ? (
+      {/* Header: sticky, gains a blurred bar + compact title once the large title scrolls away */}
+      <CollapsingHeader
+        className="mt-[22px]"
+        title="Участники"
+        left={
+          !isTelegram ? (
           <motion.button whileTap={PRESS} aria-label="Назад" onClick={() => navigate(`/rooms/${room.id}`)} className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
             <Icon name="back" size={22} />
           </motion.button>
-        ) : (
-          <span className="w-12" />
-        )}
-        {editable ? (
+          ) : undefined
+        }
+        right={
+          editable ? (
           <motion.button
             whileTap={PRESS}
             aria-label="Пригласить участников"
@@ -69,13 +74,14 @@ export function Participants() {
           >
             <Icon name="plus" size={26} strokeWidth={1.5} />
           </motion.button>
-        ) : (
-          <span className="w-12" />
-        )}
-      </div>
+          ) : undefined
+        }
+      />
 
       <div className="px-6 pt-[22px]">
-        <h1 className="t-page-tight text-snow">Участники</h1>
+        <motion.h1 style={largeTitle} className="t-page-tight text-snow">
+          Участники
+        </motion.h1>
         <p className="mt-2 text-body text-snow/75">
           {people.length} {plural(people.length, 'человек', 'человека', 'человек')}
         </p>

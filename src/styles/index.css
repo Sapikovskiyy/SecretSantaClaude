@@ -261,3 +261,63 @@ body {
 .chev > *:nth-child(1) { animation: chevrons 1.6s infinite; }
 .chev > *:nth-child(2) { animation: chevrons 1.6s 0.2s infinite; }
 .chev > *:nth-child(3) { animation: chevrons 1.6s 0.4s infinite; }
+
+/*
+  View transitions — iOS navigation (src/motion/viewTransition.ts sets html[data-nav]).
+  Curve and timing follow UIKit's interactive push: ~0.42 s, strong ease-out, no bounce.
+*/
+::view-transition-group(root) {
+  animation-duration: 0.42s;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+}
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.42s;
+  animation-timing-function: cubic-bezier(0.32, 0.72, 0, 1);
+  mix-blend-mode: normal;
+}
+html[data-nav='forward']::view-transition-old(root) { animation-name: vt-push-out; }
+html[data-nav='forward']::view-transition-new(root) {
+  animation-name: vt-push-in;
+  box-shadow: -14px 0 36px rgba(0, 0, 0, 0.45);
+}
+html[data-nav='back']::view-transition-old(root) {
+  animation-name: vt-pop-out;
+  z-index: 2;
+  box-shadow: -14px 0 36px rgba(0, 0, 0, 0.45);
+}
+html[data-nav='back']::view-transition-new(root) { animation-name: vt-pop-in; }
+html[data-nav='tab']::view-transition-old(root) { animation: vt-fade-out 0.18s ease both; }
+html[data-nav='tab']::view-transition-new(root) { animation: vt-fade-in 0.22s ease both; }
+
+@keyframes vt-push-in { from { transform: translateX(100%); } }
+@keyframes vt-push-out { to { transform: translateX(-28%); filter: brightness(0.7); } }
+@keyframes vt-pop-in { from { transform: translateX(-28%); filter: brightness(0.7); } }
+@keyframes vt-pop-out { to { transform: translateX(100%); } }
+@keyframes vt-fade-out { to { opacity: 0; } }
+@keyframes vt-fade-in { from { opacity: 0; } }
+
+/* Between dock tabs the dock stays put; on push/pop it simply travels with its screen. */
+html[data-nav='tab'] [data-dock] { view-transition-name: dock; }
+::view-transition-group(dock) { animation-duration: 0.22s; }
+
+/*
+  iOS card sheet: while a bottom sheet is open the page recedes (scale + rounded corners + dim).
+  The origin follows the viewport centre and the rounded clip is set by recedePage() in Kit.tsx.
+*/
+#root {
+  transition:
+    transform 0.5s cubic-bezier(0.32, 0.72, 0, 1),
+    filter 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+}
+html[data-sheet] #root {
+  transform: scale(0.94);
+  filter: brightness(0.75);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+  html[data-sheet] #root { transform: none; filter: none; }
+}

@@ -12,6 +12,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
 import { SantomiButton } from '@/components/ds'
 import { Icon } from '@/components/ui/Icon'
+import { AnimatedCheck } from '@/components/ds/apple'
 import { Art } from '@/components/art/Art'
 import { INTERESTS, type InterestMeta } from '@/domain/interests'
 import type { InterestId } from '@/domain/types'
@@ -137,7 +138,7 @@ function InterestTile({ item, tall, selected, onToggle }: { item: InterestMeta; 
             transition={{ duration: DUR.chip, ease: EASE }}
             className="absolute right-3 top-3 flex h-[30px] w-[30px] items-center justify-center rounded-full bg-snow text-ink shadow-[0_4px_10px_-4px_rgba(0,0,0,.5)]"
           >
-            <Icon name="check" size={17} strokeWidth={2.4} />
+            <AnimatedCheck size={17} strokeWidth={2.6} />
           </motion.span>
         )}
       </AnimatePresence>

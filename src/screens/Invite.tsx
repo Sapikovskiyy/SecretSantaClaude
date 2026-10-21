@@ -14,6 +14,7 @@ import { Avatar } from '@/components/ui/Kit'
 import { Icon } from '@/components/ui/Icon'
 import { Art } from '@/components/art/Art'
 import { SantomiButton } from '@/components/ds'
+import { RollingNumber } from '@/components/ds/apple'
 import { FREE_PARTICIPANT_LIMIT, useDemo } from '@/data/demoStore'
 import { useRoomPeople } from '@/data/people'
 import { copyText, inviteLink, shareInvite } from '@/lib/share'
@@ -148,7 +149,7 @@ export function Invite() {
         </div>
         <div className="min-w-0">
           <p className="whitespace-nowrap text-callout text-snow">
-            {people.length} из {limit} {plural(limit, 'участника', 'участников', 'участников')}
+            <RollingNumber value={people.length} /> из {limit} {plural(limit, 'участника', 'участников', 'участников')}
           </p>
           <p className="mt-[2px] text-caption text-taupe-soft">{full ? 'Мест больше нет' : `Свободно ${free} ${plural(free, 'место', 'места', 'мест')}`}</p>
         </div>

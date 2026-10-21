@@ -1,5 +1,6 @@
 import { Suspense, useEffect, useState } from 'react'
-import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router'
+import { Navigate, Route, Routes, useNavigate } from 'react-router'
+import { useTransitionLocation } from './motion/viewTransition'
 import { useDemo } from './data/demoStore'
 import { Dock, Toasts } from './components/ui/Kit'
 import { startParam, tgUserName } from './lib/telegram'
@@ -18,7 +19,8 @@ if (tgName && useDemo.getState().me.name === 'Вы') useDemo.setState((s) => ({ 
 
 /** Demo app (Demo Mode only — main.tsx never loads this chunk in production builds). */
 export function App() {
-  const location = useLocation()
+  // The location Routes renders: switches inside a view transition (iOS push / pop / tab fade).
+  const location = useTransitionLocation(DOCK_ROUTES)
   const navigate = useNavigate()
   const onboarded = useDemo((s) => s.onboarded)
   const [handledStart, setHandledStart] = useState(false)
@@ -39,7 +41,7 @@ export function App() {
     <>
       <Offline />
       <Toasts />
-      {/* No exit animations: the next screen appears immediately (≈200 ms enter), never via a dark gap. */}
+      {/* Screen changes are view transitions (motion/viewTransition.ts); no exit DOM, never a dark gap. */}
       {/* fallback is empty: chunks are prefetched on idle, the body is already the app's colour */}
       <Suspense fallback={null}>
       <Routes location={location} key={location.pathname}>

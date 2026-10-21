@@ -11,6 +11,7 @@ import { Link, useNavigate } from 'react-router'
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react'
 import { Screen } from '@/components/ui/Screen'
 import { PrimaryCTA, buttonClass } from '@/components/ds'
+import { CollapsingHeader, useLargeTitle } from '@/components/ds/apple'
 import { Icon, type IconName } from '@/components/ui/Icon'
 import { Sheet } from '@/components/ui/Kit'
 import { Art } from '@/components/art/Art'
@@ -52,6 +53,7 @@ export function Wishlist() {
   const [editing, setEditing] = useState<string | null | undefined>(undefined)
   const [menuFor, setMenuFor] = useState<string | null>(null)
   const [avoidOpen, setAvoidOpen] = useState(false)
+  const largeTitle = useLargeTitle()
 
   const withLinks = wishlist.filter((w) => w.url)
   const shown = filter === 'links' ? withLinks : wishlist
@@ -64,22 +66,28 @@ export function Wishlist() {
 
   return (
     <Screen surface="cocoa" back="/home" headless className="!pb-0">
-      {/* Header: back circle + add circle */}
-      <div className="mt-[34px] flex h-12 items-center justify-between px-[22px] [@media(max-height:820px)]:mt-4">
-        {!isTelegram ? (
-          <motion.button whileTap={PRESS} aria-label="Назад" onClick={() => navigate('/home')} className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
-            <Icon name="back" size={22} />
+      {/* Header: back circle + add circle; sticky iOS bar with a compact title on scroll */}
+      <CollapsingHeader
+        className="mt-[34px] [@media(max-height:820px)]:mt-4"
+        title="Мой вишлист"
+        left={
+          !isTelegram ? (
+            <motion.button whileTap={PRESS} aria-label="Назад" onClick={() => navigate('/home')} className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10">
+              <Icon name="back" size={22} />
+            </motion.button>
+          ) : undefined
+        }
+        right={
+          <motion.button whileTap={PRESS} aria-label="Добавить желание" onClick={openNew} className="flex h-[46px] w-[46px] items-center justify-center rounded-full border-[1.25px] border-[#e2c7b4]/85 text-snow">
+            <Icon name="plus" size={26} strokeWidth={1.5} />
           </motion.button>
-        ) : (
-          <span className="w-12" />
-        )}
-        <motion.button whileTap={PRESS} aria-label="Добавить желание" onClick={openNew} className="flex h-[46px] w-[46px] items-center justify-center rounded-full border-[1.25px] border-[#e2c7b4]/85 text-snow">
-          <Icon name="plus" size={26} strokeWidth={1.5} />
-        </motion.button>
-      </div>
+        }
+      />
 
       <div className="px-6 pt-[22px] [@media(max-height:820px)]:pt-3">
-        <h1 className="t-page-tight text-snow">Мой вишлист</h1>
+        <motion.h1 style={largeTitle} className="t-page-tight text-snow">
+          Мой вишлист
+        </motion.h1>
         <p className="t-lead mt-2 text-snow/80">Добавьте подарки, которые хотели бы получить</p>
       </div>
 

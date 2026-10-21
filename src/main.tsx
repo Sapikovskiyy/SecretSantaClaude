@@ -12,6 +12,7 @@ import { lazy, Suspense } from 'react'
 import { connectTelegram, initTelegram, launchedInTelegram } from './lib/telegram'
 import { IS_DEMO } from './lib/mode'
 import { ServerNotConnected } from './screens/ServerNotConnected'
+import { DEFAULT_TRANSITION } from './motion/tokens'
 
 // The demo app (local store + seed data) is a separate chunk: production builds never ship it.
 const App = IS_DEMO ? lazy(() => import('./App').then((m) => ({ default: m.App }))) : () => null
@@ -37,7 +38,7 @@ whenSdkReady().then(() => {
 
   createRoot(document.getElementById('root')!).render(
     <StrictMode>
-      <MotionConfig reducedMotion="user">
+      <MotionConfig reducedMotion="user" transition={DEFAULT_TRANSITION}>
         <BrowserRouter>
           {IS_DEMO ? (
             <Suspense fallback={null}>
